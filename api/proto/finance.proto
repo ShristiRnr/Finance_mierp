@@ -1,0 +1,962 @@
+syntax = "proto3";
+
+package finance;
+
+option go_package = "github.com/ShristiRnr/Finance/api/proto/financepb;financepb";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+import "google/type/money.proto";
+
+// =========================================================
+// ================ Common & Infrastructure ================
+// =========================================================
+
+message RequestMetadata {
+  string request_id = 1;        // Idempotency key
+  string organization_id = 2;   // multi-tenant hints
+  string tenant_id = 3;
+
+  // Optional: who/what invoked (useful for OPA/Vault, Istio attributes)
+  string auth_subject = 4;      // user or service principal
+  string source_system = 5;     // "CRM","VMS","INVENTORY","HRMS","FINANCE-UI", etc.
+  string trace_id = 6;          // for distributed tracing across mesh
+}
+
+message AuditFields {
+  google.protobuf.Timestamp created_at = 1;
+  string created_by = 2;
+  google.protobuf.Timestamp updated_at = 3;
+  string updated_by = 4;
+  string revision = 5; // optimistic concurrency token/etag
+}
+
+message PageRequest {
+  int32 page_size = 1;            // server may cap (e.g., 1000)
+  string page_token = 2;          // opaque
+  string filter = 3;              // e.g., "status = 'ISSUED' AND due_date < '2025-09-01'"
+  string order_by = 4;            // e.g., "invoice_date desc, invoice_number asc"
+}
+
+message PageResponse {
+  string next_page_token = 1;
+  int64 total_size = 2;
+}
+
+message Id { string id = 1; }
+
+message ExternalRef {
+  string system = 1; // "CRM","VMS","INVENTORY","GST","HRMS","MAINTENANCE", etc.
+  string id = 2;     // foreign id in that system
+}
+
+message PartyRef {
+  enum Kind {
+    KIND_UNSPECIFIED = 0;
+    KIND_CUSTOMER = 1; // CRM
+    KIND_VENDOR = 2;   // VMS
+  }
+  Kind kind = 1;
+  ExternalRef ref = 2;
+  string display_name = 3; // optional tiny snapshot for UX
+}
+
+// =========================================================
+// ====================== Enumerations =====================
+// =========================================================
+
+enum InvoiceType {
+  INVOICE_TYPE_UNSPECIFIED = 0;
+  INVOICE_TYPE_SALES = 1;
+  INVOICE_TYPE_PROFORMA = 2;
+  INVOICE_TYPE_CHALLAN = 3;
+  INVOICE_TYPE_PURCHASE = 4;
+}
+
+enum InvoiceStatus {
+  INVOICE_STATUS_UNSPECIFIED = 0;
+  INVOICE_STATUS_DRAFT = 1;
+  INVOICE_STATUS_ISSUED = 2;
+  INVOICE_STATUS_PARTIALLY_PAID = 3;
+  INVOICE_STATUS_PAID = 4;
+  INVOICE_STATUS_VOID = 5;
+  INVOICE_STATUS_OVERDUE = 6;
+}
+
+enum PaymentStatus {
+  PAYMENT_STATUS_UNSPECIFIED = 0;
+  PAYMENT_STATUS_DUE = 1;
+  PAYMENT_STATUS_PARTIALLY_PAID = 2;
+  PAYMENT_STATUS_PAID = 3;
+  PAYMENT_STATUS_WRITEOFF = 4;
+}
+
+enum NoteType {
+  NOTE_TYPE_UNSPECIFIED = 0;
+  NOTE_TYPE_CREDIT = 1;
+  NOTE_TYPE_DEBIT = 2;
+}
+
+enum TaxType {
+  TAX_TYPE_UNSPECIFIED = 0;
+  TAX_TYPE_CGST = 1;
+  TAX_TYPE_SGST = 2;
+  TAX_TYPE_IGST = 3;
+  TAX_TYPE_VAT = 4;
+  TAX_TYPE_OTHER = 10;
+}
+
+enum LedgerSide {
+  LEDGER_SIDE_UNSPECIFIED = 0;
+  LEDGER_SIDE_DEBIT = 1;
+  LEDGER_SIDE_CREDIT = 2;
+}
+
+enum AccountType {
+  ACCOUNT_TYPE_UNSPECIFIED = 0;
+  ACCOUNT_ASSET = 1;
+  ACCOUNT_LIABILITY = 2;
+  ACCOUNT_EQUITY = 3;
+  ACCOUNT_REVENUE = 4;
+  ACCOUNT_EXPENSE = 5;
+}
+
+enum AccountStatus {
+  ACCOUNT_STATUS_UNSPECIFIED = 0;
+  ACCOUNT_ACTIVE = 1;
+  ACCOUNT_INACTIVE = 2;
+  ACCOUNT_ARCHIVED = 3;
+}
+
+// =========================================================
+// ======================= Tax / GST =======================
+// =========================================================
+
+enum TaxType {
+  TAX_TYPE_UNSPECIFIED = 0;
+  TAX_TYPE_CGST = 1;
+  TAX_TYPE_SGST = 2;
+  TAX_TYPE_IGST = 3;
+  TAX_TYPE_VAT = 4;
+  TAX_TYPE_OTHER = 10;
+}
+
+message TaxLine {
+  TaxType type = 1;
+  double rate_percent = 2;          // e.g., 18.0
+  google.type.Money amount = 3;     // computed or provided
+}
+
+message Discount {
+  string description = 1;
+  double rate_percent = 2;         // e.g., 5% discount
+  google.type.Money amount = 3;    // computed discount amount
+}
+
+message GstBreakup {
+  google.type.Money taxable_amount = 1; 
+  google.type.Money cgst = 2; 
+  google.type.Money sgst = 3; 
+  google.type.Money igst = 4; 
+  google.type.Money total_gst = 5; // cgst+sgst+igst
+}
+
+message GstTaxRegime { 
+    string gstin = 1; // seller GSTIN 
+    string place_of_supply = 2; // state code 
+    bool reverse_charge = 3; }
+
+message GstDocStatus {
+  enum EInvoiceStatus {
+    EINV_STATUS_UNSPECIFIED = 0;
+    EINV_PENDING = 1;
+    EINV_GENERATED = 2;
+    EINV_CANCELLED = 3;
+    EINV_FAILED = 4;
+  }
+  enum EWayStatus {
+    EWAY_STATUS_UNSPECIFIED = 0;
+    EWAY_PENDING = 1;
+    EWAY_GENERATED = 2;
+    EWAY_EXPIRED = 3;
+    EWAY_CANCELLED = 4;
+    EWAY_FAILED = 5;
+  }
+
+  // E-invoice
+  EInvoiceStatus einvoice_status = 1;
+  string irn = 2;
+  string ack_no = 3;
+  google.protobuf.Timestamp ack_date = 4;
+
+  // E-way bill
+  EWayStatus eway_status = 5;
+  string eway_bill_no = 6;
+  google.protobuf.Timestamp eway_valid_upto = 7;
+
+  string last_error = 8;
+  google.protobuf.Timestamp last_synced_at = 9;
+}
+
+// =========================================================
+// ==================== PHASE 1: Core ======================
+// =========================================================
+// Invoice Mgmt • Credit/Debit • Payments & Bank Reco
+// Ledger Mgmt • Budgeting & Tracking • Cost Accounting (base)
+// Basic Audit Trails
+
+// ---------------------- Invoice --------------------------
+
+message InvoiceItem {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string hsn = 4;                   // may contain leading zeros
+  int32 quantity = 5;
+  google.type.Money unit_price = 6;
+  google.type.Money line_subtotal = 7; // pre-tax/discount
+  repeated Discount discounts = 8;     // item-level discounts
+  repeated TaxLine taxes = 8;
+  google.type.Money line_total = 9;    // subtotal + taxes
+  string cost_center_id = 10;          // base cost accounting
+}
+
+message Invoice {
+  string id = 1;
+  string invoice_number = 2;
+  InvoiceType type = 3;
+  google.protobuf.Timestamp invoice_date = 4;
+  google.protobuf.Timestamp due_date = 5;
+  google.protobuf.Timestamp delivery_date = 6;
+  PartyRef party = 7;
+  string organization_id = 8;
+  string po_number = 9;
+  string eway_number_legacy = 10; // prefer gst_docs
+  string status_note = 11;
+  InvoiceStatus status = 12;
+
+  // Payments/logistics references
+  string payment_reference = 13;   // cheque/UTR/ref no.
+  string challan_number = 14;
+  google.protobuf.Timestamp challan_date = 15;
+  string lr_number = 16;
+  string transporter_name = 17;
+  string transporter_id = 18;
+  string vehicle_number = 19;
+  string against_invoice_number = 20;
+  google.protobuf.Timestamp against_invoice_date = 21;
+
+  repeated InvoiceItem items = 22;
+
+  // Totals
+  google.type.Money subtotal = 23;        // sum of item line_subtotals
+  repeated Discount discounts = 24;       // invoice-level discounts
+  repeated TaxLine taxes = 25;            // invoice-level taxes
+  GstBreakup gst_breakup = 26;            // full GST breakup
+  google.type.Money grand_total = 27;     // final after discounts + taxes
+
+  AuditFields audit = 26;
+
+  // GST integration (optional)
+  GstTaxRegime gst = 29;
+  GstDocStatus gst_docs = 30;
+
+  repeated ExternalRef external_refs = 31;
+}
+
+message CreateInvoiceRequest { RequestMetadata meta = 1; Invoice invoice = 2; }
+message GetInvoiceRequest { string id = 1; }
+message UpdateInvoiceRequest {
+  RequestMetadata meta = 1;
+  Invoice invoice = 2;
+  google.protobuf.FieldMask update_mask = 3;
+}
+message DeleteInvoiceRequest { RequestMetadata meta = 1; string id = 2; }
+
+message ListInvoicesRequest { PageRequest page = 1; }
+message ListInvoicesResponse { repeated Invoice invoices = 1; PageResponse page = 2; }
+
+message SearchInvoicesRequest {
+  PageRequest page = 1;
+  string query = 2; // free-text on number/party/po/etc.
+}
+
+service InvoiceService {
+  rpc CreateInvoice(CreateInvoiceRequest) returns (Invoice);
+  rpc GetInvoice(GetInvoiceRequest) returns (Invoice);
+  rpc ListInvoices(ListInvoicesRequest) returns (ListInvoicesResponse);
+  rpc SearchInvoices(SearchInvoicesRequest) returns (ListInvoicesResponse);
+  rpc UpdateInvoice(UpdateInvoiceRequest) returns (Invoice);
+  rpc DeleteInvoice(DeleteInvoiceRequest) returns (google.protobuf.Empty);
+}
+
+// ------------------ Credit / Debit Notes -----------------
+
+message CreditDebitNote {
+  string id = 1;
+  string invoice_id = 2;
+  NoteType type = 3;
+  google.type.Money amount = 4;
+  string reason = 5;
+  AuditFields audit = 6;
+  repeated ExternalRef external_refs = 7;
+}
+
+message CreateCreditDebitNoteRequest { RequestMetadata meta = 1; CreditDebitNote note = 2; }
+message GetCreditDebitNoteRequest { string id = 1; }
+message UpdateCreditDebitNoteRequest {
+  RequestMetadata meta = 1;
+  CreditDebitNote note = 2;
+  google.protobuf.FieldMask update_mask = 3;
+}
+message DeleteCreditDebitNoteRequest { RequestMetadata meta = 1; string id = 2; }
+message ListCreditDebitNotesRequest { PageRequest page = 1; }
+message ListCreditDebitNotesResponse { repeated CreditDebitNote notes = 1; PageResponse page = 2; }
+
+service CreditDebitNoteService {
+  rpc CreateCreditDebitNote(CreateCreditDebitNoteRequest) returns (CreditDebitNote);
+  rpc GetCreditDebitNote(GetCreditDebitNoteRequest) returns (CreditDebitNote);
+  rpc ListCreditDebitNotes(ListCreditDebitNotesRequest) returns (ListCreditDebitNotesResponse);
+  rpc UpdateCreditDebitNote(UpdateCreditDebitNoteRequest) returns (CreditDebitNote);
+  rpc DeleteCreditDebitNote(DeleteCreditDebitNoteRequest) returns (google.protobuf.Empty);
+}
+
+// --------------- Payments & Bank Reconciliation ----------
+
+message PaymentDue {
+  string id = 1;
+  string invoice_id = 2;
+  google.type.Money amount_due = 3;
+  google.protobuf.Timestamp due_date = 4;
+  PaymentStatus status = 5;
+  AuditFields audit = 6;
+  repeated ExternalRef external_refs = 7;
+}
+
+message CreatePaymentDueRequest { RequestMetadata meta = 1; PaymentDue due = 2; }
+message GetPaymentDueRequest { string id = 1; }
+message UpdatePaymentDueRequest {
+  RequestMetadata meta = 1;
+  PaymentDue due = 2;
+  google.protobuf.FieldMask update_mask = 3;
+}
+message DeletePaymentDueRequest { RequestMetadata meta = 1; string id = 2; }
+
+message MarkPaymentAsPaidRequest {
+  RequestMetadata meta = 1;
+  string id = 2;                        // PaymentDue id
+  google.type.Money amount_paid = 3;    // partial or full
+  google.protobuf.Timestamp paid_at = 4;
+  string reference = 5;                 // bank txn / UTR / cheque
+}
+
+message ListPaymentDuesRequest { PageRequest page = 1; }
+message ListPaymentDuesResponse { repeated PaymentDue dues = 1; PageResponse page = 2; }
+
+message BankAccount {
+  string id = 1;
+  string name = 2;
+  string account_number = 3;
+  string ifsc_or_swift = 4;
+  string ledger_account_id = 5; // link to COA account
+  AuditFields audit = 6;
+}
+
+message CreateBankAccountRequest { RequestMetadata meta = 1; BankAccount account = 2; }
+message GetBankAccountRequest { string id = 1; }
+message UpdateBankAccountRequest {
+  RequestMetadata meta = 1;
+  BankAccount account = 2;
+  google.protobuf.FieldMask update_mask = 3;
+}
+message DeleteBankAccountRequest { RequestMetadata meta = 1; string id = 2; }
+message ListBankAccountsRequest { PageRequest page = 1; }
+message ListBankAccountsResponse { repeated BankAccount accounts = 1; PageResponse page = 2; }
+
+message BankTransaction {
+  string id = 1;                       // statement line id
+  string bank_account_id = 2;
+  google.type.Money amount = 3;
+  google.protobuf.Timestamp transaction_date = 4;
+  string description = 5;
+  string reference = 6;                // UTR/Cheque/etc.
+  bool reconciled = 7;
+  string matched_reference_type = 8;   // "INVOICE","PAYMENT","JOURNAL"
+  string matched_reference_id = 9;
+  AuditFields audit = 10;
+}
+
+message ImportBankTransactionsRequest {
+  RequestMetadata meta = 1;
+  string bank_account_id = 2;
+  repeated BankTransaction transactions = 3; // from CSV/OFX adapter
+}
+message ImportBankTransactionsResponse { int32 imported = 1; int32 skipped = 2; }
+
+message ListBankTransactionsRequest {
+  string bank_account_id = 1;
+  PageRequest page = 2;
+}
+message ListBankTransactionsResponse { repeated BankTransaction transactions = 1; PageResponse page = 2; }
+
+message ReconcileTransactionRequest {
+  RequestMetadata meta = 1;
+  string bank_transaction_id = 2;
+  string ledger_entry_id = 3; // or invoice/payment/journal id
+  google.type.Money amount = 4;
+  google.protobuf.Timestamp transaction_date = 5;
+}
+
+message Reconciliation {
+  bool matched = 1;
+  string status = 2; // "MATCHED", "PARTIAL_MATCH", "UNMATCHED"
+  string match_reason = 3;
+}
+
+service PaymentService {
+  rpc CreatePaymentDue(CreatePaymentDueRequest) returns (PaymentDue);
+  rpc GetPaymentDue(GetPaymentDueRequest) returns (PaymentDue);
+  rpc UpdatePaymentDue(UpdatePaymentDueRequest) returns (PaymentDue);
+  rpc DeletePaymentDue(DeletePaymentDueRequest) returns (google.protobuf.Empty);
+  rpc MarkPaymentAsPaid(MarkPaymentAsPaidRequest) returns (PaymentDue);
+  rpc ListPaymentDues(ListPaymentDuesRequest) returns (ListPaymentDuesResponse);
+
+  // Bank accounts & statements
+  rpc CreateBankAccount(CreateBankAccountRequest) returns (BankAccount);
+  rpc GetBankAccount(GetBankAccountRequest) returns (BankAccount);
+  rpc UpdateBankAccount(UpdateBankAccountRequest) returns (BankAccount);
+  rpc DeleteBankAccount(DeleteBankAccountRequest) returns (google.protobuf.Empty);
+  rpc ListBankAccounts(ListBankAccountsRequest) returns (ListBankAccountsResponse);
+
+  rpc ImportBankTransactions(ImportBankTransactionsRequest) returns (ImportBankTransactionsResponse);
+  rpc ListBankTransactions(ListBankTransactionsRequest) returns (ListBankTransactionsResponse);
+}
+
+service BankReconciliationService {
+  rpc ReconcileTransaction(ReconcileTransactionRequest) returns (Reconciliation);
+}
+
+// ----------------- Chart of Accounts / Ledger ------------
+
+// Chart of Accounts
+message Account {
+  string id = 1;
+  string code = 2;           // unique short code
+  string name = 3;
+  AccountType type = 4;
+  string parent_id = 5;      // for hierarchy
+  AccountStatus status = 6;
+  bool allow_manual_journal = 7;
+  AuditFields audit = 8;
+}
+
+message CreateAccountRequest { RequestMetadata meta = 1; Account account = 2; }
+message GetAccountRequest { string id = 1; }
+message UpdateAccountRequest {
+  RequestMetadata meta = 1;
+  Account account = 2;
+  google.protobuf.FieldMask update_mask = 3;
+}
+message DeleteAccountRequest { RequestMetadata meta = 1; string id = 2; }
+message ListAccountsRequest { PageRequest page = 1; }
+message ListAccountsResponse { repeated Account accounts = 1; PageResponse page = 2; }
+
+// Double-entry Journal (preferred write path)
+message JournalLine {
+  string account_id = 1;
+  LedgerSide side = 2;              // DR/CR
+  google.type.Money amount = 3;
+  string cost_center_id = 4;
+  string description = 5;
+}
+
+message JournalEntry {
+  string id = 1;
+  google.protobuf.Timestamp journal_date = 2;
+  string reference = 3;             // external ref/UTR/DocNo
+  string memo = 4;
+  repeated JournalLine lines = 5;   // MUST balance (sum DR == sum CR)
+  string source_type = 6;           // INVOICE/PAYMENT/ADJUSTMENT
+  string source_id = 7;
+  AuditFields audit = 8;
+  repeated ExternalRef external_refs = 9;
+}
+
+message CreateJournalEntryRequest { RequestMetadata meta = 1; JournalEntry entry = 2; }
+message GetJournalEntryRequest { string id = 1; }
+message UpdateJournalEntryRequest {
+  RequestMetadata meta = 1;
+  JournalEntry entry = 2;
+  google.protobuf.FieldMask update_mask = 3;
+}
+message DeleteJournalEntryRequest { RequestMetadata meta = 1; string id = 2; }
+message ListJournalEntriesRequest { PageRequest page = 1; }
+message ListJournalEntriesResponse { repeated JournalEntry entries = 1; PageResponse page = 2; }
+
+// (Derived) Ledger view - append-only projection from Journal
+message LedgerEntry {
+  string id = 1;
+  string account_id = 2;
+  string description = 3;
+  LedgerSide side = 4;
+  google.type.Money amount = 5;
+  google.protobuf.Timestamp transaction_date = 6;
+  string cost_center_id = 7;
+  string reference_type = 8;      // "INVOICE"/"PAYMENT"/"JOURNAL"
+  string reference_id = 9;
+  AuditFields audit = 10;
+  repeated ExternalRef external_refs = 11;
+}
+
+message ListLedgerEntriesRequest { PageRequest page = 1; }
+message ListLedgerEntriesResponse { repeated LedgerEntry entries = 1; PageResponse page = 2; }
+
+service LedgerService {
+  // COA
+  rpc CreateAccount(CreateAccountRequest) returns (Account);
+  rpc GetAccount(GetAccountRequest) returns (Account);
+  rpc UpdateAccount(UpdateAccountRequest) returns (Account);
+  rpc DeleteAccount(DeleteAccountRequest) returns (google.protobuf.Empty);
+  rpc ListAccounts(ListAccountsRequest) returns (ListAccountsResponse);
+
+  // Journal (double-entry)
+  rpc CreateJournalEntry(CreateJournalEntryRequest) returns (JournalEntry);
+  rpc GetJournalEntry(GetJournalEntryRequest) returns (JournalEntry);
+  rpc UpdateJournalEntry(UpdateJournalEntryRequest) returns (JournalEntry);
+  rpc DeleteJournalEntry(DeleteJournalEntryRequest) returns (google.protobuf.Empty);
+  rpc ListJournalEntries(ListJournalEntriesRequest) returns (ListJournalEntriesResponse);
+
+  // Ledger (read-only)
+  rpc ListLedgerEntries(ListLedgerEntriesRequest) returns (ListLedgerEntriesResponse);
+}
+
+// -------------------- Budgeting & Tracking ---------------
+
+message Budget {
+  string id = 1;
+  string name = 2;
+  google.type.Money total_amount = 3;
+  string status = 4; // consider enum later (DRAFT/ACTIVE/CLOSED)
+  AuditFields audit = 5;
+  repeated ExternalRef external_refs = 6;
+}
+
+message CreateBudgetRequest { RequestMetadata meta = 1; Budget budget = 2; }
+message GetBudgetRequest { string id = 1; }
+message UpdateBudgetRequest {
+  RequestMetadata meta = 1;
+  Budget budget = 2;
+  google.protobuf.FieldMask update_mask = 3;
+}
+message DeleteBudgetRequest { RequestMetadata meta = 1; string id = 2; }
+message ListBudgetsRequest { PageRequest page = 1; }
+message ListBudgetsResponse { repeated Budget budgets = 1; PageResponse page = 2; }
+
+service BudgetService {
+  rpc CreateBudget(CreateBudgetRequest) returns (Budget);
+  rpc GetBudget(GetBudgetRequest) returns (Budget);
+  rpc UpdateBudget(UpdateBudgetRequest) returns (Budget);
+  rpc DeleteBudget(DeleteBudgetRequest) returns (google.protobuf.Empty);
+  rpc ListBudgets(ListBudgetsRequest) returns (ListBudgetsResponse);
+}
+
+message BudgetAllocation {
+  string id = 1;
+  string budget_id = 2;
+  string department_id = 3;
+  google.type.Money allocated_amount = 4;
+  google.type.Money spent_amount = 5;
+  google.type.Money remaining_amount = 6;
+  AuditFields audit = 7;
+  repeated ExternalRef external_refs = 8;
+}
+
+message AllocateBudgetRequest { RequestMetadata meta = 1; BudgetAllocation allocation = 2; }
+message GetBudgetAllocationRequest { string id = 1; }
+message UpdateBudgetAllocationRequest {
+  RequestMetadata meta = 1;
+  BudgetAllocation allocation = 2;
+  google.protobuf.FieldMask update_mask = 3;
+}
+message DeleteBudgetAllocationRequest { RequestMetadata meta = 1; string id = 2; }
+message ListBudgetAllocationsRequest { PageRequest page = 1; }
+message ListBudgetAllocationsResponse { repeated BudgetAllocation allocations = 1; PageResponse page = 2; }
+
+message BudgetComparisonRequest { string budget_id = 1; }
+message BudgetComparisonResponse {
+  string budget_id = 1;
+  google.type.Money total_budget = 2;
+  google.type.Money total_allocated = 3;
+  google.type.Money total_spent = 4;
+  google.type.Money remaining_budget = 5;
+}
+
+service BudgetAllocationService {
+  rpc AllocateBudget(AllocateBudgetRequest) returns (BudgetAllocation);
+  rpc GetBudgetAllocation(GetBudgetAllocationRequest) returns (BudgetAllocation);
+  rpc UpdateBudgetAllocation(UpdateBudgetAllocationRequest) returns (BudgetAllocation);
+  rpc DeleteBudgetAllocation(DeleteBudgetAllocationRequest) returns (google.protobuf.Empty);
+  rpc ListBudgetAllocations(ListBudgetAllocationsRequest) returns (ListBudgetAllocationsResponse);
+}
+
+service BudgetComparisonService {
+  rpc GetBudgetComparisonReport(BudgetComparisonRequest) returns (BudgetComparisonResponse);
+}
+
+// -------------------- Cost Accounting (base) --------------
+
+message Expense {
+  string id = 1;
+  string category = 2; // "LABOR","MATERIAL","OPEX","CAPEX"...
+  google.type.Money amount = 3;
+  google.protobuf.Timestamp expense_date = 4;
+  string cost_center_id = 5;
+  AuditFields audit = 6;
+  repeated ExternalRef external_refs = 7;
+}
+
+message CreateExpenseRequest { RequestMetadata meta = 1; Expense expense = 2; }
+message GetExpenseRequest { string id = 1; }
+message UpdateExpenseRequest {
+  RequestMetadata meta = 1;
+  Expense expense = 2;
+  google.protobuf.FieldMask update_mask = 3;
+}
+message DeleteExpenseRequest { RequestMetadata meta = 1; string id = 2; }
+message ListExpensesRequest { PageRequest page = 1; }
+message ListExpensesResponse { repeated Expense expenses = 1; PageResponse page = 2; }
+
+service ExpenseService {
+  rpc CreateExpense(CreateExpenseRequest) returns (Expense);
+  rpc GetExpense(GetExpenseRequest) returns (Expense);
+  rpc UpdateExpense(UpdateExpenseRequest) returns (Expense);
+  rpc DeleteExpense(DeleteExpenseRequest) returns (google.protobuf.Empty);
+  rpc ListExpenses(ListExpensesRequest) returns (ListExpensesResponse);
+}
+
+message CostCenter {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  AuditFields audit = 4;
+}
+
+message CreateCostCenterRequest { RequestMetadata meta = 1; CostCenter center = 2; }
+message GetCostCenterRequest { string id = 1; }
+message UpdateCostCenterRequest {
+  RequestMetadata meta = 1;
+  CostCenter center = 2;
+  google.protobuf.FieldMask update_mask = 3;
+}
+message DeleteCostCenterRequest { RequestMetadata meta = 1; string id = 2; }
+message ListCostCentersRequest { PageRequest page = 1; }
+message ListCostCentersResponse { repeated CostCenter centers = 1; PageResponse page = 2; }
+
+message CostAllocation {
+  string id = 1;
+  string cost_center_id = 2;
+  google.type.Money amount = 3;
+  string reference_type = 4; // INVOICE/EXPENSE/JOURNAL/etc.
+  string reference_id = 5;
+  AuditFields audit = 6;
+}
+
+message AllocateCostRequest {
+  RequestMetadata meta = 1;
+  string cost_center_id = 2;
+  google.type.Money amount = 3;
+  string reference_type = 4;
+  string reference_id = 5;
+}
+message AllocateCostResponse { CostAllocation allocation = 1; }
+
+message ListCostAllocationsRequest { PageRequest page = 1; }
+message ListCostAllocationsResponse { repeated CostAllocation allocations = 1; PageResponse page = 2; }
+
+service CostAccountingService {
+  rpc CreateCostCenter(CreateCostCenterRequest) returns (CostCenter);
+  rpc GetCostCenter(GetCostCenterRequest) returns (CostCenter);
+  rpc UpdateCostCenter(UpdateCostCenterRequest) returns (CostCenter);
+  rpc DeleteCostCenter(DeleteCostCenterRequest) returns (google.protobuf.Empty);
+  rpc ListCostCenters(ListCostCentersRequest) returns (ListCostCentersResponse);
+
+  rpc AllocateCost(AllocateCostRequest) returns (AllocateCostResponse);
+  rpc ListCostAllocations(ListCostAllocationsRequest) returns (ListCostAllocationsResponse);
+}
+
+// ------------------------ Audit Trail --------------------
+
+message AuditEvent {
+  string id = 1;
+  string user_id = 2;
+  string action = 3;
+  google.protobuf.Timestamp timestamp = 4;
+  string details = 5;
+  string resource_type = 6; // e.g., INVOICE
+  string resource_id = 7;
+  // Optional: IP/user-agent/OPA attrs could be added later
+}
+
+message RecordAuditEventRequest { RequestMetadata meta = 1; AuditEvent event = 2; }
+message ListAuditEventsRequest { PageRequest page = 1; }
+message ListAuditEventsResponse { repeated AuditEvent events = 1; PageResponse page = 2; }
+
+message GetAuditEventByIdRequest { string id = 1; }
+
+message FilterAuditEventsRequest {
+  string user_id = 1;                       // optional
+  string action = 2;                        // optional
+  string resource_type = 3;                 // optional
+  string resource_id = 4;                   // optional
+  google.protobuf.Timestamp from_date = 5;  // optional
+  google.protobuf.Timestamp to_date = 6;    // optional
+  PageRequest page = 7;                     // optional
+}
+message FilterAuditEventsResponse { repeated AuditEvent events = 1; PageResponse page = 2; }
+
+service AuditTrailService {
+  rpc RecordAuditEvent(RecordAuditEventRequest) returns (AuditEvent);
+  rpc ListAuditEvents(ListAuditEventsRequest) returns (ListAuditEventsResponse);
+  rpc GetAuditEventById(GetAuditEventByIdRequest) returns (AuditEvent);
+  rpc FilterAuditEvents(FilterAuditEventsRequest) returns (FilterAuditEventsResponse);
+}
+
+// =========================================================
+/* =============== PHASE 2: Advanced / Compliance ========= */
+// =========================================================
+// Advanced Costing, Compliance Reporting, Accruals & Allocations automation
+
+// -------------------- Accruals & Allocations --------------
+
+message Accrual {
+  string id = 1;
+  string description = 2;
+  google.type.Money amount = 3;
+  google.protobuf.Timestamp accrual_date = 4;
+  string account_id = 5; // target account
+  AuditFields audit = 6;
+  repeated ExternalRef external_refs = 7;
+}
+
+message CreateAccrualRequest { RequestMetadata meta = 1; Accrual accrual = 2; }
+message GetAccrualByIdRequest { string id = 1; }
+message UpdateAccrualRequest {
+  RequestMetadata meta = 1;
+  Accrual accrual = 2;
+  google.protobuf.FieldMask update_mask = 3;
+}
+message DeleteAccrualRequest { RequestMetadata meta = 1; string id = 2; }
+message ListAccrualsRequest { PageRequest page = 1; }
+message ListAccrualsResponse { repeated Accrual accruals = 1; PageResponse page = 2; }
+
+service AccrualService {
+  rpc CreateAccrual(CreateAccrualRequest) returns (Accrual);
+  rpc GetAccrualById(GetAccrualByIdRequest) returns (Accrual);
+  rpc UpdateAccrual(UpdateAccrualRequest) returns (Accrual);
+  rpc DeleteAccrual(DeleteAccrualRequest) returns (google.protobuf.Empty);
+  rpc ListAccruals(ListAccrualsRequest) returns (ListAccrualsResponse);
+}
+
+// Automation rules (optional extension point)
+message AllocationRule {
+  string id = 1;
+  string name = 2;
+  string basis = 3; // "ACTIVITY","HEADCOUNT","REVENUE","MACHINE_HOURS"
+  string source_account_id = 4;
+  repeated string target_cost_center_ids = 5;
+  string formula = 6; // DSL or expression
+  AuditFields audit = 7;
+}
+message CreateAllocationRuleRequest { RequestMetadata meta = 1; AllocationRule rule = 2; }
+message GetAllocationRuleRequest { string id = 1; }
+message UpdateAllocationRuleRequest {
+  RequestMetadata meta = 1;
+  AllocationRule rule = 2;
+  google.protobuf.FieldMask update_mask = 3;
+}
+message DeleteAllocationRuleRequest { RequestMetadata meta = 1; string id = 2; }
+message ListAllocationRulesRequest { PageRequest page = 1; }
+message ListAllocationRulesResponse { repeated AllocationRule rules = 1; PageResponse page = 2; }
+
+service AllocationAutomationService {
+  rpc CreateAllocationRule(CreateAllocationRuleRequest) returns (AllocationRule);
+  rpc GetAllocationRule(GetAllocationRuleRequest) returns (AllocationRule);
+  rpc UpdateAllocationRule(UpdateAllocationRuleRequest) returns (AllocationRule);
+  rpc DeleteAllocationRule(DeleteAllocationRuleRequest) returns (google.protobuf.Empty);
+  rpc ListAllocationRules(ListAllocationRulesRequest) returns (ListAllocationRulesResponse);
+}
+
+// -------------------- Compliance Reporting ----------------
+
+message ReportPeriod {
+  google.protobuf.Timestamp start_date = 1;
+  google.protobuf.Timestamp end_date = 2;
+}
+
+message ProfitLossReport {
+  google.type.Money total_revenue = 1;
+  google.type.Money total_expenses = 2;
+  google.type.Money net_profit = 3;
+}
+
+message BalanceSheetReport {
+  google.type.Money total_assets = 1;
+  google.type.Money total_liabilities = 2;
+  google.type.Money net_worth = 3;
+}
+
+message TrialBalanceReport { repeated LedgerEntry entries = 1; }
+
+message ReportRequest {
+  ReportPeriod period = 1;
+  string organization_id = 2;
+}
+
+service FinancialReportService {
+  rpc GenerateProfitLossReport(ReportRequest) returns (ProfitLossReport);
+  rpc GenerateBalanceSheetReport(ReportRequest) returns (BalanceSheetReport);
+  rpc GenerateTrialBalanceReport(ReportRequest) returns (TrialBalanceReport);
+  rpc GenerateComplianceReport(ComplianceReportRequest) returns (ComplianceReport);
+}
+
+message ComplianceReportRequest {
+  ReportPeriod period = 1;
+  string jurisdiction = 2; // "IN-GST", "US-GAAP", "IFRS"
+}
+message ComplianceReport { string details = 1; }
+
+service FinancialComplianceService {
+  rpc GenerateComplianceReport(ComplianceReportRequest) returns (ComplianceReport);
+}
+
+// =========================================================
+/* =============== PHASE 3: Enterprise Scale ============== */
+// =========================================================
+// Consolidation (multi-entity), Multi-currency, Advanced Treasury
+
+// ----------------------- Consolidation --------------------
+
+message Consolidation {
+  string id = 1;
+  repeated string entity_ids = 2;
+  ReportPeriod period = 3;
+  string report = 4; // JSON/text report
+}
+
+message CreateConsolidationRequest { Consolidation consolidation = 1; }
+message GetConsolidationRequest { string id = 1; }
+message ListConsolidationsRequest { PageRequest page = 1; }
+message ListConsolidationsResponse { repeated Consolidation consolidations = 1; PageResponse page = 2; }
+message DeleteConsolidationRequest { string id = 1; }
+
+service ConsolidationService {
+  rpc ConsolidateEntities(ConsolidationRequest) returns (ConsolidationResponse);
+  rpc CreateConsolidation(CreateConsolidationRequest) returns (Consolidation);
+  rpc GetConsolidation(GetConsolidationRequest) returns (Consolidation);
+  rpc ListConsolidations(ListConsolidationsRequest) returns (ListConsolidationsResponse);
+  rpc DeleteConsolidation(DeleteConsolidationRequest) returns (google.protobuf.Empty);
+}
+
+// ----------------------- Multi-currency -------------------
+
+message ExchangeRate {
+  string id = 1;
+  string base_currency = 2;     // e.g., "USD"
+  string quote_currency = 3;    // e.g., "INR"
+  double rate = 4;              // quote per base (e.g., 83.50)
+  google.protobuf.Timestamp as_of = 5;
+  AuditFields audit = 6;
+}
+
+message CreateExchangeRateRequest { RequestMetadata meta = 1; ExchangeRate rate = 2; }
+message GetExchangeRateRequest { string id = 1; }
+message UpdateExchangeRateRequest {
+  RequestMetadata meta = 1;
+  ExchangeRate rate = 2;
+  google.protobuf.FieldMask update_mask = 3;
+}
+message DeleteExchangeRateRequest { RequestMetadata meta = 1; string id = 2; }
+message ListExchangeRatesRequest { PageRequest page = 1; string base_currency = 2; string quote_currency = 3; }
+message ListExchangeRatesResponse { repeated ExchangeRate rates = 1; PageResponse page = 2; }
+
+message ConvertMoneyRequest {
+  google.type.Money amount = 1;
+  string target_currency = 2;
+  google.protobuf.Timestamp as_of = 3;
+}
+message ConvertMoneyResponse { google.type.Money converted = 1; double rate_used = 2; }
+
+service FxService {
+  rpc CreateExchangeRate(CreateExchangeRateRequest) returns (ExchangeRate);
+  rpc GetExchangeRate(GetExchangeRateRequest) returns (ExchangeRate);
+  rpc UpdateExchangeRate(UpdateExchangeRateRequest) returns (ExchangeRate);
+  rpc DeleteExchangeRate(DeleteExchangeRateRequest) returns (google.protobuf.Empty);
+  rpc ListExchangeRates(ListExchangeRatesRequest) returns (ListExchangeRatesResponse);
+
+  rpc ConvertMoney(ConvertMoneyRequest) returns (ConvertMoneyResponse);
+}
+
+// ----------------------- Treasury ------------------------
+
+message CashFlowForecastRequest { ReportPeriod period = 1; }
+message CashFlowForecastResponse { string forecast_details = 1; }
+
+service TreasuryService {
+  rpc GenerateCashFlowForecast(CashFlowForecastRequest) returns (CashFlowForecastResponse);
+}
+
+// =========================================================
+// =============== Interservice Event Contracts ============
+// =========================================================
+// These map cleanly to Kafka topics via an adapter.
+// Keep payloads minimal + referential.
+
+message FinanceInvoiceCreatedEvent {
+  string invoice_id = 1;
+  string invoice_number = 2;
+  google.protobuf.Timestamp invoice_date = 3;
+  PartyRef party = 4;
+  google.type.Money total = 5;
+  string organization_id = 6;
+}
+
+message FinancePaymentReceivedEvent {
+  string payment_due_id = 1;
+  string invoice_id = 2;
+  google.type.Money amount_paid = 3;
+  google.protobuf.Timestamp paid_at = 4;
+  string reference = 5;
+  string organization_id = 6;
+}
+
+message InventoryCostPostedEvent {
+  string reference_type = 1; // "PRODUCTION_ORDER","GOODS_ISSUE"
+  string reference_id = 2;
+  google.type.Money amount = 3;
+  string cost_center_id = 4;
+  string organization_id = 5;
+}
+
+message PayrollPostedEvent {
+  string payroll_run_id = 1;      // from HRMS
+  google.type.Money total_gross = 2;
+  google.type.Money total_net = 3;
+  google.protobuf.Timestamp run_date = 4;
+  string organization_id = 5;
+}
+
+message VendorBillApprovedEvent {
+  string vendor_bill_id = 1;      // from VMS/Procurement
+  google.type.Money amount = 2;
+  google.protobuf.Timestamp approved_at = 3;
+  string organization_id = 4;
+}
+
+service FinanceEventPublisher {
+  rpc PublishInvoiceCreated(FinanceInvoiceCreatedEvent) returns (google.protobuf.Empty);
+  rpc PublishPaymentReceived(FinancePaymentReceivedEvent) returns (google.protobuf.Empty);
+  rpc PublishInventoryCostPosted(InventoryCostPostedEvent) returns (google.protobuf.Empty);
+  rpc PublishPayrollPosted(PayrollPostedEvent) returns (google.protobuf.Empty);
+  rpc PublishVendorBillApproved(VendorBillApprovedEvent) returns (google.protobuf.Empty);
+}
