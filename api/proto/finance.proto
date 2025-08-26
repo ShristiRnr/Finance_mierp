@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package finance;
 
-option go_package = "github.com/ShristiRnr/Finance/api/proto/financepb;financepb";
+option go_package = "github.com/ShristiRnr/Finance_mierp/api/pb;financepb";
 
 import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
@@ -133,14 +133,14 @@ enum AccountStatus {
 // ======================= Tax / GST =======================
 // =========================================================
 
-enum TaxType {
-  TAX_TYPE_UNSPECIFIED = 0;
-  TAX_TYPE_CGST = 1;
-  TAX_TYPE_SGST = 2;
-  TAX_TYPE_IGST = 3;
-  TAX_TYPE_VAT = 4;
-  TAX_TYPE_OTHER = 10;
-}
+//enum TaxType {
+  //TAX_TYPE_UNSPECIFIED = 0;
+  //TAX_TYPE_CGST = 1;
+  //TAX_TYPE_SGST = 2;
+  //TAX_TYPE_IGST = 3;
+  //TAX_TYPE_VAT = 4;
+  //TAX_TYPE_OTHER = 10;
+//}
 
 message TaxLine {
   TaxType type = 1;
