@@ -2,7 +2,8 @@ syntax = "proto3";
 
 package finance;
 
-option go_package = "github.com/ShristiRnr/Finance_mierp/api/pb;financepb";
+option go_package = "github.com/SrishtiRnr/Finance_mierp/api/pb;financepb";
+
 
 import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
@@ -217,7 +218,7 @@ message InvoiceItem {
   google.type.Money unit_price = 6;
   google.type.Money line_subtotal = 7; // pre-tax/discount
   repeated Discount discounts = 8;     // item-level discounts
-  repeated TaxLine taxes = 8;
+  repeated TaxLine taxes = 11;
   google.type.Money line_total = 9;    // subtotal + taxes
   string cost_center_id = 10;          // base cost accounting
 }
@@ -256,7 +257,7 @@ message Invoice {
   GstBreakup gst_breakup = 26;            // full GST breakup
   google.type.Money grand_total = 27;     // final after discounts + taxes
 
-  AuditFields audit = 26;
+  AuditFields audit = 28;
 
   // GST integration (optional)
   GstTaxRegime gst = 29;
@@ -849,6 +850,15 @@ message GetConsolidationRequest { string id = 1; }
 message ListConsolidationsRequest { PageRequest page = 1; }
 message ListConsolidationsResponse { repeated Consolidation consolidations = 1; PageResponse page = 2; }
 message DeleteConsolidationRequest { string id = 1; }
+message ConsolidationRequest {
+  repeated string entity_ids = 1;
+  ReportPeriod period = 2;
+}
+
+message ConsolidationResponse {
+  string consolidated_report = 1; // could be JSON/text
+  repeated Consolidation consolidations = 2;
+}
 
 service ConsolidationService {
   rpc ConsolidateEntities(ConsolidationRequest) returns (ConsolidationResponse);
