@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package finance;
 
-option go_package = "github.com/SrishtiRnr/Finance_mierp/api/pb;financepb";
+option go_package = "github.com/ShristiRnr/Finance_mierp/api/pb;financepb";
 
 
 import "google/protobuf/empty.proto";

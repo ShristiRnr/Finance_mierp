@@ -10869,7 +10869,7 @@ const file_finance_proto_rawDesc = "" +
 	"\x16PublishPaymentReceived\x12$.finance.FinancePaymentReceivedEvent\x1a\x16.google.protobuf.Empty\x12W\n" +
 	"\x1aPublishInventoryCostPosted\x12!.finance.InventoryCostPostedEvent\x1a\x16.google.protobuf.Empty\x12K\n" +
 	"\x14PublishPayrollPosted\x12\x1b.finance.PayrollPostedEvent\x1a\x16.google.protobuf.Empty\x12U\n" +
-	"\x19PublishVendorBillApproved\x12 .finance.VendorBillApprovedEvent\x1a\x16.google.protobuf.EmptyB6Z4github.com/SrishtiRnr/Finance_mierp/api/pb;financepbb\x06proto3"
+	"\x19PublishVendorBillApproved\x12 .finance.VendorBillApprovedEvent\x1a\x16.google.protobuf.EmptyB6Z4github.com/ShristiRnr/Finance_mierp/api/pb;financepbb\x06proto3"
 
 var (
 	file_finance_proto_rawDescOnce sync.Once
