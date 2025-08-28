@@ -28,3 +28,22 @@ type JournalRepository interface {
 type LedgerRepository interface {
 	List(ctx context.Context, limit, offset int32) ([]domain.LedgerEntry, error)
 }
+
+type AccrualRepository interface {
+	Create(ctx context.Context, a domain.Accrual) (domain.Accrual, error)
+	Get(ctx context.Context, id uuid.UUID) (domain.Accrual, error)
+	Update(ctx context.Context, a domain.Accrual) (domain.Accrual, error)
+	Delete(ctx context.Context, id uuid.UUID) error
+	List(ctx context.Context, limit, offset int32) ([]domain.Accrual, error)
+
+	AddExternalRef(ctx context.Context, ref domain.AccrualExternalRef) (domain.AccrualExternalRef, error)
+	ListExternalRefs(ctx context.Context, accrualID uuid.UUID) ([]domain.AccrualExternalRef, error)
+}
+
+type AllocationRuleRepository interface {
+	Create(ctx context.Context, r domain.AllocationRule) (domain.AllocationRule, error)
+	Get(ctx context.Context, id uuid.UUID) (domain.AllocationRule, error)
+	Update(ctx context.Context, r domain.AllocationRule) (domain.AllocationRule, error)
+	Delete(ctx context.Context, id uuid.UUID) error
+	List(ctx context.Context, limit, offset int32) ([]domain.AllocationRule, error)
+}
