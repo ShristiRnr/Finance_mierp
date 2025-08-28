@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/google/uuid"
+	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db" // sqlc generated package
 	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
-	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db" // sqlc generated package
+	"github.com/google/uuid"
 )
 
 type accountRepository struct {
@@ -109,3 +109,135 @@ func toDomainAccount(a db.Account) domain.Account {
 		Revision:           a.Revision,
 	}
 }
+
+type journalRepository struct {
+	q *db.Queries
+}
+
+func NewJournalRepository(q *db.Queries) ports.JournalRepository {
+	return &journalRepository{q: q}
+}
+
+func (r *journalRepository) Create(ctx context.Context, j domain.JournalEntry) (domain.JournalEntry, error) {
+	arg := db.CreateJournalEntryParams{
+		JournalDate: j.JournalDate,
+		Reference:   sql.NullString{String: derefString(j.Reference), Valid: j.Reference != nil},
+		Memo:        sql.NullString{String: derefString(j.Memo), Valid: j.Memo != nil},
+		SourceType:  sql.NullString{String: derefString(j.SourceType), Valid: j.SourceType != nil},
+		SourceID:    sql.NullString{String: derefString(j.SourceID), Valid: j.SourceID != nil},
+		CreatedBy:   sql.NullString{String: j.CreatedBy, Valid: j.CreatedBy != ""},
+		UpdatedBy:   sql.NullString{String: j.UpdatedBy, Valid: j.UpdatedBy != ""},
+	}
+	res, err := r.q.CreateJournalEntry(ctx, arg)
+	if err != nil {
+		return domain.JournalEntry{}, err
+	}
+	return toDomainJournal(res), nil
+}
+
+func (r *journalRepository) Get(ctx context.Context, id uuid.UUID) (domain.JournalEntry, error) {
+	res, err := r.q.GetJournalEntry(ctx, id)
+	if err != nil {
+		return domain.JournalEntry{}, err
+	}
+	return toDomainJournal(res), nil
+}
+
+func (r *journalRepository) List(ctx context.Context, limit, offset int32) ([]domain.JournalEntry, error) {
+	rows, err := r.q.ListJournalEntries(ctx, db.ListJournalEntriesParams{
+		Limit:  limit,
+		Offset: offset,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]domain.JournalEntry, 0, len(rows))
+	for _, rj := range rows {
+		result = append(result, toDomainJournal(rj))
+	}
+	return result, nil
+}
+
+func (r *journalRepository) Update(ctx context.Context, j domain.JournalEntry) (domain.JournalEntry, error) {
+	arg := db.UpdateJournalEntryParams{
+		ID:         j.ID,
+		JournalDate: j.JournalDate,
+		Reference:   sql.NullString{String: derefString(j.Reference), Valid: j.Reference != nil},
+		Memo:        sql.NullString{String: derefString(j.Memo), Valid: j.Memo != nil},
+		SourceType:  sql.NullString{String: derefString(j.SourceType), Valid: j.SourceType != nil},
+		SourceID:    sql.NullString{String: derefString(j.SourceID), Valid: j.SourceID != nil},
+		UpdatedBy:   sql.NullString{String: j.UpdatedBy, Valid: j.UpdatedBy != ""},
+	}
+	res, err := r.q.UpdateJournalEntry(ctx, arg)
+	if err != nil {
+		return domain.JournalEntry{}, err
+	}
+	return toDomainJournal(res), nil
+}
+
+func (r *journalRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	return r.q.DeleteJournalEntry(ctx, id)
+}
+
+// mapper
+func toDomainJournal(j db.JournalEntry) domain.JournalEntry {
+	return domain.JournalEntry{
+		ID:         j.ID,
+		JournalDate: j.JournalDate,
+		Reference:   nullableString(j.Reference),
+		Memo:        nullableString(j.Memo),
+		SourceType:  nullableString(j.SourceType),
+		SourceID:    nullableString(j.SourceID),
+		CreatedAt:   j.CreatedAt.Time,
+		CreatedBy:   j.CreatedBy.String,
+		UpdatedAt:   j.UpdatedAt.Time,
+		UpdatedBy:   j.UpdatedBy.String,
+		Revision:    j.Revision,
+	}
+}
+
+type ledgerRepository struct {
+	q *db.Queries
+}
+
+func NewLedgerRepository(q *db.Queries) ports.LedgerRepository {
+	return &ledgerRepository{q: q}
+}
+
+func (r *ledgerRepository) List(ctx context.Context, limit, offset int32) ([]domain.LedgerEntry, error) {
+	rows, err := r.q.ListLedgerEntries(ctx, db.ListLedgerEntriesParams{
+		Limit:  limit,
+		Offset: offset,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]domain.LedgerEntry, 0, len(rows))
+	for _, l := range rows {
+		result = append(result, domain.LedgerEntry{
+			EntryID:   l.ID,
+			AccountID: l.AccountID,
+			Side:      l.Side,
+			Amount:    l.Amount,
+			PostedAt:  l.TransactionDate,
+		})
+	}
+	return result, nil
+}
+
+func nullableString(ns sql.NullString) *string {
+	if ns.Valid {
+		return &ns.String
+	}
+	return nil
+}
+
+func derefString(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
