@@ -463,6 +463,7 @@ message DeleteAccountRequest { RequestMetadata meta = 1; string id = 2; }
 message ListAccountsRequest { PageRequest page = 1; }
 message ListAccountsResponse { repeated Account accounts = 1; PageResponse page = 2; }
 
+
 // Double-entry Journal (preferred write path)
 message JournalLine {
   string account_id = 1;

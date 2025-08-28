@@ -45,15 +45,25 @@ func (r *accountRepository) Get(ctx context.Context, id uuid.UUID) (domain.Accou
 }
 
 func (r *accountRepository) List(ctx context.Context, limit, offset int32) ([]domain.Account, error) {
-	res, err := r.q.ListAccounts(ctx, db.ListAccountsParams{Limit: limit, Offset: offset})
+	accounts, err := r.q.ListAccounts(ctx, db.ListAccountsParams{
+		Limit:  limit,
+		Offset: offset,
+	})
 	if err != nil {
 		return nil, err
 	}
-	var accounts []domain.Account
-	for _, a := range res {
-		accounts = append(accounts, toDomainAccount(a))
+
+	result := make([]domain.Account, 0, len(accounts))
+	for _, acc := range accounts {
+		result = append(result, domain.Account{
+			ID:     acc.ID,
+			Code:   acc.Code,
+			Name:   acc.Name,
+			Type:   acc.Type,
+			Status: acc.Status,
+		})
 	}
-	return accounts, nil
+	return result, nil
 }
 
 func (r *accountRepository) Update(ctx context.Context, a domain.Account) (domain.Account, error) {
@@ -92,9 +102,9 @@ func toDomainAccount(a db.Account) domain.Account {
 		ParentID:           parentID,
 		Status:             a.Status,
 		AllowManualJournal: a.AllowManualJournal.Bool,
-		CreatedAt:          a.CreatedAt,
+		CreatedAt:          a.CreatedAt.Time,
 		CreatedBy:          a.CreatedBy.String,
-		UpdatedAt:          a.UpdatedAt,
+		UpdatedAt:          a.UpdatedAt.Time,
 		UpdatedBy:          a.UpdatedBy.String,
 		Revision:           a.Revision,
 	}

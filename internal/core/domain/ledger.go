@@ -1,10 +1,12 @@
 package domain
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
 )
+
 
 // Account = Chart of Account
 type Account struct {
@@ -19,7 +21,7 @@ type Account struct {
 	CreatedBy          string
 	UpdatedAt          time.Time
 	UpdatedBy          string
-	Revision           int32
+	Revision           sql.NullInt32
 }
 
 // JournalEntry = Transaction header
@@ -34,17 +36,24 @@ type JournalEntry struct {
 	CreatedBy   string
 	UpdatedAt   time.Time
 	UpdatedBy   string
-	Revision    int32
+	Revision    sql.NullInt32
 }
 
 // JournalLine = Debit/Credit detail
 type JournalLine struct {
-	ID           uuid.UUID
-	EntryID      uuid.UUID
 	AccountID    uuid.UUID
 	Side         string // "DEBIT" or "CREDIT"
 	Amount       string // could be decimal.Decimal if using shopspring/decimal
 	CostCenterID *string
 	Description  *string
 	CreatedAt    time.Time
+}
+
+// Ledger Entry (read-only projection)
+type LedgerEntry struct {
+	EntryID   uuid.UUID
+	AccountID uuid.UUID
+	Side      string
+	Amount    string
+	PostedAt  time.Time
 }
