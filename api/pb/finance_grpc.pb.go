@@ -4505,101 +4505,177 @@ var FxService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	TreasuryService_GenerateCashFlowForecast_FullMethodName = "/finance.TreasuryService/GenerateCashFlowForecast"
+	CashFlowService_GenerateForecast_FullMethodName = "/finance.CashFlowService/GenerateForecast"
+	CashFlowService_GetForecast_FullMethodName      = "/finance.CashFlowService/GetForecast"
+	CashFlowService_ListForecasts_FullMethodName    = "/finance.CashFlowService/ListForecasts"
 )
 
-// TreasuryServiceClient is the client API for TreasuryService service.
+// CashFlowServiceClient is the client API for CashFlowService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type TreasuryServiceClient interface {
-	GenerateCashFlowForecast(ctx context.Context, in *CashFlowForecastRequest, opts ...grpc.CallOption) (*CashFlowForecastResponse, error)
+type CashFlowServiceClient interface {
+	GenerateForecast(ctx context.Context, in *CashFlowForecastRequest, opts ...grpc.CallOption) (*CashFlowForecastResponse, error)
+	GetForecast(ctx context.Context, in *CashFlowForecastRequest, opts ...grpc.CallOption) (*CashFlowForecastResponse, error)
+	ListForecasts(ctx context.Context, in *CashFlowForecastRequest, opts ...grpc.CallOption) (*CashFlowForecastResponse, error)
 }
 
-type treasuryServiceClient struct {
+type cashFlowServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewTreasuryServiceClient(cc grpc.ClientConnInterface) TreasuryServiceClient {
-	return &treasuryServiceClient{cc}
+func NewCashFlowServiceClient(cc grpc.ClientConnInterface) CashFlowServiceClient {
+	return &cashFlowServiceClient{cc}
 }
 
-func (c *treasuryServiceClient) GenerateCashFlowForecast(ctx context.Context, in *CashFlowForecastRequest, opts ...grpc.CallOption) (*CashFlowForecastResponse, error) {
+func (c *cashFlowServiceClient) GenerateForecast(ctx context.Context, in *CashFlowForecastRequest, opts ...grpc.CallOption) (*CashFlowForecastResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CashFlowForecastResponse)
-	err := c.cc.Invoke(ctx, TreasuryService_GenerateCashFlowForecast_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, CashFlowService_GenerateForecast_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// TreasuryServiceServer is the server API for TreasuryService service.
-// All implementations must embed UnimplementedTreasuryServiceServer
-// for forward compatibility.
-type TreasuryServiceServer interface {
-	GenerateCashFlowForecast(context.Context, *CashFlowForecastRequest) (*CashFlowForecastResponse, error)
-	mustEmbedUnimplementedTreasuryServiceServer()
+func (c *cashFlowServiceClient) GetForecast(ctx context.Context, in *CashFlowForecastRequest, opts ...grpc.CallOption) (*CashFlowForecastResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CashFlowForecastResponse)
+	err := c.cc.Invoke(ctx, CashFlowService_GetForecast_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
-// UnimplementedTreasuryServiceServer must be embedded to have
+func (c *cashFlowServiceClient) ListForecasts(ctx context.Context, in *CashFlowForecastRequest, opts ...grpc.CallOption) (*CashFlowForecastResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CashFlowForecastResponse)
+	err := c.cc.Invoke(ctx, CashFlowService_ListForecasts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// CashFlowServiceServer is the server API for CashFlowService service.
+// All implementations must embed UnimplementedCashFlowServiceServer
+// for forward compatibility.
+type CashFlowServiceServer interface {
+	GenerateForecast(context.Context, *CashFlowForecastRequest) (*CashFlowForecastResponse, error)
+	GetForecast(context.Context, *CashFlowForecastRequest) (*CashFlowForecastResponse, error)
+	ListForecasts(context.Context, *CashFlowForecastRequest) (*CashFlowForecastResponse, error)
+	mustEmbedUnimplementedCashFlowServiceServer()
+}
+
+// UnimplementedCashFlowServiceServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedTreasuryServiceServer struct{}
+type UnimplementedCashFlowServiceServer struct{}
 
-func (UnimplementedTreasuryServiceServer) GenerateCashFlowForecast(context.Context, *CashFlowForecastRequest) (*CashFlowForecastResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GenerateCashFlowForecast not implemented")
+func (UnimplementedCashFlowServiceServer) GenerateForecast(context.Context, *CashFlowForecastRequest) (*CashFlowForecastResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GenerateForecast not implemented")
 }
-func (UnimplementedTreasuryServiceServer) mustEmbedUnimplementedTreasuryServiceServer() {}
-func (UnimplementedTreasuryServiceServer) testEmbeddedByValue()                         {}
+func (UnimplementedCashFlowServiceServer) GetForecast(context.Context, *CashFlowForecastRequest) (*CashFlowForecastResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetForecast not implemented")
+}
+func (UnimplementedCashFlowServiceServer) ListForecasts(context.Context, *CashFlowForecastRequest) (*CashFlowForecastResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListForecasts not implemented")
+}
+func (UnimplementedCashFlowServiceServer) mustEmbedUnimplementedCashFlowServiceServer() {}
+func (UnimplementedCashFlowServiceServer) testEmbeddedByValue()                         {}
 
-// UnsafeTreasuryServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to TreasuryServiceServer will
+// UnsafeCashFlowServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to CashFlowServiceServer will
 // result in compilation errors.
-type UnsafeTreasuryServiceServer interface {
-	mustEmbedUnimplementedTreasuryServiceServer()
+type UnsafeCashFlowServiceServer interface {
+	mustEmbedUnimplementedCashFlowServiceServer()
 }
 
-func RegisterTreasuryServiceServer(s grpc.ServiceRegistrar, srv TreasuryServiceServer) {
-	// If the following call pancis, it indicates UnimplementedTreasuryServiceServer was
+func RegisterCashFlowServiceServer(s grpc.ServiceRegistrar, srv CashFlowServiceServer) {
+	// If the following call pancis, it indicates UnimplementedCashFlowServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&TreasuryService_ServiceDesc, srv)
+	s.RegisterService(&CashFlowService_ServiceDesc, srv)
 }
 
-func _TreasuryService_GenerateCashFlowForecast_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _CashFlowService_GenerateForecast_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CashFlowForecastRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TreasuryServiceServer).GenerateCashFlowForecast(ctx, in)
+		return srv.(CashFlowServiceServer).GenerateForecast(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: TreasuryService_GenerateCashFlowForecast_FullMethodName,
+		FullMethod: CashFlowService_GenerateForecast_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TreasuryServiceServer).GenerateCashFlowForecast(ctx, req.(*CashFlowForecastRequest))
+		return srv.(CashFlowServiceServer).GenerateForecast(ctx, req.(*CashFlowForecastRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// TreasuryService_ServiceDesc is the grpc.ServiceDesc for TreasuryService service.
+func _CashFlowService_GetForecast_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CashFlowForecastRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CashFlowServiceServer).GetForecast(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CashFlowService_GetForecast_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CashFlowServiceServer).GetForecast(ctx, req.(*CashFlowForecastRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CashFlowService_ListForecasts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CashFlowForecastRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CashFlowServiceServer).ListForecasts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CashFlowService_ListForecasts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CashFlowServiceServer).ListForecasts(ctx, req.(*CashFlowForecastRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// CashFlowService_ServiceDesc is the grpc.ServiceDesc for CashFlowService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var TreasuryService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "finance.TreasuryService",
-	HandlerType: (*TreasuryServiceServer)(nil),
+var CashFlowService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "finance.CashFlowService",
+	HandlerType: (*CashFlowServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GenerateCashFlowForecast",
-			Handler:    _TreasuryService_GenerateCashFlowForecast_Handler,
+			MethodName: "GenerateForecast",
+			Handler:    _CashFlowService_GenerateForecast_Handler,
+		},
+		{
+			MethodName: "GetForecast",
+			Handler:    _CashFlowService_GetForecast_Handler,
+		},
+		{
+			MethodName: "ListForecasts",
+			Handler:    _CashFlowService_ListForecasts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

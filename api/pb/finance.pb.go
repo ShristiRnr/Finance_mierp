@@ -10861,9 +10861,11 @@ const file_finance_proto_rawDesc = "" +
 	"\x12UpdateExchangeRate\x12\".finance.UpdateExchangeRateRequest\x1a\x15.finance.ExchangeRate\x12P\n" +
 	"\x12DeleteExchangeRate\x12\".finance.DeleteExchangeRateRequest\x1a\x16.google.protobuf.Empty\x12Z\n" +
 	"\x11ListExchangeRates\x12!.finance.ListExchangeRatesRequest\x1a\".finance.ListExchangeRatesResponse\x12K\n" +
-	"\fConvertMoney\x12\x1c.finance.ConvertMoneyRequest\x1a\x1d.finance.ConvertMoneyResponse2r\n" +
-	"\x0fTreasuryService\x12_\n" +
-	"\x18GenerateCashFlowForecast\x12 .finance.CashFlowForecastRequest\x1a!.finance.CashFlowForecastResponse2\xc2\x03\n" +
+	"\fConvertMoney\x12\x1c.finance.ConvertMoneyRequest\x1a\x1d.finance.ConvertMoneyResponse2\x94\x02\n" +
+	"\x0fCashFlowService\x12W\n" +
+	"\x10GenerateForecast\x12 .finance.CashFlowForecastRequest\x1a!.finance.CashFlowForecastResponse\x12R\n" +
+	"\vGetForecast\x12 .finance.CashFlowForecastRequest\x1a!.finance.CashFlowForecastResponse\x12T\n" +
+	"\rListForecasts\x12 .finance.CashFlowForecastRequest\x1a!.finance.CashFlowForecastResponse2\xc2\x03\n" +
 	"\x15FinanceEventPublisher\x12T\n" +
 	"\x15PublishInvoiceCreated\x12#.finance.FinanceInvoiceCreatedEvent\x1a\x16.google.protobuf.Empty\x12V\n" +
 	"\x16PublishPaymentReceived\x12$.finance.FinancePaymentReceivedEvent\x1a\x16.google.protobuf.Empty\x12W\n" +
@@ -11422,109 +11424,113 @@ var file_finance_proto_depIdxs = []int32{
 	154, // 361: finance.FxService.DeleteExchangeRate:input_type -> finance.DeleteExchangeRateRequest
 	155, // 362: finance.FxService.ListExchangeRates:input_type -> finance.ListExchangeRatesRequest
 	157, // 363: finance.FxService.ConvertMoney:input_type -> finance.ConvertMoneyRequest
-	159, // 364: finance.TreasuryService.GenerateCashFlowForecast:input_type -> finance.CashFlowForecastRequest
-	161, // 365: finance.FinanceEventPublisher.PublishInvoiceCreated:input_type -> finance.FinanceInvoiceCreatedEvent
-	162, // 366: finance.FinanceEventPublisher.PublishPaymentReceived:input_type -> finance.FinancePaymentReceivedEvent
-	163, // 367: finance.FinanceEventPublisher.PublishInventoryCostPosted:input_type -> finance.InventoryCostPostedEvent
-	164, // 368: finance.FinanceEventPublisher.PublishPayrollPosted:input_type -> finance.PayrollPostedEvent
-	165, // 369: finance.FinanceEventPublisher.PublishVendorBillApproved:input_type -> finance.VendorBillApprovedEvent
-	24,  // 370: finance.InvoiceService.CreateInvoice:output_type -> finance.Invoice
-	24,  // 371: finance.InvoiceService.GetInvoice:output_type -> finance.Invoice
-	30,  // 372: finance.InvoiceService.ListInvoices:output_type -> finance.ListInvoicesResponse
-	30,  // 373: finance.InvoiceService.SearchInvoices:output_type -> finance.ListInvoicesResponse
-	24,  // 374: finance.InvoiceService.UpdateInvoice:output_type -> finance.Invoice
-	169, // 375: finance.InvoiceService.DeleteInvoice:output_type -> google.protobuf.Empty
-	32,  // 376: finance.CreditDebitNoteService.CreateCreditDebitNote:output_type -> finance.CreditDebitNote
-	32,  // 377: finance.CreditDebitNoteService.GetCreditDebitNote:output_type -> finance.CreditDebitNote
-	38,  // 378: finance.CreditDebitNoteService.ListCreditDebitNotes:output_type -> finance.ListCreditDebitNotesResponse
-	32,  // 379: finance.CreditDebitNoteService.UpdateCreditDebitNote:output_type -> finance.CreditDebitNote
-	169, // 380: finance.CreditDebitNoteService.DeleteCreditDebitNote:output_type -> google.protobuf.Empty
-	39,  // 381: finance.PaymentService.CreatePaymentDue:output_type -> finance.PaymentDue
-	39,  // 382: finance.PaymentService.GetPaymentDue:output_type -> finance.PaymentDue
-	39,  // 383: finance.PaymentService.UpdatePaymentDue:output_type -> finance.PaymentDue
-	169, // 384: finance.PaymentService.DeletePaymentDue:output_type -> google.protobuf.Empty
-	39,  // 385: finance.PaymentService.MarkPaymentAsPaid:output_type -> finance.PaymentDue
-	46,  // 386: finance.PaymentService.ListPaymentDues:output_type -> finance.ListPaymentDuesResponse
-	47,  // 387: finance.PaymentService.CreateBankAccount:output_type -> finance.BankAccount
-	47,  // 388: finance.PaymentService.GetBankAccount:output_type -> finance.BankAccount
-	47,  // 389: finance.PaymentService.UpdateBankAccount:output_type -> finance.BankAccount
-	169, // 390: finance.PaymentService.DeleteBankAccount:output_type -> google.protobuf.Empty
-	53,  // 391: finance.PaymentService.ListBankAccounts:output_type -> finance.ListBankAccountsResponse
-	56,  // 392: finance.PaymentService.ImportBankTransactions:output_type -> finance.ImportBankTransactionsResponse
-	58,  // 393: finance.PaymentService.ListBankTransactions:output_type -> finance.ListBankTransactionsResponse
-	60,  // 394: finance.BankReconciliationService.ReconcileTransaction:output_type -> finance.Reconciliation
-	61,  // 395: finance.LedgerService.CreateAccount:output_type -> finance.Account
-	61,  // 396: finance.LedgerService.GetAccount:output_type -> finance.Account
-	61,  // 397: finance.LedgerService.UpdateAccount:output_type -> finance.Account
-	169, // 398: finance.LedgerService.DeleteAccount:output_type -> google.protobuf.Empty
-	67,  // 399: finance.LedgerService.ListAccounts:output_type -> finance.ListAccountsResponse
-	69,  // 400: finance.LedgerService.CreateJournalEntry:output_type -> finance.JournalEntry
-	69,  // 401: finance.LedgerService.GetJournalEntry:output_type -> finance.JournalEntry
-	69,  // 402: finance.LedgerService.UpdateJournalEntry:output_type -> finance.JournalEntry
-	169, // 403: finance.LedgerService.DeleteJournalEntry:output_type -> google.protobuf.Empty
-	75,  // 404: finance.LedgerService.ListJournalEntries:output_type -> finance.ListJournalEntriesResponse
-	78,  // 405: finance.LedgerService.ListLedgerEntries:output_type -> finance.ListLedgerEntriesResponse
-	79,  // 406: finance.BudgetService.CreateBudget:output_type -> finance.Budget
-	79,  // 407: finance.BudgetService.GetBudget:output_type -> finance.Budget
-	79,  // 408: finance.BudgetService.UpdateBudget:output_type -> finance.Budget
-	169, // 409: finance.BudgetService.DeleteBudget:output_type -> google.protobuf.Empty
-	85,  // 410: finance.BudgetService.ListBudgets:output_type -> finance.ListBudgetsResponse
-	86,  // 411: finance.BudgetAllocationService.AllocateBudget:output_type -> finance.BudgetAllocation
-	86,  // 412: finance.BudgetAllocationService.GetBudgetAllocation:output_type -> finance.BudgetAllocation
-	86,  // 413: finance.BudgetAllocationService.UpdateBudgetAllocation:output_type -> finance.BudgetAllocation
-	169, // 414: finance.BudgetAllocationService.DeleteBudgetAllocation:output_type -> google.protobuf.Empty
-	92,  // 415: finance.BudgetAllocationService.ListBudgetAllocations:output_type -> finance.ListBudgetAllocationsResponse
-	94,  // 416: finance.BudgetComparisonService.GetBudgetComparisonReport:output_type -> finance.BudgetComparisonResponse
-	95,  // 417: finance.ExpenseService.CreateExpense:output_type -> finance.Expense
-	95,  // 418: finance.ExpenseService.GetExpense:output_type -> finance.Expense
-	95,  // 419: finance.ExpenseService.UpdateExpense:output_type -> finance.Expense
-	169, // 420: finance.ExpenseService.DeleteExpense:output_type -> google.protobuf.Empty
-	101, // 421: finance.ExpenseService.ListExpenses:output_type -> finance.ListExpensesResponse
-	102, // 422: finance.CostAccountingService.CreateCostCenter:output_type -> finance.CostCenter
-	102, // 423: finance.CostAccountingService.GetCostCenter:output_type -> finance.CostCenter
-	102, // 424: finance.CostAccountingService.UpdateCostCenter:output_type -> finance.CostCenter
-	169, // 425: finance.CostAccountingService.DeleteCostCenter:output_type -> google.protobuf.Empty
-	108, // 426: finance.CostAccountingService.ListCostCenters:output_type -> finance.ListCostCentersResponse
-	111, // 427: finance.CostAccountingService.AllocateCost:output_type -> finance.AllocateCostResponse
-	113, // 428: finance.CostAccountingService.ListCostAllocations:output_type -> finance.ListCostAllocationsResponse
-	114, // 429: finance.AuditTrailService.RecordAuditEvent:output_type -> finance.AuditEvent
-	117, // 430: finance.AuditTrailService.ListAuditEvents:output_type -> finance.ListAuditEventsResponse
-	114, // 431: finance.AuditTrailService.GetAuditEventById:output_type -> finance.AuditEvent
-	120, // 432: finance.AuditTrailService.FilterAuditEvents:output_type -> finance.FilterAuditEventsResponse
-	121, // 433: finance.AccrualService.CreateAccrual:output_type -> finance.Accrual
-	121, // 434: finance.AccrualService.GetAccrualById:output_type -> finance.Accrual
-	121, // 435: finance.AccrualService.UpdateAccrual:output_type -> finance.Accrual
-	169, // 436: finance.AccrualService.DeleteAccrual:output_type -> google.protobuf.Empty
-	127, // 437: finance.AccrualService.ListAccruals:output_type -> finance.ListAccrualsResponse
-	128, // 438: finance.AllocationAutomationService.CreateAllocationRule:output_type -> finance.AllocationRule
-	128, // 439: finance.AllocationAutomationService.GetAllocationRule:output_type -> finance.AllocationRule
-	128, // 440: finance.AllocationAutomationService.UpdateAllocationRule:output_type -> finance.AllocationRule
-	169, // 441: finance.AllocationAutomationService.DeleteAllocationRule:output_type -> google.protobuf.Empty
-	134, // 442: finance.AllocationAutomationService.ListAllocationRules:output_type -> finance.ListAllocationRulesResponse
-	136, // 443: finance.FinancialReportService.GenerateProfitLossReport:output_type -> finance.ProfitLossReport
-	137, // 444: finance.FinancialReportService.GenerateBalanceSheetReport:output_type -> finance.BalanceSheetReport
-	138, // 445: finance.FinancialReportService.GenerateTrialBalanceReport:output_type -> finance.TrialBalanceReport
-	141, // 446: finance.FinancialReportService.GenerateComplianceReport:output_type -> finance.ComplianceReport
-	141, // 447: finance.FinancialComplianceService.GenerateComplianceReport:output_type -> finance.ComplianceReport
-	149, // 448: finance.ConsolidationService.ConsolidateEntities:output_type -> finance.ConsolidationResponse
-	142, // 449: finance.ConsolidationService.CreateConsolidation:output_type -> finance.Consolidation
-	142, // 450: finance.ConsolidationService.GetConsolidation:output_type -> finance.Consolidation
-	146, // 451: finance.ConsolidationService.ListConsolidations:output_type -> finance.ListConsolidationsResponse
-	169, // 452: finance.ConsolidationService.DeleteConsolidation:output_type -> google.protobuf.Empty
-	150, // 453: finance.FxService.CreateExchangeRate:output_type -> finance.ExchangeRate
-	150, // 454: finance.FxService.GetExchangeRate:output_type -> finance.ExchangeRate
-	150, // 455: finance.FxService.UpdateExchangeRate:output_type -> finance.ExchangeRate
-	169, // 456: finance.FxService.DeleteExchangeRate:output_type -> google.protobuf.Empty
-	156, // 457: finance.FxService.ListExchangeRates:output_type -> finance.ListExchangeRatesResponse
-	158, // 458: finance.FxService.ConvertMoney:output_type -> finance.ConvertMoneyResponse
-	160, // 459: finance.TreasuryService.GenerateCashFlowForecast:output_type -> finance.CashFlowForecastResponse
-	169, // 460: finance.FinanceEventPublisher.PublishInvoiceCreated:output_type -> google.protobuf.Empty
-	169, // 461: finance.FinanceEventPublisher.PublishPaymentReceived:output_type -> google.protobuf.Empty
-	169, // 462: finance.FinanceEventPublisher.PublishInventoryCostPosted:output_type -> google.protobuf.Empty
-	169, // 463: finance.FinanceEventPublisher.PublishPayrollPosted:output_type -> google.protobuf.Empty
-	169, // 464: finance.FinanceEventPublisher.PublishVendorBillApproved:output_type -> google.protobuf.Empty
-	370, // [370:465] is the sub-list for method output_type
-	275, // [275:370] is the sub-list for method input_type
+	159, // 364: finance.CashFlowService.GenerateForecast:input_type -> finance.CashFlowForecastRequest
+	159, // 365: finance.CashFlowService.GetForecast:input_type -> finance.CashFlowForecastRequest
+	159, // 366: finance.CashFlowService.ListForecasts:input_type -> finance.CashFlowForecastRequest
+	161, // 367: finance.FinanceEventPublisher.PublishInvoiceCreated:input_type -> finance.FinanceInvoiceCreatedEvent
+	162, // 368: finance.FinanceEventPublisher.PublishPaymentReceived:input_type -> finance.FinancePaymentReceivedEvent
+	163, // 369: finance.FinanceEventPublisher.PublishInventoryCostPosted:input_type -> finance.InventoryCostPostedEvent
+	164, // 370: finance.FinanceEventPublisher.PublishPayrollPosted:input_type -> finance.PayrollPostedEvent
+	165, // 371: finance.FinanceEventPublisher.PublishVendorBillApproved:input_type -> finance.VendorBillApprovedEvent
+	24,  // 372: finance.InvoiceService.CreateInvoice:output_type -> finance.Invoice
+	24,  // 373: finance.InvoiceService.GetInvoice:output_type -> finance.Invoice
+	30,  // 374: finance.InvoiceService.ListInvoices:output_type -> finance.ListInvoicesResponse
+	30,  // 375: finance.InvoiceService.SearchInvoices:output_type -> finance.ListInvoicesResponse
+	24,  // 376: finance.InvoiceService.UpdateInvoice:output_type -> finance.Invoice
+	169, // 377: finance.InvoiceService.DeleteInvoice:output_type -> google.protobuf.Empty
+	32,  // 378: finance.CreditDebitNoteService.CreateCreditDebitNote:output_type -> finance.CreditDebitNote
+	32,  // 379: finance.CreditDebitNoteService.GetCreditDebitNote:output_type -> finance.CreditDebitNote
+	38,  // 380: finance.CreditDebitNoteService.ListCreditDebitNotes:output_type -> finance.ListCreditDebitNotesResponse
+	32,  // 381: finance.CreditDebitNoteService.UpdateCreditDebitNote:output_type -> finance.CreditDebitNote
+	169, // 382: finance.CreditDebitNoteService.DeleteCreditDebitNote:output_type -> google.protobuf.Empty
+	39,  // 383: finance.PaymentService.CreatePaymentDue:output_type -> finance.PaymentDue
+	39,  // 384: finance.PaymentService.GetPaymentDue:output_type -> finance.PaymentDue
+	39,  // 385: finance.PaymentService.UpdatePaymentDue:output_type -> finance.PaymentDue
+	169, // 386: finance.PaymentService.DeletePaymentDue:output_type -> google.protobuf.Empty
+	39,  // 387: finance.PaymentService.MarkPaymentAsPaid:output_type -> finance.PaymentDue
+	46,  // 388: finance.PaymentService.ListPaymentDues:output_type -> finance.ListPaymentDuesResponse
+	47,  // 389: finance.PaymentService.CreateBankAccount:output_type -> finance.BankAccount
+	47,  // 390: finance.PaymentService.GetBankAccount:output_type -> finance.BankAccount
+	47,  // 391: finance.PaymentService.UpdateBankAccount:output_type -> finance.BankAccount
+	169, // 392: finance.PaymentService.DeleteBankAccount:output_type -> google.protobuf.Empty
+	53,  // 393: finance.PaymentService.ListBankAccounts:output_type -> finance.ListBankAccountsResponse
+	56,  // 394: finance.PaymentService.ImportBankTransactions:output_type -> finance.ImportBankTransactionsResponse
+	58,  // 395: finance.PaymentService.ListBankTransactions:output_type -> finance.ListBankTransactionsResponse
+	60,  // 396: finance.BankReconciliationService.ReconcileTransaction:output_type -> finance.Reconciliation
+	61,  // 397: finance.LedgerService.CreateAccount:output_type -> finance.Account
+	61,  // 398: finance.LedgerService.GetAccount:output_type -> finance.Account
+	61,  // 399: finance.LedgerService.UpdateAccount:output_type -> finance.Account
+	169, // 400: finance.LedgerService.DeleteAccount:output_type -> google.protobuf.Empty
+	67,  // 401: finance.LedgerService.ListAccounts:output_type -> finance.ListAccountsResponse
+	69,  // 402: finance.LedgerService.CreateJournalEntry:output_type -> finance.JournalEntry
+	69,  // 403: finance.LedgerService.GetJournalEntry:output_type -> finance.JournalEntry
+	69,  // 404: finance.LedgerService.UpdateJournalEntry:output_type -> finance.JournalEntry
+	169, // 405: finance.LedgerService.DeleteJournalEntry:output_type -> google.protobuf.Empty
+	75,  // 406: finance.LedgerService.ListJournalEntries:output_type -> finance.ListJournalEntriesResponse
+	78,  // 407: finance.LedgerService.ListLedgerEntries:output_type -> finance.ListLedgerEntriesResponse
+	79,  // 408: finance.BudgetService.CreateBudget:output_type -> finance.Budget
+	79,  // 409: finance.BudgetService.GetBudget:output_type -> finance.Budget
+	79,  // 410: finance.BudgetService.UpdateBudget:output_type -> finance.Budget
+	169, // 411: finance.BudgetService.DeleteBudget:output_type -> google.protobuf.Empty
+	85,  // 412: finance.BudgetService.ListBudgets:output_type -> finance.ListBudgetsResponse
+	86,  // 413: finance.BudgetAllocationService.AllocateBudget:output_type -> finance.BudgetAllocation
+	86,  // 414: finance.BudgetAllocationService.GetBudgetAllocation:output_type -> finance.BudgetAllocation
+	86,  // 415: finance.BudgetAllocationService.UpdateBudgetAllocation:output_type -> finance.BudgetAllocation
+	169, // 416: finance.BudgetAllocationService.DeleteBudgetAllocation:output_type -> google.protobuf.Empty
+	92,  // 417: finance.BudgetAllocationService.ListBudgetAllocations:output_type -> finance.ListBudgetAllocationsResponse
+	94,  // 418: finance.BudgetComparisonService.GetBudgetComparisonReport:output_type -> finance.BudgetComparisonResponse
+	95,  // 419: finance.ExpenseService.CreateExpense:output_type -> finance.Expense
+	95,  // 420: finance.ExpenseService.GetExpense:output_type -> finance.Expense
+	95,  // 421: finance.ExpenseService.UpdateExpense:output_type -> finance.Expense
+	169, // 422: finance.ExpenseService.DeleteExpense:output_type -> google.protobuf.Empty
+	101, // 423: finance.ExpenseService.ListExpenses:output_type -> finance.ListExpensesResponse
+	102, // 424: finance.CostAccountingService.CreateCostCenter:output_type -> finance.CostCenter
+	102, // 425: finance.CostAccountingService.GetCostCenter:output_type -> finance.CostCenter
+	102, // 426: finance.CostAccountingService.UpdateCostCenter:output_type -> finance.CostCenter
+	169, // 427: finance.CostAccountingService.DeleteCostCenter:output_type -> google.protobuf.Empty
+	108, // 428: finance.CostAccountingService.ListCostCenters:output_type -> finance.ListCostCentersResponse
+	111, // 429: finance.CostAccountingService.AllocateCost:output_type -> finance.AllocateCostResponse
+	113, // 430: finance.CostAccountingService.ListCostAllocations:output_type -> finance.ListCostAllocationsResponse
+	114, // 431: finance.AuditTrailService.RecordAuditEvent:output_type -> finance.AuditEvent
+	117, // 432: finance.AuditTrailService.ListAuditEvents:output_type -> finance.ListAuditEventsResponse
+	114, // 433: finance.AuditTrailService.GetAuditEventById:output_type -> finance.AuditEvent
+	120, // 434: finance.AuditTrailService.FilterAuditEvents:output_type -> finance.FilterAuditEventsResponse
+	121, // 435: finance.AccrualService.CreateAccrual:output_type -> finance.Accrual
+	121, // 436: finance.AccrualService.GetAccrualById:output_type -> finance.Accrual
+	121, // 437: finance.AccrualService.UpdateAccrual:output_type -> finance.Accrual
+	169, // 438: finance.AccrualService.DeleteAccrual:output_type -> google.protobuf.Empty
+	127, // 439: finance.AccrualService.ListAccruals:output_type -> finance.ListAccrualsResponse
+	128, // 440: finance.AllocationAutomationService.CreateAllocationRule:output_type -> finance.AllocationRule
+	128, // 441: finance.AllocationAutomationService.GetAllocationRule:output_type -> finance.AllocationRule
+	128, // 442: finance.AllocationAutomationService.UpdateAllocationRule:output_type -> finance.AllocationRule
+	169, // 443: finance.AllocationAutomationService.DeleteAllocationRule:output_type -> google.protobuf.Empty
+	134, // 444: finance.AllocationAutomationService.ListAllocationRules:output_type -> finance.ListAllocationRulesResponse
+	136, // 445: finance.FinancialReportService.GenerateProfitLossReport:output_type -> finance.ProfitLossReport
+	137, // 446: finance.FinancialReportService.GenerateBalanceSheetReport:output_type -> finance.BalanceSheetReport
+	138, // 447: finance.FinancialReportService.GenerateTrialBalanceReport:output_type -> finance.TrialBalanceReport
+	141, // 448: finance.FinancialReportService.GenerateComplianceReport:output_type -> finance.ComplianceReport
+	141, // 449: finance.FinancialComplianceService.GenerateComplianceReport:output_type -> finance.ComplianceReport
+	149, // 450: finance.ConsolidationService.ConsolidateEntities:output_type -> finance.ConsolidationResponse
+	142, // 451: finance.ConsolidationService.CreateConsolidation:output_type -> finance.Consolidation
+	142, // 452: finance.ConsolidationService.GetConsolidation:output_type -> finance.Consolidation
+	146, // 453: finance.ConsolidationService.ListConsolidations:output_type -> finance.ListConsolidationsResponse
+	169, // 454: finance.ConsolidationService.DeleteConsolidation:output_type -> google.protobuf.Empty
+	150, // 455: finance.FxService.CreateExchangeRate:output_type -> finance.ExchangeRate
+	150, // 456: finance.FxService.GetExchangeRate:output_type -> finance.ExchangeRate
+	150, // 457: finance.FxService.UpdateExchangeRate:output_type -> finance.ExchangeRate
+	169, // 458: finance.FxService.DeleteExchangeRate:output_type -> google.protobuf.Empty
+	156, // 459: finance.FxService.ListExchangeRates:output_type -> finance.ListExchangeRatesResponse
+	158, // 460: finance.FxService.ConvertMoney:output_type -> finance.ConvertMoneyResponse
+	160, // 461: finance.CashFlowService.GenerateForecast:output_type -> finance.CashFlowForecastResponse
+	160, // 462: finance.CashFlowService.GetForecast:output_type -> finance.CashFlowForecastResponse
+	160, // 463: finance.CashFlowService.ListForecasts:output_type -> finance.CashFlowForecastResponse
+	169, // 464: finance.FinanceEventPublisher.PublishInvoiceCreated:output_type -> google.protobuf.Empty
+	169, // 465: finance.FinanceEventPublisher.PublishPaymentReceived:output_type -> google.protobuf.Empty
+	169, // 466: finance.FinanceEventPublisher.PublishInventoryCostPosted:output_type -> google.protobuf.Empty
+	169, // 467: finance.FinanceEventPublisher.PublishPayrollPosted:output_type -> google.protobuf.Empty
+	169, // 468: finance.FinanceEventPublisher.PublishVendorBillApproved:output_type -> google.protobuf.Empty
+	372, // [372:469] is the sub-list for method output_type
+	275, // [275:372] is the sub-list for method input_type
 	275, // [275:275] is the sub-list for extension type_name
 	275, // [275:275] is the sub-list for extension extendee
 	0,   // [0:275] is the sub-list for field type_name

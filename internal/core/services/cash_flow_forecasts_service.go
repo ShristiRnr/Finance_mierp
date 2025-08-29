@@ -2,10 +2,11 @@ package services
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/google/uuid"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
+
+	pb "github.com/ShristiRnr/Finance_mierp/api/pb"
 )
 
 type CashFlowService struct {
@@ -16,14 +17,32 @@ func NewCashFlowService(repo ports.CashFlowForecastRepository) *CashFlowService 
 	return &CashFlowService{repo: repo}
 }
 
-func (s *CashFlowService) GenerateForecast(ctx context.Context, cf *domain.CashFlowForecast) (*domain.CashFlowForecast, error) {
-	return s.repo.Generate(ctx, cf)
+// Accepts a ReportPeriod and returns forecast details as string
+func (s *CashFlowService) GenerateForecastFromPeriod(ctx context.Context, period *pb.ReportPeriod) (string, error) {
+	if period == nil {
+		return "", fmt.Errorf("period is required")
+	}
+
+	// TODO: Map ReportPeriod to domain.CashFlowForecast and call s.repo.Generate
+	// Here we just simulate
+	return "Generated forecast for period", nil
 }
 
-func (s *CashFlowService) GetForecast(ctx context.Context, id uuid.UUID) (*domain.CashFlowForecast, error) {
-	return s.repo.Get(ctx, id)
+func (s *CashFlowService) GetForecastFromPeriod(ctx context.Context, period *pb.ReportPeriod) (string, error) {
+	if period == nil {
+		return "", fmt.Errorf("period is required")
+	}
+
+	// TODO: Fetch from repo using period
+	return "Fetched forecast for period", nil
 }
 
-func (s *CashFlowService) ListForecasts(ctx context.Context, organizationID string, limit, offset int32) ([]*domain.CashFlowForecast, error) {
-	return s.repo.List(ctx, organizationID, limit, offset)
+func (s *CashFlowService) ListForecastsFromPeriod(ctx context.Context, period *pb.ReportPeriod) (string, error) {
+	if period == nil {
+		return "", fmt.Errorf("period is required")
+	}
+
+	// TODO: List forecasts from repo using period
+	return "Listed forecasts for period", nil
 }
+

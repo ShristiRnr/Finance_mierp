@@ -913,8 +913,10 @@ service FxService {
 message CashFlowForecastRequest { ReportPeriod period = 1; }
 message CashFlowForecastResponse { string forecast_details = 1; }
 
-service TreasuryService {
-  rpc GenerateCashFlowForecast(CashFlowForecastRequest) returns (CashFlowForecastResponse);
+service CashFlowService {
+  rpc GenerateForecast(CashFlowForecastRequest) returns (CashFlowForecastResponse);
+  rpc GetForecast(CashFlowForecastRequest) returns (CashFlowForecastResponse);
+  rpc ListForecasts(CashFlowForecastRequest) returns (CashFlowForecastResponse);
 }
 
 // =========================================================

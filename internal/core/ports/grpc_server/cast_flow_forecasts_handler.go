@@ -1,63 +1,55 @@
 package grpc_server
 
 import (
-	"net/http"
+	"context"
 
-	"github.com/google/uuid"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
+	pb "github.com/ShristiRnr/Finance_mierp/api/pb"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/services"
-	"encoding/json"
 )
-
-type CashFlowHandler struct {
+// CashFlowGRPCServer implements the gRPC server for cash flow forecasts
+type CashFlowGRPCServer struct {
+	pb.UnimplementedCashFlowServiceServer
 	service *services.CashFlowService
 }
 
-func NewCashFlowHandler(s *services.CashFlowService) *CashFlowHandler {
-	return &CashFlowHandler{service: s}
+// NewCashFlowGRPCServer creates a new gRPC server instance
+func NewCashFlowGRPCServer(s *services.CashFlowService) *CashFlowGRPCServer {
+	return &CashFlowGRPCServer{service: s}
 }
 
-// HTTP Example: Generate Forecast
-func (h *CashFlowHandler) GenerateForecast(w http.ResponseWriter, r *http.Request) {
-	var cf domain.CashFlowForecast
-	if err := json.NewDecoder(r.Body).Decode(&cf); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	result, err := h.service.GenerateForecast(r.Context(), &cf)
+// GenerateForecast handles GenerateForecast gRPC request
+func (s *CashFlowGRPCServer) GenerateForecast(ctx context.Context, req *pb.CashFlowForecastRequest) (*pb.CashFlowForecastResponse, error) {
+	result, err := s.service.GenerateForecastFromPeriod(ctx, req.GetPeriod())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 
-	json.NewEncoder(w).Encode(result)
+	return &pb.CashFlowForecastResponse{
+		ForecastDetails: result,
+	}, nil
 }
 
-// HTTP Example: Get Forecast
-func (h *CashFlowHandler) GetForecast(w http.ResponseWriter, r *http.Request, id string) {
-	uid, err := uuid.Parse(id)
+func (s *CashFlowGRPCServer) GetForecast(ctx context.Context, req *pb.CashFlowForecastRequest) (*pb.CashFlowForecastResponse, error) {
+	result, err := s.service.GetForecastFromPeriod(ctx, req.GetPeriod())
 	if err != nil {
-		http.Error(w, "invalid UUID", http.StatusBadRequest)
-		return
+		return nil, err
 	}
 
-	result, err := h.service.GetForecast(r.Context(), uid)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
-	}
-
-	json.NewEncoder(w).Encode(result)
+	return &pb.CashFlowForecastResponse{
+		ForecastDetails: result,
+	}, nil
 }
 
-// HTTP Example: List Forecasts
-func (h *CashFlowHandler) ListForecasts(w http.ResponseWriter, r *http.Request, organizationID string, limit, offset int32) {
-	result, err := h.service.ListForecasts(r.Context(), organizationID, limit, offset)
+
+// ListForecasts handles ListForecasts gRPC request
+func (s *CashFlowGRPCServer) ListForecasts(ctx context.Context, req *pb.CashFlowForecastRequest) (*pb.CashFlowForecastResponse, error) {
+	result, err := s.service.ListForecastsFromPeriod(ctx, req.GetPeriod())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 
-	json.NewEncoder(w).Encode(result)
+	return &pb.CashFlowForecastResponse{
+		ForecastDetails: result,
+	}, nil
 }
+
