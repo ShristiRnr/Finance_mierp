@@ -29,6 +29,7 @@ type LedgerRepository interface {
 	List(ctx context.Context, limit, offset int32) ([]domain.LedgerEntry, error)
 }
 
+// Accruals
 type AccrualRepository interface {
 	Create(ctx context.Context, a domain.Accrual) (domain.Accrual, error)
 	Get(ctx context.Context, id uuid.UUID) (domain.Accrual, error)
@@ -40,6 +41,7 @@ type AccrualRepository interface {
 	ListExternalRefs(ctx context.Context, accrualID uuid.UUID) ([]domain.AccrualExternalRef, error)
 }
 
+// Allocation
 type AllocationRuleRepository interface {
 	Create(ctx context.Context, r domain.AllocationRule) (domain.AllocationRule, error)
 	Get(ctx context.Context, id uuid.UUID) (domain.AllocationRule, error)
