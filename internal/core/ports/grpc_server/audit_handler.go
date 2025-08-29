@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/services"
-	pb "github.com/ShristiRnr/Finance_mierp/api/pb" // Your generated proto package
+	pb "github.com/ShristiRnr/Finance_mierp/api/pb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
