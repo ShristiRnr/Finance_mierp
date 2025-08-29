@@ -2,8 +2,9 @@ package ports
 
 import (
 	"context"
-	"github.com/google/uuid"
+
 	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
+	"github.com/google/uuid"
 )
 
 // Accounts
@@ -60,7 +61,6 @@ type AllocationService interface {
 	ApplyRule(ctx context.Context, ruleID uuid.UUID) error
 }
 
-
 // AuditRepository is the port for database interactions related to audit events.
 type AuditRepository interface {
 	RecordAuditEvent(ctx context.Context, event *domain.AuditEvent) (*domain.AuditEvent, error)
@@ -84,4 +84,10 @@ type BudgetRepository interface {
 	DeleteAllocation(ctx context.Context, id uuid.UUID) error
 
 	GetBudgetComparison(ctx context.Context, id uuid.UUID) (*domain.BudgetComparisonReport, error)
+}
+
+type CashFlowForecastRepository interface {
+	Generate(ctx context.Context, cf *domain.CashFlowForecast) (*domain.CashFlowForecast, error)
+	Get(ctx context.Context, id uuid.UUID) (*domain.CashFlowForecast, error)
+	List(ctx context.Context, organizationID string, limit, offset int32) ([]*domain.CashFlowForecast, error)
 }
