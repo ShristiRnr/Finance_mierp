@@ -57,3 +57,12 @@ type AllocationService interface {
 	DeleteRule(ctx context.Context, id uuid.UUID) error
 	ApplyRule(ctx context.Context, ruleID uuid.UUID) error
 }
+
+
+// AuditRepository is the port for database interactions related to audit events.
+type AuditRepository interface {
+	RecordAuditEvent(ctx context.Context, event *domain.AuditEvent) (*domain.AuditEvent, error)
+	ListAuditEvents(ctx context.Context, page domain.Pagination) ([]domain.AuditEvent, error)
+	GetAuditEventByID(ctx context.Context, id string) (*domain.AuditEvent, error)
+	FilterAuditEvents(ctx context.Context, filter domain.FilterParams, page domain.Pagination) ([]domain.AuditEvent, error)
+}
