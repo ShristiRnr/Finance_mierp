@@ -4,7 +4,6 @@ import (
 	"strconv"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
 	pb "github.com/ShristiRnr/Finance_mierp/api/pb"
-	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	money "google.golang.org/genproto/googleapis/type/money"
 )
@@ -107,13 +106,6 @@ func toPbLedgerEntry(le domain.LedgerEntry) *pb.LedgerEntry {
 func strOrEmpty(s *string) string {
 	if s != nil {
 		return *s
-	}
-	return ""
-}
-
-func uuidToString(u *uuid.UUID) string {
-	if u != nil {
-		return u.String()
 	}
 	return ""
 }

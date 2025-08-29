@@ -2,10 +2,15 @@ package services
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
+)
+
+var (
+	ErrInvalidName = errors.New("invalid allocation rule name")
 )
 
 type AccrualService struct {

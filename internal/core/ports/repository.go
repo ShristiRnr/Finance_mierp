@@ -47,3 +47,13 @@ type AllocationRuleRepository interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 	List(ctx context.Context, limit, offset int32) ([]domain.AllocationRule, error)
 }
+
+// AllocationService defines the business methods for allocation rules
+type AllocationService interface {
+	CreateRule(ctx context.Context, r domain.AllocationRule) (domain.AllocationRule, error)
+	GetRule(ctx context.Context, id uuid.UUID) (domain.AllocationRule, error)
+	ListRules(ctx context.Context, limit, offset int32) ([]domain.AllocationRule, error)
+	UpdateRule(ctx context.Context, r domain.AllocationRule) (domain.AllocationRule, error)
+	DeleteRule(ctx context.Context, id uuid.UUID) error
+	ApplyRule(ctx context.Context, ruleID uuid.UUID) error
+}

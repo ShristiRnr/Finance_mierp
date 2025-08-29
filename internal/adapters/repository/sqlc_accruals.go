@@ -107,9 +107,9 @@ func toDomainAccrual(a db.Accrual) domain.Accrual {
 		Amount:      a.Amount,
 		AccrualDate: a.AccrualDate,
 		AccountID:   a.AccountID,
-		CreatedAt:   a.CreatedAt,
+		CreatedAt:   a.CreatedAt.Time,
 		CreatedBy:   a.CreatedBy.String,
-		UpdatedAt:   a.UpdatedAt,
+		UpdatedAt:   a.UpdatedAt.Time,
 		UpdatedBy:   a.UpdatedBy.String,
 		Revision:    a.Revision,
 	}
@@ -121,6 +121,6 @@ func toDomainAccrualRef(r db.AccrualExternalRef) domain.AccrualExternalRef {
 		AccrualID: r.AccrualID,
 		System:    r.System,
 		RefID:     r.RefID,
-		CreatedAt: r.CreatedAt,
+		CreatedAt: r.CreatedAt.Time,
 	}
 }
