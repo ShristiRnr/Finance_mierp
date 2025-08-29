@@ -12,7 +12,6 @@ import (
 )
 
 // ConsolidationRepo implements ports.ConsolidationRepository
-// using SQLC-generated queries.
 type ConsolidationRepo struct {
 	queries *db.Queries
 }
