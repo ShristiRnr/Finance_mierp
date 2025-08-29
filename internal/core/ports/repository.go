@@ -99,3 +99,13 @@ type ConsolidationRepository interface {
 	List(ctx context.Context, entityIds []string, start, end time.Time, limit, offset int32) ([]domain.Consolidation, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 }
+
+type CreditDebitNoteRepository interface {
+	Create(ctx context.Context, note domain.CreditDebitNote) (domain.CreditDebitNote, error)
+	Get(ctx context.Context, id uuid.UUID) (domain.CreditDebitNote, error)
+	List(ctx context.Context, limit, offset int32) ([]domain.CreditDebitNote, error)
+	Update(ctx context.Context, note domain.CreditDebitNote) (domain.CreditDebitNote, error)
+	Delete(ctx context.Context, id uuid.UUID) error
+	AddExternalRef(ctx context.Context, ref domain.ExternalRef) (domain.ExternalRef, error)
+	ListExternalRefs(ctx context.Context, noteID uuid.UUID) ([]domain.ExternalRef, error)
+}
