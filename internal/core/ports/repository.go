@@ -66,3 +66,19 @@ type AuditRepository interface {
 	GetAuditEventByID(ctx context.Context, id string) (*domain.AuditEvent, error)
 	FilterAuditEvents(ctx context.Context, filter domain.FilterParams, page domain.Pagination) ([]domain.AuditEvent, error)
 }
+
+type BudgetRepository interface {
+	Create(ctx context.Context, b *domain.Budget) (*domain.Budget, error)
+	Get(ctx context.Context, id uuid.UUID) (*domain.Budget, error)
+	List(ctx context.Context, limit, offset int32) ([]domain.Budget, error)
+	Update(ctx context.Context, b *domain.Budget) (*domain.Budget, error)
+	Delete(ctx context.Context, id uuid.UUID) error
+
+	Allocate(ctx context.Context, ba *domain.BudgetAllocation) (*domain.BudgetAllocation, error)
+	GetAllocation(ctx context.Context, id uuid.UUID) (*domain.BudgetAllocation, error)
+	ListAllocations(ctx context.Context, budgetID uuid.UUID, limit, offset int32) ([]domain.BudgetAllocation, error)
+	UpdateAllocation(ctx context.Context, ba *domain.BudgetAllocation) (*domain.BudgetAllocation, error)
+	DeleteAllocation(ctx context.Context, id uuid.UUID) error
+
+	GetBudgetComparison(ctx context.Context, id uuid.UUID) (*domain.BudgetComparisonReport, error)
+}

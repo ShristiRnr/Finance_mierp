@@ -11,12 +11,12 @@ import (
 )
 // AuditRepository implements the repository.AuditRepository interface using sqlc.
 type AuditRepository struct {
-	q *db.Queries
+	queries *db.Queries
 }
 
 func NewAuditRepository(database *sql.DB) *AuditRepository {
 	return &AuditRepository{
-		q: db.New(database),
+		queries: db.New(database),
 	}
 }
 
@@ -42,7 +42,7 @@ func (r *AuditRepository) RecordAuditEvent(ctx context.Context, event *domain.Au
 		ResourceType: sql.NullString{String: event.ResourceType, Valid: event.ResourceType != ""},
 		ResourceID:   sql.NullString{String: event.ResourceID, Valid: event.ResourceID != ""},
 	}
-	recordedEvent, err := r.q.RecordAuditEvent(ctx, params)
+	recordedEvent, err := r.queries.RecordAuditEvent(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (r *AuditRepository) GetAuditEventByID(ctx context.Context, id string) (*do
 	if err != nil {
 		return nil, err // Invalid UUID format
 	}
-	event, err := r.q.GetAuditEventById(ctx, uuid)
+	event, err := r.queries.GetAuditEventById(ctx, uuid)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (r *AuditRepository) ListAuditEvents(ctx context.Context, page domain.Pagin
 		Limit:  page.Limit,
 		Offset: page.Offset,
 	}
-	events, err := r.q.ListAuditEvents(ctx, params)
+	events, err := r.queries.ListAuditEvents(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (r *AuditRepository) FilterAuditEvents(ctx context.Context, filter domain.F
 		params.Column6 = *filter.ToDate
 	}
 	
-	events, err := r.q.FilterAuditEvents(ctx, params)
+	events, err := r.queries.FilterAuditEvents(ctx, params)
 	if err != nil {
 		return nil, err
 	}
