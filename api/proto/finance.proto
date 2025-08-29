@@ -848,7 +848,11 @@ message Consolidation {
 
 message CreateConsolidationRequest { Consolidation consolidation = 1; }
 message GetConsolidationRequest { string id = 1; }
-message ListConsolidationsRequest { PageRequest page = 1; }
+message ListConsolidationsRequest { 
+  PageRequest page = 1; 
+  ReportPeriod period = 2; 
+  repeated string entity_ids = 3;
+}
 message ListConsolidationsResponse { repeated Consolidation consolidations = 1; PageResponse page = 2; }
 message DeleteConsolidationRequest { string id = 1; }
 message ConsolidationRequest {

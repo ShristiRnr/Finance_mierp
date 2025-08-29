@@ -2,6 +2,7 @@ package ports
 
 import (
 	"context"
+	"time"
 
 	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
 	"github.com/google/uuid"
@@ -90,4 +91,11 @@ type CashFlowForecastRepository interface {
 	Generate(ctx context.Context, cf *domain.CashFlowForecast) (*domain.CashFlowForecast, error)
 	Get(ctx context.Context, id uuid.UUID) (*domain.CashFlowForecast, error)
 	List(ctx context.Context, organizationID string, limit, offset int32) ([]*domain.CashFlowForecast, error)
+}
+
+type ConsolidationRepository interface {
+	Create(ctx context.Context, c domain.Consolidation) (domain.Consolidation, error)
+	Get(ctx context.Context, id uuid.UUID) (domain.Consolidation, error)
+	List(ctx context.Context, entityIds []string, start, end time.Time, limit, offset int32) ([]domain.Consolidation, error)
+	Delete(ctx context.Context, id uuid.UUID) error
 }
