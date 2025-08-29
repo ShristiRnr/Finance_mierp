@@ -70,7 +70,6 @@ func (r *ConsolidationRepo) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.queries.DeleteConsolidation(ctx, id)
 }
 
-// mapSQLCToDomain converts the SQLC Consolidation type to the domain Consolidation type.
 func mapSQLCToDomain(c db.Consolidation) domain.Consolidation {
 	var createdAt time.Time
 	if c.CreatedAt.Valid {
