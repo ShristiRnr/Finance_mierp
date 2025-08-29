@@ -67,6 +67,7 @@ type AuditRepository interface {
 	FilterAuditEvents(ctx context.Context, filter domain.FilterParams, page domain.Pagination) ([]domain.AuditEvent, error)
 }
 
+// BudgetRepository is the port for database interactions related to budgets.
 type BudgetRepository interface {
 	Create(ctx context.Context, b *domain.Budget) (*domain.Budget, error)
 	Get(ctx context.Context, id uuid.UUID) (*domain.Budget, error)

@@ -2,19 +2,16 @@ package grpc_server
 
 import (
 	"context"
-	"fmt"
 	"strconv"
+
+	"github.com/google/uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 
 	pb "github.com/ShristiRnr/Finance_mierp/api/pb"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/services"
-	"github.com/google/uuid"
-	money "google.golang.org/genproto/googleapis/type/money"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/emptypb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type AccrualHandler struct {
@@ -132,64 +129,4 @@ func (h *AccrualHandler) ListAccruals(ctx context.Context, req *pb.ListAccrualsR
 			TotalSize:     totalCount,
 		},
 	}, nil
-}
-
-// helper mapper
-func toPbAccrual(a domain.Accrual) *pb.Accrual {
-	return &pb.Accrual{
-		Id:          a.ID.String(),
-		Description: derefString(a.Description),
-		Amount:      stringToMoney(a.Amount, "USD"), // convert float64 → *money.Money
-		AccrualDate: timestamppb.New(a.AccrualDate),
-		AccountId:   a.AccountID,
-	}
-}
-
-func floatToMoney(amount float64, currency string) *money.Money {
-	units := int64(amount)
-	nanos := int32((amount - float64(units)) * 1e9)
-	return &money.Money{
-		CurrencyCode: currency,
-		Units:        units,
-		Nanos:        nanos,
-	}
-}
-
-func derefString(s *string) string {
-	if s == nil {
-		return ""
-	}
-	return *s
-}
-
-func stringPtr(s string) *string {
-	return &s
-}
-
-func stringToMoney(amountStr string, currency string) *money.Money {
-	f, err := strconv.ParseFloat(amountStr, 64)
-	if err != nil {
-		return nil
-	}
-	return floatToMoney(f, currency)
-}
-
-// *money.Money → string
-func moneyToString(m *money.Money) string {
-	if m == nil {
-		return "0"
-	}
-	return fmt.Sprintf("%d.%09d", m.Units, m.Nanos) // crude formatting
-}
-
-func getUserFromContext(ctx context.Context) string {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return ""
-	}
-	values := md.Get("user-id")
-	if len(values) > 0 {
-		return values[0]
-	}
-	return ""
 }

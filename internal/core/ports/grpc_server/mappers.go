@@ -1,11 +1,14 @@
 package grpc_server
 
 import (
+	"context"
 	"strconv"
+	"fmt"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
 	pb "github.com/ShristiRnr/Finance_mierp/api/pb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	money "google.golang.org/genproto/googleapis/type/money"
+	"google.golang.org/grpc/metadata"
 )
 
 //
@@ -106,6 +109,65 @@ func toPbLedgerEntry(le domain.LedgerEntry) *pb.LedgerEntry {
 func strOrEmpty(s *string) string {
 	if s != nil {
 		return *s
+	}
+	return ""
+}
+
+func toPbAccrual(a domain.Accrual) *pb.Accrual {
+	return &pb.Accrual{
+		Id:          a.ID.String(),
+		Description: derefString(a.Description),
+		Amount:      stringToMoney(a.Amount, "USD"), // convert float64 → *money.Money
+		AccrualDate: timestamppb.New(a.AccrualDate),
+		AccountId:   a.AccountID,
+	}
+}
+
+func floatToMoney(amount float64, currency string) *money.Money {
+	units := int64(amount)
+	nanos := int32((amount - float64(units)) * 1e9)
+	return &money.Money{
+		CurrencyCode: currency,
+		Units:        units,
+		Nanos:        nanos,
+	}
+}
+
+func derefString(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
+func stringPtr(s string) *string {
+	return &s
+}
+
+func stringToMoney(amountStr string, currency string) *money.Money {
+	f, err := strconv.ParseFloat(amountStr, 64)
+	if err != nil {
+		return nil
+	}
+	return floatToMoney(f, currency)
+}
+
+// *money.Money → string
+func moneyToString(m *money.Money) string {
+	if m == nil {
+		return "0"
+	}
+	return fmt.Sprintf("%d.%09d", m.Units, m.Nanos) // crude formatting
+}
+
+func getUserFromContext(ctx context.Context) string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return ""
+	}
+	values := md.Get("user-id")
+	if len(values) > 0 {
+		return values[0]
 	}
 	return ""
 }
