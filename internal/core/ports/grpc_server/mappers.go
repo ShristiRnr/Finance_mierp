@@ -153,7 +153,7 @@ func stringToMoney(amountStr string, currency string) *money.Money {
 	return floatToMoney(f, currency)
 }
 
-// *money.Money → string
+
 func moneyToString(m *money.Money) string {
 	if m == nil {
 		return "0"
