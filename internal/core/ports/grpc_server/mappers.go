@@ -70,7 +70,7 @@ func parseMoney(amount string) *money.Money {
 	}
 	val, err := strconv.ParseFloat(amount, 64)
 	if err != nil {
-		return nil // or handle error properly
+		return nil
 	}
 
 	units := int64(val)
