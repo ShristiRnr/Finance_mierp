@@ -4,6 +4,7 @@ import (
 	"context"
 	"strconv"
 	"fmt"
+	"github.com/shopspring/decimal"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
 	pb "github.com/ShristiRnr/Finance_mierp/api/pb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -170,4 +171,46 @@ func getUserFromContext(ctx context.Context) string {
 		return values[0]
 	}
 	return ""
+}
+
+func mapDomainNoteTypeToProto(t domain.NoteType) pb.NoteType {
+	switch t {
+	case "CREDIT":
+		return pb.NoteType_NOTE_TYPE_CREDIT
+	case "DEBIT":
+		return pb.NoteType_NOTE_TYPE_DEBIT
+	default:
+		return pb.NoteType_NOTE_TYPE_UNSPECIFIED
+	}
+}
+
+
+func mapDomainAmountToProto(amount string) *money.Money {
+	if amount == "" {
+		return nil
+	}
+	dec, err := decimal.NewFromString(amount) // from shopspring/decimal
+	if err != nil {
+		return nil
+	}
+	units := dec.IntPart()
+	nanos := (dec.Sub(decimal.NewFromInt(units))).Mul(decimal.New(1_000_000_000, 0)).IntPart()
+
+	return &money.Money{
+		CurrencyCode: "USD", // pick or inject dynamically
+		Units:        units,
+		Nanos:        int32(nanos),
+	}
+}
+
+
+// mapDomainToProtoCreditDebitNote converts a domain CreditDebitNote to a protobuf message.
+func mapDomainToProtoCreditDebitNote(note domain.CreditDebitNote) *pb.CreditDebitNote {
+	return &pb.CreditDebitNote{
+		Id:        note.ID.String(),
+		InvoiceId: note.InvoiceID.String(),
+		Type:      mapDomainNoteTypeToProto(note.Type),
+		Amount:    mapDomainAmountToProto(note.Amount),
+		Reason:    note.Reason,
+	}
 }

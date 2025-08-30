@@ -12,13 +12,13 @@ import (
 )
 
 // Server implements the gRPC server for the AuditTrailService.
-type Server struct {
+type AuditHandler struct {
 	pb.UnimplementedAuditTrailServiceServer
 	service *services.AuditService
 }
 
-func NewServer(service *services.AuditService) *Server {
-	return &Server{service: service}
+func NewAuditHandler(service *services.AuditService) *AuditHandler {
+	return &AuditHandler{service: service}
 }
 
 // Helper to convert from domain model to proto message
@@ -34,7 +34,7 @@ func toProto(e *domain.AuditEvent) *pb.AuditEvent {
 	}
 }
 
-func (s *Server) RecordAuditEvent(ctx context.Context, req *pb.RecordAuditEventRequest) (*pb.AuditEvent, error) {
+func (s *AuditHandler) RecordAuditEvent(ctx context.Context, req *pb.RecordAuditEventRequest) (*pb.AuditEvent, error) {
 	event := req.GetEvent()
 	domainEvent := &domain.AuditEvent{
 		UserID:       event.GetUserId(),
@@ -53,7 +53,7 @@ func (s *Server) RecordAuditEvent(ctx context.Context, req *pb.RecordAuditEventR
 	return toProto(recordedEvent), nil
 }
 
-func (s *Server) GetAuditEventById(ctx context.Context, req *pb.GetAuditEventByIdRequest) (*pb.AuditEvent, error) {
+func (s *AuditHandler) GetAuditEventById(ctx context.Context, req *pb.GetAuditEventByIdRequest) (*pb.AuditEvent, error) {
 	event, err := s.service.GetByID(ctx, req.GetId())
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (s *Server) GetAuditEventById(ctx context.Context, req *pb.GetAuditEventByI
 	return toProto(event), nil
 }
 
-func (s *Server) ListAuditEvents(ctx context.Context, req *pb.ListAuditEventsRequest) (*pb.ListAuditEventsResponse, error) {
+func (s *AuditHandler) ListAuditEvents(ctx context.Context, req *pb.ListAuditEventsRequest) (*pb.ListAuditEventsResponse, error) {
 	// Default page size if not provided
 	limit := int32(50)
 	if req.GetPage().GetPageSize() > 0 {
@@ -110,7 +110,7 @@ func (s *Server) ListAuditEvents(ctx context.Context, req *pb.ListAuditEventsReq
 
 
 
-func (s *Server) FilterAuditEvents(ctx context.Context, req *pb.FilterAuditEventsRequest) (*pb.FilterAuditEventsResponse, error) {
+func (s *AuditHandler) FilterAuditEvents(ctx context.Context, req *pb.FilterAuditEventsRequest) (*pb.FilterAuditEventsResponse, error) {
 	filter := domain.FilterParams{}
 	if req.UserId != "" {
 		filter.UserID = &req.UserId

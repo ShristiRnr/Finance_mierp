@@ -106,6 +106,12 @@ type CreditDebitNoteRepository interface {
 	List(ctx context.Context, limit, offset int32) ([]domain.CreditDebitNote, error)
 	Update(ctx context.Context, note domain.CreditDebitNote) (domain.CreditDebitNote, error)
 	Delete(ctx context.Context, id uuid.UUID) error
-	AddExternalRef(ctx context.Context, ref domain.ExternalRef) (domain.ExternalRef, error)
-	ListExternalRefs(ctx context.Context, noteID uuid.UUID) ([]domain.ExternalRef, error)
+}
+
+type CreditDebitNoteService interface {
+	Create(ctx context.Context, note domain.CreditDebitNote) (domain.CreditDebitNote, error)
+	Get(ctx context.Context, id uuid.UUID) (domain.CreditDebitNote, error)
+	List(ctx context.Context, limit, offset int32) ([]domain.CreditDebitNote, error)
+	Update(ctx context.Context, note domain.CreditDebitNote) (domain.CreditDebitNote, error)
+	Delete(ctx context.Context, id uuid.UUID) error
 }

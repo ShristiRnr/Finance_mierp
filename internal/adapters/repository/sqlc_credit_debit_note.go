@@ -62,10 +62,11 @@ func (r *CreditDebitNoteRepo) Update(ctx context.Context, note domain.CreditDebi
 		ID:        note.ID,
 		InvoiceID: note.InvoiceID,
 		Type:      string(note.Type),
-		Amount:    note.Amount,
+		Amount:    note.Amount, 
 		Reason:    sql.NullString{String: note.Reason, Valid: note.Reason != ""},
 		UpdatedBy: sql.NullString{String: note.UpdatedBy, Valid: note.UpdatedBy != ""},
 	}
+
 	n, err := r.queries.UpdateCreditDebitNote(ctx, params)
 	if err != nil {
 		return domain.CreditDebitNote{}, err
@@ -73,43 +74,33 @@ func (r *CreditDebitNoteRepo) Update(ctx context.Context, note domain.CreditDebi
 	return mapSQLCToDomains(n), nil
 }
 
+
 func (r *CreditDebitNoteRepo) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.queries.DeleteCreditDebitNote(ctx, id)
 }
 
 func (r *CreditDebitNoteRepo) AddExternalRef(ctx context.Context, ref domain.ExternalRef) (domain.ExternalRef, error) {
-	params := db.AddCreditDebitNoteExternalRefParams{
-		NoteID: ref.ID,
-		System: ref.System,
-		RefID:  ref.RefID,
+	param := db.AddCreditDebitNoteExternalRefParams{
+		System:  ref.System,
+		RefID:   ref.RefID,
 	}
-	rf, err := r.queries.AddCreditDebitNoteExternalRef(ctx, params)
+	e, err := r.queries.AddCreditDebitNoteExternalRef(ctx, param)
 	if err != nil {
 		return domain.ExternalRef{}, err
 	}
-	return domain.ExternalRef{
-		ID:        rf.ID,
-		System:    rf.System,
-		RefID:     rf.RefID,
-		CreatedAt: rf.CreatedAt.Time,
-	}, nil
+	return mapSQLCExternalRefToDomain(e), nil
 }
 
 func (r *CreditDebitNoteRepo) ListExternalRefs(ctx context.Context, noteID uuid.UUID) ([]domain.ExternalRef, error) {
-	refs, err := r.queries.ListCreditDebitNoteExternalRefs(ctx, noteID)
+	rows, err := r.queries.ListCreditDebitNoteExternalRefs(ctx, noteID)
 	if err != nil {
 		return nil, err
 	}
-	out := make([]domain.ExternalRef, len(refs))
-	for i, rf := range refs {
-		out[i] = domain.ExternalRef{
-			ID:        rf.ID,
-			System:    rf.System,
-			RefID:     rf.RefID,
-			CreatedAt: rf.CreatedAt.Time,
-		}
+	refs := make([]domain.ExternalRef, len(rows))
+	for i, e := range rows {
+		refs[i] = mapSQLCExternalRefToDomain(e)
 	}
-	return out, nil
+	return refs, nil
 }
 
 func mapSQLCToDomains(n db.CreditDebitNote) domain.CreditDebitNote {
@@ -134,5 +125,14 @@ func mapSQLCToDomains(n db.CreditDebitNote) domain.CreditDebitNote {
 		CreatedBy: createdBy,
 		UpdatedAt: n.UpdatedAt.Time,
 		UpdatedBy: updatedBy,
+	}
+}
+
+func mapSQLCExternalRefToDomain(r db.CreditDebitNoteExternalRef) domain.ExternalRef {
+	return domain.ExternalRef{
+		ID:        r.ID,
+		System:    r.System,
+		RefID:     r.RefID,
+		CreatedAt: r.CreatedAt.Time,
 	}
 }
