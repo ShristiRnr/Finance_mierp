@@ -608,7 +608,7 @@ service BudgetComparisonService {
 
 // -------------------- Cost Accounting (base) --------------
 
-message Expense {
+message ExpenseRate {
   string id = 1;
   string category = 2; // "LABOR","MATERIAL","OPEX","CAPEX"...
   google.type.Money amount = 3;
@@ -618,23 +618,23 @@ message Expense {
   repeated ExternalRef external_refs = 7;
 }
 
-message CreateExpenseRequest { RequestMetadata meta = 1; Expense expense = 2; }
-message GetExpenseRequest { string id = 1; }
-message UpdateExpenseRequest {
+message CreateExpenseRateRequest { RequestMetadata meta = 1; ExpenseRate expense_rate = 2; }
+message GetExpenseRateRequest { string id = 1; }
+message UpdateExpenseRateRequest {
   RequestMetadata meta = 1;
-  Expense expense = 2;
+  ExpenseRate expense_rate = 2;
   google.protobuf.FieldMask update_mask = 3;
 }
-message DeleteExpenseRequest { RequestMetadata meta = 1; string id = 2; }
-message ListExpensesRequest { PageRequest page = 1; }
-message ListExpensesResponse { repeated Expense expenses = 1; PageResponse page = 2; }
+message DeleteExpenseRateRequest { RequestMetadata meta = 1; string id = 2; }
+message ListExpensesRateRequest { PageRequest page = 1; }
+message ListExpensesRateResponse { repeated ExpenseRate expense_rate = 1; PageResponse page = 2; }
 
-service ExpenseService {
-  rpc CreateExpense(CreateExpenseRequest) returns (Expense);
-  rpc GetExpense(GetExpenseRequest) returns (Expense);
-  rpc UpdateExpense(UpdateExpenseRequest) returns (Expense);
-  rpc DeleteExpense(DeleteExpenseRequest) returns (google.protobuf.Empty);
-  rpc ListExpenses(ListExpensesRequest) returns (ListExpensesResponse);
+service ExpenseRateService {
+  rpc CreateExpenseRate(CreateExpenseRateRequest) returns (ExpenseRate);
+  rpc GetExpenseRate(GetExpenseRateRequest) returns (ExpenseRate);
+  rpc UpdateExpenseRate(UpdateExpenseRateRequest) returns (ExpenseRate);
+  rpc DeleteExpenseRate(DeleteExpenseRateRequest) returns (google.protobuf.Empty);
+  rpc ListExpensesRate(ListExpensesRateRequest) returns (ListExpensesRateResponse);
 }
 
 message CostCenter {

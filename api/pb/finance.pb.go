@@ -5945,7 +5945,7 @@ func (x *BudgetComparisonResponse) GetRemainingBudget() *money.Money {
 	return nil
 }
 
-type Expense struct {
+type ExpenseRate struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Category      string                 `protobuf:"bytes,2,opt,name=category,proto3" json:"category,omitempty"` // "LABOR","MATERIAL","OPEX","CAPEX"...
@@ -5958,20 +5958,20 @@ type Expense struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Expense) Reset() {
-	*x = Expense{}
+func (x *ExpenseRate) Reset() {
+	*x = ExpenseRate{}
 	mi := &file_finance_proto_msgTypes[84]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Expense) String() string {
+func (x *ExpenseRate) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Expense) ProtoMessage() {}
+func (*ExpenseRate) ProtoMessage() {}
 
-func (x *Expense) ProtoReflect() protoreflect.Message {
+func (x *ExpenseRate) ProtoReflect() protoreflect.Message {
 	mi := &file_finance_proto_msgTypes[84]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -5983,82 +5983,82 @@ func (x *Expense) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Expense.ProtoReflect.Descriptor instead.
-func (*Expense) Descriptor() ([]byte, []int) {
+// Deprecated: Use ExpenseRate.ProtoReflect.Descriptor instead.
+func (*ExpenseRate) Descriptor() ([]byte, []int) {
 	return file_finance_proto_rawDescGZIP(), []int{84}
 }
 
-func (x *Expense) GetId() string {
+func (x *ExpenseRate) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *Expense) GetCategory() string {
+func (x *ExpenseRate) GetCategory() string {
 	if x != nil {
 		return x.Category
 	}
 	return ""
 }
 
-func (x *Expense) GetAmount() *money.Money {
+func (x *ExpenseRate) GetAmount() *money.Money {
 	if x != nil {
 		return x.Amount
 	}
 	return nil
 }
 
-func (x *Expense) GetExpenseDate() *timestamppb.Timestamp {
+func (x *ExpenseRate) GetExpenseDate() *timestamppb.Timestamp {
 	if x != nil {
 		return x.ExpenseDate
 	}
 	return nil
 }
 
-func (x *Expense) GetCostCenterId() string {
+func (x *ExpenseRate) GetCostCenterId() string {
 	if x != nil {
 		return x.CostCenterId
 	}
 	return ""
 }
 
-func (x *Expense) GetAudit() *AuditFields {
+func (x *ExpenseRate) GetAudit() *AuditFields {
 	if x != nil {
 		return x.Audit
 	}
 	return nil
 }
 
-func (x *Expense) GetExternalRefs() []*ExternalRef {
+func (x *ExpenseRate) GetExternalRefs() []*ExternalRef {
 	if x != nil {
 		return x.ExternalRefs
 	}
 	return nil
 }
 
-type CreateExpenseRequest struct {
+type CreateExpenseRateRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Meta          *RequestMetadata       `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
-	Expense       *Expense               `protobuf:"bytes,2,opt,name=expense,proto3" json:"expense,omitempty"`
+	ExpenseRate   *ExpenseRate           `protobuf:"bytes,2,opt,name=expense_rate,json=expenseRate,proto3" json:"expense_rate,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CreateExpenseRequest) Reset() {
-	*x = CreateExpenseRequest{}
+func (x *CreateExpenseRateRequest) Reset() {
+	*x = CreateExpenseRateRequest{}
 	mi := &file_finance_proto_msgTypes[85]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CreateExpenseRequest) String() string {
+func (x *CreateExpenseRateRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateExpenseRequest) ProtoMessage() {}
+func (*CreateExpenseRateRequest) ProtoMessage() {}
 
-func (x *CreateExpenseRequest) ProtoReflect() protoreflect.Message {
+func (x *CreateExpenseRateRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_finance_proto_msgTypes[85]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -6070,46 +6070,46 @@ func (x *CreateExpenseRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CreateExpenseRequest.ProtoReflect.Descriptor instead.
-func (*CreateExpenseRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use CreateExpenseRateRequest.ProtoReflect.Descriptor instead.
+func (*CreateExpenseRateRequest) Descriptor() ([]byte, []int) {
 	return file_finance_proto_rawDescGZIP(), []int{85}
 }
 
-func (x *CreateExpenseRequest) GetMeta() *RequestMetadata {
+func (x *CreateExpenseRateRequest) GetMeta() *RequestMetadata {
 	if x != nil {
 		return x.Meta
 	}
 	return nil
 }
 
-func (x *CreateExpenseRequest) GetExpense() *Expense {
+func (x *CreateExpenseRateRequest) GetExpenseRate() *ExpenseRate {
 	if x != nil {
-		return x.Expense
+		return x.ExpenseRate
 	}
 	return nil
 }
 
-type GetExpenseRequest struct {
+type GetExpenseRateRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetExpenseRequest) Reset() {
-	*x = GetExpenseRequest{}
+func (x *GetExpenseRateRequest) Reset() {
+	*x = GetExpenseRateRequest{}
 	mi := &file_finance_proto_msgTypes[86]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetExpenseRequest) String() string {
+func (x *GetExpenseRateRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetExpenseRequest) ProtoMessage() {}
+func (*GetExpenseRateRequest) ProtoMessage() {}
 
-func (x *GetExpenseRequest) ProtoReflect() protoreflect.Message {
+func (x *GetExpenseRateRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_finance_proto_msgTypes[86]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -6121,41 +6121,41 @@ func (x *GetExpenseRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetExpenseRequest.ProtoReflect.Descriptor instead.
-func (*GetExpenseRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetExpenseRateRequest.ProtoReflect.Descriptor instead.
+func (*GetExpenseRateRequest) Descriptor() ([]byte, []int) {
 	return file_finance_proto_rawDescGZIP(), []int{86}
 }
 
-func (x *GetExpenseRequest) GetId() string {
+func (x *GetExpenseRateRequest) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-type UpdateExpenseRequest struct {
+type UpdateExpenseRateRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Meta          *RequestMetadata       `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
-	Expense       *Expense               `protobuf:"bytes,2,opt,name=expense,proto3" json:"expense,omitempty"`
+	ExpenseRate   *ExpenseRate           `protobuf:"bytes,2,opt,name=expense_rate,json=expenseRate,proto3" json:"expense_rate,omitempty"`
 	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,3,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UpdateExpenseRequest) Reset() {
-	*x = UpdateExpenseRequest{}
+func (x *UpdateExpenseRateRequest) Reset() {
+	*x = UpdateExpenseRateRequest{}
 	mi := &file_finance_proto_msgTypes[87]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UpdateExpenseRequest) String() string {
+func (x *UpdateExpenseRateRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UpdateExpenseRequest) ProtoMessage() {}
+func (*UpdateExpenseRateRequest) ProtoMessage() {}
 
-func (x *UpdateExpenseRequest) ProtoReflect() protoreflect.Message {
+func (x *UpdateExpenseRateRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_finance_proto_msgTypes[87]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -6167,33 +6167,33 @@ func (x *UpdateExpenseRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UpdateExpenseRequest.ProtoReflect.Descriptor instead.
-func (*UpdateExpenseRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use UpdateExpenseRateRequest.ProtoReflect.Descriptor instead.
+func (*UpdateExpenseRateRequest) Descriptor() ([]byte, []int) {
 	return file_finance_proto_rawDescGZIP(), []int{87}
 }
 
-func (x *UpdateExpenseRequest) GetMeta() *RequestMetadata {
+func (x *UpdateExpenseRateRequest) GetMeta() *RequestMetadata {
 	if x != nil {
 		return x.Meta
 	}
 	return nil
 }
 
-func (x *UpdateExpenseRequest) GetExpense() *Expense {
+func (x *UpdateExpenseRateRequest) GetExpenseRate() *ExpenseRate {
 	if x != nil {
-		return x.Expense
+		return x.ExpenseRate
 	}
 	return nil
 }
 
-func (x *UpdateExpenseRequest) GetUpdateMask() *fieldmaskpb.FieldMask {
+func (x *UpdateExpenseRateRequest) GetUpdateMask() *fieldmaskpb.FieldMask {
 	if x != nil {
 		return x.UpdateMask
 	}
 	return nil
 }
 
-type DeleteExpenseRequest struct {
+type DeleteExpenseRateRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Meta          *RequestMetadata       `protobuf:"bytes,1,opt,name=meta,proto3" json:"meta,omitempty"`
 	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
@@ -6201,20 +6201,20 @@ type DeleteExpenseRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DeleteExpenseRequest) Reset() {
-	*x = DeleteExpenseRequest{}
+func (x *DeleteExpenseRateRequest) Reset() {
+	*x = DeleteExpenseRateRequest{}
 	mi := &file_finance_proto_msgTypes[88]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *DeleteExpenseRequest) String() string {
+func (x *DeleteExpenseRateRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DeleteExpenseRequest) ProtoMessage() {}
+func (*DeleteExpenseRateRequest) ProtoMessage() {}
 
-func (x *DeleteExpenseRequest) ProtoReflect() protoreflect.Message {
+func (x *DeleteExpenseRateRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_finance_proto_msgTypes[88]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -6226,46 +6226,46 @@ func (x *DeleteExpenseRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DeleteExpenseRequest.ProtoReflect.Descriptor instead.
-func (*DeleteExpenseRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use DeleteExpenseRateRequest.ProtoReflect.Descriptor instead.
+func (*DeleteExpenseRateRequest) Descriptor() ([]byte, []int) {
 	return file_finance_proto_rawDescGZIP(), []int{88}
 }
 
-func (x *DeleteExpenseRequest) GetMeta() *RequestMetadata {
+func (x *DeleteExpenseRateRequest) GetMeta() *RequestMetadata {
 	if x != nil {
 		return x.Meta
 	}
 	return nil
 }
 
-func (x *DeleteExpenseRequest) GetId() string {
+func (x *DeleteExpenseRateRequest) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-type ListExpensesRequest struct {
+type ListExpensesRateRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Page          *PageRequest           `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ListExpensesRequest) Reset() {
-	*x = ListExpensesRequest{}
+func (x *ListExpensesRateRequest) Reset() {
+	*x = ListExpensesRateRequest{}
 	mi := &file_finance_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ListExpensesRequest) String() string {
+func (x *ListExpensesRateRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListExpensesRequest) ProtoMessage() {}
+func (*ListExpensesRateRequest) ProtoMessage() {}
 
-func (x *ListExpensesRequest) ProtoReflect() protoreflect.Message {
+func (x *ListExpensesRateRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_finance_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -6277,40 +6277,40 @@ func (x *ListExpensesRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListExpensesRequest.ProtoReflect.Descriptor instead.
-func (*ListExpensesRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListExpensesRateRequest.ProtoReflect.Descriptor instead.
+func (*ListExpensesRateRequest) Descriptor() ([]byte, []int) {
 	return file_finance_proto_rawDescGZIP(), []int{89}
 }
 
-func (x *ListExpensesRequest) GetPage() *PageRequest {
+func (x *ListExpensesRateRequest) GetPage() *PageRequest {
 	if x != nil {
 		return x.Page
 	}
 	return nil
 }
 
-type ListExpensesResponse struct {
+type ListExpensesRateResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Expenses      []*Expense             `protobuf:"bytes,1,rep,name=expenses,proto3" json:"expenses,omitempty"`
+	ExpenseRate   []*ExpenseRate         `protobuf:"bytes,1,rep,name=expense_rate,json=expenseRate,proto3" json:"expense_rate,omitempty"`
 	Page          *PageResponse          `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ListExpensesResponse) Reset() {
-	*x = ListExpensesResponse{}
+func (x *ListExpensesRateResponse) Reset() {
+	*x = ListExpensesRateResponse{}
 	mi := &file_finance_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ListExpensesResponse) String() string {
+func (x *ListExpensesRateResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListExpensesResponse) ProtoMessage() {}
+func (*ListExpensesRateResponse) ProtoMessage() {}
 
-func (x *ListExpensesResponse) ProtoReflect() protoreflect.Message {
+func (x *ListExpensesRateResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_finance_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -6322,19 +6322,19 @@ func (x *ListExpensesResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListExpensesResponse.ProtoReflect.Descriptor instead.
-func (*ListExpensesResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use ListExpensesRateResponse.ProtoReflect.Descriptor instead.
+func (*ListExpensesRateResponse) Descriptor() ([]byte, []int) {
 	return file_finance_proto_rawDescGZIP(), []int{90}
 }
 
-func (x *ListExpensesResponse) GetExpenses() []*Expense {
+func (x *ListExpensesRateResponse) GetExpenseRate() []*ExpenseRate {
 	if x != nil {
-		return x.Expenses
+		return x.ExpenseRate
 	}
 	return nil
 }
 
-func (x *ListExpensesResponse) GetPage() *PageResponse {
+func (x *ListExpensesRateResponse) GetPage() *PageResponse {
 	if x != nil {
 		return x.Page
 	}
@@ -10441,32 +10441,32 @@ const file_finance_proto_rawDesc = "" +
 	"\x0ftotal_allocated\x18\x03 \x01(\v2\x12.google.type.MoneyR\x0etotalAllocated\x123\n" +
 	"\vtotal_spent\x18\x04 \x01(\v2\x12.google.type.MoneyR\n" +
 	"totalSpent\x12=\n" +
-	"\x10remaining_budget\x18\x05 \x01(\v2\x12.google.type.MoneyR\x0fremainingBudget\"\xad\x02\n" +
-	"\aExpense\x12\x0e\n" +
+	"\x10remaining_budget\x18\x05 \x01(\v2\x12.google.type.MoneyR\x0fremainingBudget\"\xb1\x02\n" +
+	"\vExpenseRate\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\bcategory\x18\x02 \x01(\tR\bcategory\x12*\n" +
 	"\x06amount\x18\x03 \x01(\v2\x12.google.type.MoneyR\x06amount\x12=\n" +
 	"\fexpense_date\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\vexpenseDate\x12$\n" +
 	"\x0ecost_center_id\x18\x05 \x01(\tR\fcostCenterId\x12*\n" +
 	"\x05audit\x18\x06 \x01(\v2\x14.finance.AuditFieldsR\x05audit\x129\n" +
-	"\rexternal_refs\x18\a \x03(\v2\x14.finance.ExternalRefR\fexternalRefs\"p\n" +
-	"\x14CreateExpenseRequest\x12,\n" +
-	"\x04meta\x18\x01 \x01(\v2\x18.finance.RequestMetadataR\x04meta\x12*\n" +
-	"\aexpense\x18\x02 \x01(\v2\x10.finance.ExpenseR\aexpense\"#\n" +
-	"\x11GetExpenseRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"\xad\x01\n" +
-	"\x14UpdateExpenseRequest\x12,\n" +
-	"\x04meta\x18\x01 \x01(\v2\x18.finance.RequestMetadataR\x04meta\x12*\n" +
-	"\aexpense\x18\x02 \x01(\v2\x10.finance.ExpenseR\aexpense\x12;\n" +
+	"\rexternal_refs\x18\a \x03(\v2\x14.finance.ExternalRefR\fexternalRefs\"\x81\x01\n" +
+	"\x18CreateExpenseRateRequest\x12,\n" +
+	"\x04meta\x18\x01 \x01(\v2\x18.finance.RequestMetadataR\x04meta\x127\n" +
+	"\fexpense_rate\x18\x02 \x01(\v2\x14.finance.ExpenseRateR\vexpenseRate\"'\n" +
+	"\x15GetExpenseRateRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\xbe\x01\n" +
+	"\x18UpdateExpenseRateRequest\x12,\n" +
+	"\x04meta\x18\x01 \x01(\v2\x18.finance.RequestMetadataR\x04meta\x127\n" +
+	"\fexpense_rate\x18\x02 \x01(\v2\x14.finance.ExpenseRateR\vexpenseRate\x12;\n" +
 	"\vupdate_mask\x18\x03 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
-	"updateMask\"T\n" +
-	"\x14DeleteExpenseRequest\x12,\n" +
+	"updateMask\"X\n" +
+	"\x18DeleteExpenseRateRequest\x12,\n" +
 	"\x04meta\x18\x01 \x01(\v2\x18.finance.RequestMetadataR\x04meta\x12\x0e\n" +
-	"\x02id\x18\x02 \x01(\tR\x02id\"?\n" +
-	"\x13ListExpensesRequest\x12(\n" +
-	"\x04page\x18\x01 \x01(\v2\x14.finance.PageRequestR\x04page\"o\n" +
-	"\x14ListExpensesResponse\x12,\n" +
-	"\bexpenses\x18\x01 \x03(\v2\x10.finance.ExpenseR\bexpenses\x12)\n" +
+	"\x02id\x18\x02 \x01(\tR\x02id\"C\n" +
+	"\x17ListExpensesRateRequest\x12(\n" +
+	"\x04page\x18\x01 \x01(\v2\x14.finance.PageRequestR\x04page\"~\n" +
+	"\x18ListExpensesRateResponse\x127\n" +
+	"\fexpense_rate\x18\x01 \x03(\v2\x14.finance.ExpenseRateR\vexpenseRate\x12)\n" +
 	"\x04page\x18\x02 \x01(\v2\x15.finance.PageResponseR\x04page\"~\n" +
 	"\n" +
 	"CostCenter\x12\x0e\n" +
@@ -10828,14 +10828,13 @@ const file_finance_proto_rawDesc = "" +
 	"\x16DeleteBudgetAllocation\x12&.finance.DeleteBudgetAllocationRequest\x1a\x16.google.protobuf.Empty\x12f\n" +
 	"\x15ListBudgetAllocations\x12%.finance.ListBudgetAllocationsRequest\x1a&.finance.ListBudgetAllocationsResponse2{\n" +
 	"\x17BudgetComparisonService\x12`\n" +
-	"\x19GetBudgetComparisonReport\x12 .finance.BudgetComparisonRequest\x1a!.finance.BudgetComparisonResponse2\xe5\x02\n" +
-	"\x0eExpenseService\x12@\n" +
-	"\rCreateExpense\x12\x1d.finance.CreateExpenseRequest\x1a\x10.finance.Expense\x12:\n" +
-	"\n" +
-	"GetExpense\x12\x1a.finance.GetExpenseRequest\x1a\x10.finance.Expense\x12@\n" +
-	"\rUpdateExpense\x12\x1d.finance.UpdateExpenseRequest\x1a\x10.finance.Expense\x12F\n" +
-	"\rDeleteExpense\x12\x1d.finance.DeleteExpenseRequest\x1a\x16.google.protobuf.Empty\x12K\n" +
-	"\fListExpenses\x12\x1c.finance.ListExpensesRequest\x1a\x1d.finance.ListExpensesResponse2\xc5\x04\n" +
+	"\x19GetBudgetComparisonReport\x12 .finance.BudgetComparisonRequest\x1a!.finance.BudgetComparisonResponse2\xa1\x03\n" +
+	"\x12ExpenseRateService\x12L\n" +
+	"\x11CreateExpenseRate\x12!.finance.CreateExpenseRateRequest\x1a\x14.finance.ExpenseRate\x12F\n" +
+	"\x0eGetExpenseRate\x12\x1e.finance.GetExpenseRateRequest\x1a\x14.finance.ExpenseRate\x12L\n" +
+	"\x11UpdateExpenseRate\x12!.finance.UpdateExpenseRateRequest\x1a\x14.finance.ExpenseRate\x12N\n" +
+	"\x11DeleteExpenseRate\x12!.finance.DeleteExpenseRateRequest\x1a\x16.google.protobuf.Empty\x12W\n" +
+	"\x10ListExpensesRate\x12 .finance.ListExpensesRateRequest\x1a!.finance.ListExpensesRateResponse2\xc5\x04\n" +
 	"\x15CostAccountingService\x12I\n" +
 	"\x10CreateCostCenter\x12 .finance.CreateCostCenterRequest\x1a\x13.finance.CostCenter\x12C\n" +
 	"\rGetCostCenter\x12\x1d.finance.GetCostCenterRequest\x1a\x13.finance.CostCenter\x12I\n" +
@@ -11002,13 +11001,13 @@ var file_finance_proto_goTypes = []any{
 	(*ListBudgetAllocationsResponse)(nil),  // 92: finance.ListBudgetAllocationsResponse
 	(*BudgetComparisonRequest)(nil),        // 93: finance.BudgetComparisonRequest
 	(*BudgetComparisonResponse)(nil),       // 94: finance.BudgetComparisonResponse
-	(*Expense)(nil),                        // 95: finance.Expense
-	(*CreateExpenseRequest)(nil),           // 96: finance.CreateExpenseRequest
-	(*GetExpenseRequest)(nil),              // 97: finance.GetExpenseRequest
-	(*UpdateExpenseRequest)(nil),           // 98: finance.UpdateExpenseRequest
-	(*DeleteExpenseRequest)(nil),           // 99: finance.DeleteExpenseRequest
-	(*ListExpensesRequest)(nil),            // 100: finance.ListExpensesRequest
-	(*ListExpensesResponse)(nil),           // 101: finance.ListExpensesResponse
+	(*ExpenseRate)(nil),                    // 95: finance.ExpenseRate
+	(*CreateExpenseRateRequest)(nil),       // 96: finance.CreateExpenseRateRequest
+	(*GetExpenseRateRequest)(nil),          // 97: finance.GetExpenseRateRequest
+	(*UpdateExpenseRateRequest)(nil),       // 98: finance.UpdateExpenseRateRequest
+	(*DeleteExpenseRateRequest)(nil),       // 99: finance.DeleteExpenseRateRequest
+	(*ListExpensesRateRequest)(nil),        // 100: finance.ListExpensesRateRequest
+	(*ListExpensesRateResponse)(nil),       // 101: finance.ListExpensesRateResponse
 	(*CostCenter)(nil),                     // 102: finance.CostCenter
 	(*CreateCostCenterRequest)(nil),        // 103: finance.CreateCostCenterRequest
 	(*GetCostCenterRequest)(nil),           // 104: finance.GetCostCenterRequest
@@ -11245,19 +11244,19 @@ var file_finance_proto_depIdxs = []int32{
 	167, // 163: finance.BudgetComparisonResponse.total_allocated:type_name -> google.type.Money
 	167, // 164: finance.BudgetComparisonResponse.total_spent:type_name -> google.type.Money
 	167, // 165: finance.BudgetComparisonResponse.remaining_budget:type_name -> google.type.Money
-	167, // 166: finance.Expense.amount:type_name -> google.type.Money
-	166, // 167: finance.Expense.expense_date:type_name -> google.protobuf.Timestamp
-	12,  // 168: finance.Expense.audit:type_name -> finance.AuditFields
-	16,  // 169: finance.Expense.external_refs:type_name -> finance.ExternalRef
-	11,  // 170: finance.CreateExpenseRequest.meta:type_name -> finance.RequestMetadata
-	95,  // 171: finance.CreateExpenseRequest.expense:type_name -> finance.Expense
-	11,  // 172: finance.UpdateExpenseRequest.meta:type_name -> finance.RequestMetadata
-	95,  // 173: finance.UpdateExpenseRequest.expense:type_name -> finance.Expense
-	168, // 174: finance.UpdateExpenseRequest.update_mask:type_name -> google.protobuf.FieldMask
-	11,  // 175: finance.DeleteExpenseRequest.meta:type_name -> finance.RequestMetadata
-	13,  // 176: finance.ListExpensesRequest.page:type_name -> finance.PageRequest
-	95,  // 177: finance.ListExpensesResponse.expenses:type_name -> finance.Expense
-	14,  // 178: finance.ListExpensesResponse.page:type_name -> finance.PageResponse
+	167, // 166: finance.ExpenseRate.amount:type_name -> google.type.Money
+	166, // 167: finance.ExpenseRate.expense_date:type_name -> google.protobuf.Timestamp
+	12,  // 168: finance.ExpenseRate.audit:type_name -> finance.AuditFields
+	16,  // 169: finance.ExpenseRate.external_refs:type_name -> finance.ExternalRef
+	11,  // 170: finance.CreateExpenseRateRequest.meta:type_name -> finance.RequestMetadata
+	95,  // 171: finance.CreateExpenseRateRequest.expense_rate:type_name -> finance.ExpenseRate
+	11,  // 172: finance.UpdateExpenseRateRequest.meta:type_name -> finance.RequestMetadata
+	95,  // 173: finance.UpdateExpenseRateRequest.expense_rate:type_name -> finance.ExpenseRate
+	168, // 174: finance.UpdateExpenseRateRequest.update_mask:type_name -> google.protobuf.FieldMask
+	11,  // 175: finance.DeleteExpenseRateRequest.meta:type_name -> finance.RequestMetadata
+	13,  // 176: finance.ListExpensesRateRequest.page:type_name -> finance.PageRequest
+	95,  // 177: finance.ListExpensesRateResponse.expense_rate:type_name -> finance.ExpenseRate
+	14,  // 178: finance.ListExpensesRateResponse.page:type_name -> finance.PageResponse
 	12,  // 179: finance.CostCenter.audit:type_name -> finance.AuditFields
 	11,  // 180: finance.CreateCostCenterRequest.meta:type_name -> finance.RequestMetadata
 	102, // 181: finance.CreateCostCenterRequest.center:type_name -> finance.CostCenter
@@ -11402,11 +11401,11 @@ var file_finance_proto_depIdxs = []int32{
 	90,  // 320: finance.BudgetAllocationService.DeleteBudgetAllocation:input_type -> finance.DeleteBudgetAllocationRequest
 	91,  // 321: finance.BudgetAllocationService.ListBudgetAllocations:input_type -> finance.ListBudgetAllocationsRequest
 	93,  // 322: finance.BudgetComparisonService.GetBudgetComparisonReport:input_type -> finance.BudgetComparisonRequest
-	96,  // 323: finance.ExpenseService.CreateExpense:input_type -> finance.CreateExpenseRequest
-	97,  // 324: finance.ExpenseService.GetExpense:input_type -> finance.GetExpenseRequest
-	98,  // 325: finance.ExpenseService.UpdateExpense:input_type -> finance.UpdateExpenseRequest
-	99,  // 326: finance.ExpenseService.DeleteExpense:input_type -> finance.DeleteExpenseRequest
-	100, // 327: finance.ExpenseService.ListExpenses:input_type -> finance.ListExpensesRequest
+	96,  // 323: finance.ExpenseRateService.CreateExpenseRate:input_type -> finance.CreateExpenseRateRequest
+	97,  // 324: finance.ExpenseRateService.GetExpenseRate:input_type -> finance.GetExpenseRateRequest
+	98,  // 325: finance.ExpenseRateService.UpdateExpenseRate:input_type -> finance.UpdateExpenseRateRequest
+	99,  // 326: finance.ExpenseRateService.DeleteExpenseRate:input_type -> finance.DeleteExpenseRateRequest
+	100, // 327: finance.ExpenseRateService.ListExpensesRate:input_type -> finance.ListExpensesRateRequest
 	103, // 328: finance.CostAccountingService.CreateCostCenter:input_type -> finance.CreateCostCenterRequest
 	104, // 329: finance.CostAccountingService.GetCostCenter:input_type -> finance.GetCostCenterRequest
 	105, // 330: finance.CostAccountingService.UpdateCostCenter:input_type -> finance.UpdateCostCenterRequest
@@ -11499,11 +11498,11 @@ var file_finance_proto_depIdxs = []int32{
 	169, // 417: finance.BudgetAllocationService.DeleteBudgetAllocation:output_type -> google.protobuf.Empty
 	92,  // 418: finance.BudgetAllocationService.ListBudgetAllocations:output_type -> finance.ListBudgetAllocationsResponse
 	94,  // 419: finance.BudgetComparisonService.GetBudgetComparisonReport:output_type -> finance.BudgetComparisonResponse
-	95,  // 420: finance.ExpenseService.CreateExpense:output_type -> finance.Expense
-	95,  // 421: finance.ExpenseService.GetExpense:output_type -> finance.Expense
-	95,  // 422: finance.ExpenseService.UpdateExpense:output_type -> finance.Expense
-	169, // 423: finance.ExpenseService.DeleteExpense:output_type -> google.protobuf.Empty
-	101, // 424: finance.ExpenseService.ListExpenses:output_type -> finance.ListExpensesResponse
+	95,  // 420: finance.ExpenseRateService.CreateExpenseRate:output_type -> finance.ExpenseRate
+	95,  // 421: finance.ExpenseRateService.GetExpenseRate:output_type -> finance.ExpenseRate
+	95,  // 422: finance.ExpenseRateService.UpdateExpenseRate:output_type -> finance.ExpenseRate
+	169, // 423: finance.ExpenseRateService.DeleteExpenseRate:output_type -> google.protobuf.Empty
+	101, // 424: finance.ExpenseRateService.ListExpensesRate:output_type -> finance.ListExpensesRateResponse
 	102, // 425: finance.CostAccountingService.CreateCostCenter:output_type -> finance.CostCenter
 	102, // 426: finance.CostAccountingService.GetCostCenter:output_type -> finance.CostCenter
 	102, // 427: finance.CostAccountingService.UpdateCostCenter:output_type -> finance.CostCenter

@@ -214,3 +214,20 @@ func mapDomainToProtoCreditDebitNote(note domain.CreditDebitNote) *pb.CreditDebi
 		Reason:    note.Reason,
 	}
 }
+
+func mapDomainToProtoExchangeRate(rate domain.ExchangeRate) *pb.ExchangeRate {
+    f64 := 0.0
+    if rate.Rate != "" {
+        if parsed, err := strconv.ParseFloat(rate.Rate, 64); err == nil {
+            f64 = parsed
+        }
+    }
+
+    return &pb.ExchangeRate{
+        Id:            rate.ID.String(),
+        BaseCurrency:  rate.BaseCurrency,
+        QuoteCurrency: rate.QuoteCurrency,
+        Rate:          f64,
+        AsOf:          timestamppb.New(rate.AsOf),
+    }
+}

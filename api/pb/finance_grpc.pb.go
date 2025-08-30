@@ -2330,253 +2330,253 @@ var BudgetComparisonService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	ExpenseService_CreateExpense_FullMethodName = "/finance.ExpenseService/CreateExpense"
-	ExpenseService_GetExpense_FullMethodName    = "/finance.ExpenseService/GetExpense"
-	ExpenseService_UpdateExpense_FullMethodName = "/finance.ExpenseService/UpdateExpense"
-	ExpenseService_DeleteExpense_FullMethodName = "/finance.ExpenseService/DeleteExpense"
-	ExpenseService_ListExpenses_FullMethodName  = "/finance.ExpenseService/ListExpenses"
+	ExpenseRateService_CreateExpenseRate_FullMethodName = "/finance.ExpenseRateService/CreateExpenseRate"
+	ExpenseRateService_GetExpenseRate_FullMethodName    = "/finance.ExpenseRateService/GetExpenseRate"
+	ExpenseRateService_UpdateExpenseRate_FullMethodName = "/finance.ExpenseRateService/UpdateExpenseRate"
+	ExpenseRateService_DeleteExpenseRate_FullMethodName = "/finance.ExpenseRateService/DeleteExpenseRate"
+	ExpenseRateService_ListExpensesRate_FullMethodName  = "/finance.ExpenseRateService/ListExpensesRate"
 )
 
-// ExpenseServiceClient is the client API for ExpenseService service.
+// ExpenseRateServiceClient is the client API for ExpenseRateService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type ExpenseServiceClient interface {
-	CreateExpense(ctx context.Context, in *CreateExpenseRequest, opts ...grpc.CallOption) (*Expense, error)
-	GetExpense(ctx context.Context, in *GetExpenseRequest, opts ...grpc.CallOption) (*Expense, error)
-	UpdateExpense(ctx context.Context, in *UpdateExpenseRequest, opts ...grpc.CallOption) (*Expense, error)
-	DeleteExpense(ctx context.Context, in *DeleteExpenseRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	ListExpenses(ctx context.Context, in *ListExpensesRequest, opts ...grpc.CallOption) (*ListExpensesResponse, error)
+type ExpenseRateServiceClient interface {
+	CreateExpenseRate(ctx context.Context, in *CreateExpenseRateRequest, opts ...grpc.CallOption) (*ExpenseRate, error)
+	GetExpenseRate(ctx context.Context, in *GetExpenseRateRequest, opts ...grpc.CallOption) (*ExpenseRate, error)
+	UpdateExpenseRate(ctx context.Context, in *UpdateExpenseRateRequest, opts ...grpc.CallOption) (*ExpenseRate, error)
+	DeleteExpenseRate(ctx context.Context, in *DeleteExpenseRateRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ListExpensesRate(ctx context.Context, in *ListExpensesRateRequest, opts ...grpc.CallOption) (*ListExpensesRateResponse, error)
 }
 
-type expenseServiceClient struct {
+type expenseRateServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewExpenseServiceClient(cc grpc.ClientConnInterface) ExpenseServiceClient {
-	return &expenseServiceClient{cc}
+func NewExpenseRateServiceClient(cc grpc.ClientConnInterface) ExpenseRateServiceClient {
+	return &expenseRateServiceClient{cc}
 }
 
-func (c *expenseServiceClient) CreateExpense(ctx context.Context, in *CreateExpenseRequest, opts ...grpc.CallOption) (*Expense, error) {
+func (c *expenseRateServiceClient) CreateExpenseRate(ctx context.Context, in *CreateExpenseRateRequest, opts ...grpc.CallOption) (*ExpenseRate, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Expense)
-	err := c.cc.Invoke(ctx, ExpenseService_CreateExpense_FullMethodName, in, out, cOpts...)
+	out := new(ExpenseRate)
+	err := c.cc.Invoke(ctx, ExpenseRateService_CreateExpenseRate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *expenseServiceClient) GetExpense(ctx context.Context, in *GetExpenseRequest, opts ...grpc.CallOption) (*Expense, error) {
+func (c *expenseRateServiceClient) GetExpenseRate(ctx context.Context, in *GetExpenseRateRequest, opts ...grpc.CallOption) (*ExpenseRate, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Expense)
-	err := c.cc.Invoke(ctx, ExpenseService_GetExpense_FullMethodName, in, out, cOpts...)
+	out := new(ExpenseRate)
+	err := c.cc.Invoke(ctx, ExpenseRateService_GetExpenseRate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *expenseServiceClient) UpdateExpense(ctx context.Context, in *UpdateExpenseRequest, opts ...grpc.CallOption) (*Expense, error) {
+func (c *expenseRateServiceClient) UpdateExpenseRate(ctx context.Context, in *UpdateExpenseRateRequest, opts ...grpc.CallOption) (*ExpenseRate, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Expense)
-	err := c.cc.Invoke(ctx, ExpenseService_UpdateExpense_FullMethodName, in, out, cOpts...)
+	out := new(ExpenseRate)
+	err := c.cc.Invoke(ctx, ExpenseRateService_UpdateExpenseRate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *expenseServiceClient) DeleteExpense(ctx context.Context, in *DeleteExpenseRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *expenseRateServiceClient) DeleteExpenseRate(ctx context.Context, in *DeleteExpenseRateRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, ExpenseService_DeleteExpense_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, ExpenseRateService_DeleteExpenseRate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *expenseServiceClient) ListExpenses(ctx context.Context, in *ListExpensesRequest, opts ...grpc.CallOption) (*ListExpensesResponse, error) {
+func (c *expenseRateServiceClient) ListExpensesRate(ctx context.Context, in *ListExpensesRateRequest, opts ...grpc.CallOption) (*ListExpensesRateResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListExpensesResponse)
-	err := c.cc.Invoke(ctx, ExpenseService_ListExpenses_FullMethodName, in, out, cOpts...)
+	out := new(ListExpensesRateResponse)
+	err := c.cc.Invoke(ctx, ExpenseRateService_ListExpensesRate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ExpenseServiceServer is the server API for ExpenseService service.
-// All implementations must embed UnimplementedExpenseServiceServer
+// ExpenseRateServiceServer is the server API for ExpenseRateService service.
+// All implementations must embed UnimplementedExpenseRateServiceServer
 // for forward compatibility.
-type ExpenseServiceServer interface {
-	CreateExpense(context.Context, *CreateExpenseRequest) (*Expense, error)
-	GetExpense(context.Context, *GetExpenseRequest) (*Expense, error)
-	UpdateExpense(context.Context, *UpdateExpenseRequest) (*Expense, error)
-	DeleteExpense(context.Context, *DeleteExpenseRequest) (*emptypb.Empty, error)
-	ListExpenses(context.Context, *ListExpensesRequest) (*ListExpensesResponse, error)
-	mustEmbedUnimplementedExpenseServiceServer()
+type ExpenseRateServiceServer interface {
+	CreateExpenseRate(context.Context, *CreateExpenseRateRequest) (*ExpenseRate, error)
+	GetExpenseRate(context.Context, *GetExpenseRateRequest) (*ExpenseRate, error)
+	UpdateExpenseRate(context.Context, *UpdateExpenseRateRequest) (*ExpenseRate, error)
+	DeleteExpenseRate(context.Context, *DeleteExpenseRateRequest) (*emptypb.Empty, error)
+	ListExpensesRate(context.Context, *ListExpensesRateRequest) (*ListExpensesRateResponse, error)
+	mustEmbedUnimplementedExpenseRateServiceServer()
 }
 
-// UnimplementedExpenseServiceServer must be embedded to have
+// UnimplementedExpenseRateServiceServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedExpenseServiceServer struct{}
+type UnimplementedExpenseRateServiceServer struct{}
 
-func (UnimplementedExpenseServiceServer) CreateExpense(context.Context, *CreateExpenseRequest) (*Expense, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateExpense not implemented")
+func (UnimplementedExpenseRateServiceServer) CreateExpenseRate(context.Context, *CreateExpenseRateRequest) (*ExpenseRate, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateExpenseRate not implemented")
 }
-func (UnimplementedExpenseServiceServer) GetExpense(context.Context, *GetExpenseRequest) (*Expense, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetExpense not implemented")
+func (UnimplementedExpenseRateServiceServer) GetExpenseRate(context.Context, *GetExpenseRateRequest) (*ExpenseRate, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetExpenseRate not implemented")
 }
-func (UnimplementedExpenseServiceServer) UpdateExpense(context.Context, *UpdateExpenseRequest) (*Expense, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateExpense not implemented")
+func (UnimplementedExpenseRateServiceServer) UpdateExpenseRate(context.Context, *UpdateExpenseRateRequest) (*ExpenseRate, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateExpenseRate not implemented")
 }
-func (UnimplementedExpenseServiceServer) DeleteExpense(context.Context, *DeleteExpenseRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteExpense not implemented")
+func (UnimplementedExpenseRateServiceServer) DeleteExpenseRate(context.Context, *DeleteExpenseRateRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteExpenseRate not implemented")
 }
-func (UnimplementedExpenseServiceServer) ListExpenses(context.Context, *ListExpensesRequest) (*ListExpensesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListExpenses not implemented")
+func (UnimplementedExpenseRateServiceServer) ListExpensesRate(context.Context, *ListExpensesRateRequest) (*ListExpensesRateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListExpensesRate not implemented")
 }
-func (UnimplementedExpenseServiceServer) mustEmbedUnimplementedExpenseServiceServer() {}
-func (UnimplementedExpenseServiceServer) testEmbeddedByValue()                        {}
+func (UnimplementedExpenseRateServiceServer) mustEmbedUnimplementedExpenseRateServiceServer() {}
+func (UnimplementedExpenseRateServiceServer) testEmbeddedByValue()                            {}
 
-// UnsafeExpenseServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ExpenseServiceServer will
+// UnsafeExpenseRateServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ExpenseRateServiceServer will
 // result in compilation errors.
-type UnsafeExpenseServiceServer interface {
-	mustEmbedUnimplementedExpenseServiceServer()
+type UnsafeExpenseRateServiceServer interface {
+	mustEmbedUnimplementedExpenseRateServiceServer()
 }
 
-func RegisterExpenseServiceServer(s grpc.ServiceRegistrar, srv ExpenseServiceServer) {
-	// If the following call pancis, it indicates UnimplementedExpenseServiceServer was
+func RegisterExpenseRateServiceServer(s grpc.ServiceRegistrar, srv ExpenseRateServiceServer) {
+	// If the following call pancis, it indicates UnimplementedExpenseRateServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&ExpenseService_ServiceDesc, srv)
+	s.RegisterService(&ExpenseRateService_ServiceDesc, srv)
 }
 
-func _ExpenseService_CreateExpense_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateExpenseRequest)
+func _ExpenseRateService_CreateExpenseRate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateExpenseRateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ExpenseServiceServer).CreateExpense(ctx, in)
+		return srv.(ExpenseRateServiceServer).CreateExpenseRate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ExpenseService_CreateExpense_FullMethodName,
+		FullMethod: ExpenseRateService_CreateExpenseRate_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ExpenseServiceServer).CreateExpense(ctx, req.(*CreateExpenseRequest))
+		return srv.(ExpenseRateServiceServer).CreateExpenseRate(ctx, req.(*CreateExpenseRateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ExpenseService_GetExpense_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetExpenseRequest)
+func _ExpenseRateService_GetExpenseRate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetExpenseRateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ExpenseServiceServer).GetExpense(ctx, in)
+		return srv.(ExpenseRateServiceServer).GetExpenseRate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ExpenseService_GetExpense_FullMethodName,
+		FullMethod: ExpenseRateService_GetExpenseRate_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ExpenseServiceServer).GetExpense(ctx, req.(*GetExpenseRequest))
+		return srv.(ExpenseRateServiceServer).GetExpenseRate(ctx, req.(*GetExpenseRateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ExpenseService_UpdateExpense_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateExpenseRequest)
+func _ExpenseRateService_UpdateExpenseRate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateExpenseRateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ExpenseServiceServer).UpdateExpense(ctx, in)
+		return srv.(ExpenseRateServiceServer).UpdateExpenseRate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ExpenseService_UpdateExpense_FullMethodName,
+		FullMethod: ExpenseRateService_UpdateExpenseRate_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ExpenseServiceServer).UpdateExpense(ctx, req.(*UpdateExpenseRequest))
+		return srv.(ExpenseRateServiceServer).UpdateExpenseRate(ctx, req.(*UpdateExpenseRateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ExpenseService_DeleteExpense_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteExpenseRequest)
+func _ExpenseRateService_DeleteExpenseRate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteExpenseRateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ExpenseServiceServer).DeleteExpense(ctx, in)
+		return srv.(ExpenseRateServiceServer).DeleteExpenseRate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ExpenseService_DeleteExpense_FullMethodName,
+		FullMethod: ExpenseRateService_DeleteExpenseRate_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ExpenseServiceServer).DeleteExpense(ctx, req.(*DeleteExpenseRequest))
+		return srv.(ExpenseRateServiceServer).DeleteExpenseRate(ctx, req.(*DeleteExpenseRateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ExpenseService_ListExpenses_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListExpensesRequest)
+func _ExpenseRateService_ListExpensesRate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListExpensesRateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ExpenseServiceServer).ListExpenses(ctx, in)
+		return srv.(ExpenseRateServiceServer).ListExpensesRate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ExpenseService_ListExpenses_FullMethodName,
+		FullMethod: ExpenseRateService_ListExpensesRate_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ExpenseServiceServer).ListExpenses(ctx, req.(*ListExpensesRequest))
+		return srv.(ExpenseRateServiceServer).ListExpensesRate(ctx, req.(*ListExpensesRateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// ExpenseService_ServiceDesc is the grpc.ServiceDesc for ExpenseService service.
+// ExpenseRateService_ServiceDesc is the grpc.ServiceDesc for ExpenseRateService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var ExpenseService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "finance.ExpenseService",
-	HandlerType: (*ExpenseServiceServer)(nil),
+var ExpenseRateService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "finance.ExpenseRateService",
+	HandlerType: (*ExpenseRateServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateExpense",
-			Handler:    _ExpenseService_CreateExpense_Handler,
+			MethodName: "CreateExpenseRate",
+			Handler:    _ExpenseRateService_CreateExpenseRate_Handler,
 		},
 		{
-			MethodName: "GetExpense",
-			Handler:    _ExpenseService_GetExpense_Handler,
+			MethodName: "GetExpenseRate",
+			Handler:    _ExpenseRateService_GetExpenseRate_Handler,
 		},
 		{
-			MethodName: "UpdateExpense",
-			Handler:    _ExpenseService_UpdateExpense_Handler,
+			MethodName: "UpdateExpenseRate",
+			Handler:    _ExpenseRateService_UpdateExpenseRate_Handler,
 		},
 		{
-			MethodName: "DeleteExpense",
-			Handler:    _ExpenseService_DeleteExpense_Handler,
+			MethodName: "DeleteExpenseRate",
+			Handler:    _ExpenseRateService_DeleteExpenseRate_Handler,
 		},
 		{
-			MethodName: "ListExpenses",
-			Handler:    _ExpenseService_ListExpenses_Handler,
+			MethodName: "ListExpensesRate",
+			Handler:    _ExpenseRateService_ListExpensesRate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -115,3 +115,21 @@ type CreditDebitNoteService interface {
 	Update(ctx context.Context, note domain.CreditDebitNote) (domain.CreditDebitNote, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 }
+
+type ExchangeRateRepository interface {
+    Create(ctx context.Context, rate domain.ExchangeRate) (domain.ExchangeRate, error)
+    Get(ctx context.Context, id uuid.UUID) (domain.ExchangeRate, error)
+    Update(ctx context.Context, rate domain.ExchangeRate) (domain.ExchangeRate, error)
+    Delete(ctx context.Context, id uuid.UUID) error
+    List(ctx context.Context, base, quote *string, limit, offset int32) ([]domain.ExchangeRate, error)
+    GetLatest(ctx context.Context, base, quote string, asOf time.Time) (domain.ExchangeRate, error)
+}
+
+type ExchangeRateService interface {
+    Create(ctx context.Context, rate domain.ExchangeRate) (domain.ExchangeRate, error)
+    Get(ctx context.Context, id uuid.UUID) (domain.ExchangeRate, error)
+    Update(ctx context.Context, rate domain.ExchangeRate) (domain.ExchangeRate, error)
+    Delete(ctx context.Context, id uuid.UUID) error
+    List(ctx context.Context, base, quote *string, limit, offset int32) ([]domain.ExchangeRate, error)
+    GetLatest(ctx context.Context, base, quote string, asOf time.Time) (domain.ExchangeRate, error)
+}
