@@ -198,3 +198,90 @@ type FinanceEventRepository interface {
 	InsertVendorBillApproved(ctx context.Context, e domain.VendorBillApprovedEvent) (domain.VendorBillApprovedEvent, error)
 	ListVendorBillApproved(ctx context.Context, orgID string, limit, offset int32) ([]domain.VendorBillApprovedEvent, error)
 }
+
+type FinancialReportsRepository interface {
+	// Profit & Loss
+	GenerateProfitLossReport(ctx context.Context, report domain.ProfitLossReport) (domain.ProfitLossReport, error)
+	GetProfitLossReport(ctx context.Context, id uuid.UUID) (domain.ProfitLossReport, error)
+	ListProfitLossReports(ctx context.Context, orgID string, limit, offset int32) ([]domain.ProfitLossReport, error)
+
+	// Balance Sheet
+	GenerateBalanceSheetReport(ctx context.Context, report domain.BalanceSheetReport) (domain.BalanceSheetReport, error)
+	GetBalanceSheetReport(ctx context.Context, id uuid.UUID) (domain.BalanceSheetReport, error)
+	ListBalanceSheetReports(ctx context.Context, orgID string, limit, offset int32) ([]domain.BalanceSheetReport, error)
+
+	// Trial Balance
+	CreateTrialBalanceReport(ctx context.Context, report domain.TrialBalanceReport) (domain.TrialBalanceReport, error)
+	AddTrialBalanceEntry(ctx context.Context, entry domain.TrialBalanceEntry) (domain.TrialBalanceEntry, error)
+	GetTrialBalanceReport(ctx context.Context, id uuid.UUID) (domain.TrialBalanceReport, error)
+	ListTrialBalanceReports(ctx context.Context, orgID string, limit, offset int32) ([]domain.TrialBalanceReport, error)
+	ListTrialBalanceEntries(ctx context.Context, reportID uuid.UUID) ([]domain.TrialBalanceEntry, error)
+
+	// Compliance
+	GenerateComplianceReport(ctx context.Context, report domain.ComplianceReport) (domain.ComplianceReport, error)
+	GetComplianceReport(ctx context.Context, id uuid.UUID) (domain.ComplianceReport, error)
+	ListComplianceReports(ctx context.Context, orgID, jurisdiction string, limit, offset int32) ([]domain.ComplianceReport, error)
+}
+
+type GstRepository interface {
+	// Breakup
+	AddGstBreakup(ctx context.Context, invoiceID uuid.UUID, taxableAmount float64, cgst, sgst, igst, totalGst *float64) (domain.GstBreakup, error)
+	GetGstBreakup(ctx context.Context, invoiceID uuid.UUID) (domain.GstBreakup, error)
+
+	// Regime
+	AddGstRegime(ctx context.Context, invoiceID uuid.UUID, gstin, placeOfSupply string, reverseCharge *bool) (domain.GstRegime, error)
+	GetGstRegime(ctx context.Context, invoiceID uuid.UUID) (domain.GstRegime, error)
+
+	// Doc Status
+	AddGstDocStatus(
+		ctx context.Context,
+		invoiceID uuid.UUID,
+		einvoiceStatus, irn, ackNo *string,
+		ackDate *time.Time,
+		ewayStatus, ewayBillNo *string,
+		ewayValidUpto *time.Time,
+		lastError *string,
+		lastSyncedAt *time.Time,
+	) (domain.GstDocStatus, error)
+
+	GetGstDocStatus(ctx context.Context, invoiceID uuid.UUID) (domain.GstDocStatus, error)
+}
+
+type InvoiceRepository interface {
+    CreateInvoice(ctx context.Context, inv domain.Invoice) (domain.Invoice, error)
+    UpdateInvoice(ctx context.Context, inv domain.Invoice) (domain.Invoice, error)
+    DeleteInvoice(ctx context.Context, id uuid.UUID) error
+    GetInvoice(ctx context.Context, id uuid.UUID) (domain.Invoice, error)
+    ListInvoices(ctx context.Context, limit, offset int32) ([]domain.Invoice, error)
+    SearchInvoices(ctx context.Context, query string, limit, offset int32) ([]domain.Invoice, error)
+
+    CreateInvoiceItem(ctx context.Context, item domain.InvoiceItem) (domain.InvoiceItem, error)
+    ListInvoiceItems(ctx context.Context, invoiceID uuid.UUID) ([]domain.InvoiceItem, error)
+
+    AddInvoiceTax(ctx context.Context, tax domain.InvoiceTax) (domain.InvoiceTax, error)
+    AddInvoiceDiscount(ctx context.Context, discount domain.InvoiceDiscount) (domain.InvoiceDiscount, error)
+}
+
+type BankAccountRepository interface {
+    CreateBankAccount(ctx context.Context, ba domain.BankAccount) (domain.BankAccount, error)
+    GetBankAccount(ctx context.Context, id uuid.UUID) (domain.BankAccount, error)
+    UpdateBankAccount(ctx context.Context, ba domain.BankAccount) (domain.BankAccount, error)
+    DeleteBankAccount(ctx context.Context, id uuid.UUID) error
+    ListBankAccounts(ctx context.Context, limit, offset int32) ([]domain.BankAccount, error)
+}
+
+
+type PaymentDueRepository interface {
+    CreatePaymentDue(ctx context.Context, pd domain.PaymentDue) (domain.PaymentDue, error)
+    GetPaymentDue(ctx context.Context, id uuid.UUID) (domain.PaymentDue, error)
+    UpdatePaymentDue(ctx context.Context, pd domain.PaymentDue) (domain.PaymentDue, error)
+    DeletePaymentDue(ctx context.Context, id uuid.UUID) error
+    ListPaymentDues(ctx context.Context, limit, offset int32) ([]domain.PaymentDue, error)
+    MarkPaymentAsPaid(ctx context.Context, id uuid.UUID, updatedBy string) (domain.PaymentDue, error)
+}
+
+type BankTransactionRepository interface {
+    ImportBankTransaction(ctx context.Context, tx domain.BankTransaction) (domain.BankTransaction, error)
+    ListBankTransactions(ctx context.Context, bankAccountID uuid.UUID, limit, offset int32) ([]domain.BankTransaction, error)
+    ReconcileTransaction(ctx context.Context, tx domain.BankTransaction) (domain.BankTransaction, error)
+}

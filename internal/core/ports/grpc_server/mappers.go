@@ -231,4 +231,3 @@ func mapDomainToProtoExchangeRate(rate domain.ExchangeRate) *pb.ExchangeRate {
         AsOf:          timestamppb.New(rate.AsOf),
     }
 }
-
