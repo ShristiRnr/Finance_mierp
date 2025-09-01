@@ -43,7 +43,7 @@ RETURNING *;
 SELECT * 
 FROM inventory_cost_posted_events
 WHERE organization_id = $1
-ORDER BY created_at DESC
+ORDER BY created_at DESC 
 LIMIT $2 OFFSET $3;
 
 -- =====================================================

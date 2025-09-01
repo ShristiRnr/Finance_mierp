@@ -117,21 +117,21 @@ type CreditDebitNoteService interface {
 }
 
 type ExchangeRateRepository interface {
-    Create(ctx context.Context, rate domain.ExchangeRate) (domain.ExchangeRate, error)
-    Get(ctx context.Context, id uuid.UUID) (domain.ExchangeRate, error)
-    Update(ctx context.Context, rate domain.ExchangeRate) (domain.ExchangeRate, error)
-    Delete(ctx context.Context, id uuid.UUID) error
-    List(ctx context.Context, base, quote *string, limit, offset int32) ([]domain.ExchangeRate, error)
-    GetLatest(ctx context.Context, base, quote string, asOf time.Time) (domain.ExchangeRate, error)
+	Create(ctx context.Context, rate domain.ExchangeRate) (domain.ExchangeRate, error)
+	Get(ctx context.Context, id uuid.UUID) (domain.ExchangeRate, error)
+	Update(ctx context.Context, rate domain.ExchangeRate) (domain.ExchangeRate, error)
+	Delete(ctx context.Context, id uuid.UUID) error
+	List(ctx context.Context, base, quote *string, limit, offset int32) ([]domain.ExchangeRate, error)
+	GetLatest(ctx context.Context, base, quote string, asOf time.Time) (domain.ExchangeRate, error)
 }
 
 type ExchangeRateService interface {
-    Create(ctx context.Context, rate domain.ExchangeRate) (domain.ExchangeRate, error)
-    Get(ctx context.Context, id uuid.UUID) (domain.ExchangeRate, error)
-    Update(ctx context.Context, rate domain.ExchangeRate) (domain.ExchangeRate, error)
-    Delete(ctx context.Context, id uuid.UUID) error
-    List(ctx context.Context, base, quote *string, limit, offset int32) ([]domain.ExchangeRate, error)
-    GetLatest(ctx context.Context, base, quote string, asOf time.Time) (domain.ExchangeRate, error)
+	Create(ctx context.Context, rate domain.ExchangeRate) (domain.ExchangeRate, error)
+	Get(ctx context.Context, id uuid.UUID) (domain.ExchangeRate, error)
+	Update(ctx context.Context, rate domain.ExchangeRate) (domain.ExchangeRate, error)
+	Delete(ctx context.Context, id uuid.UUID) error
+	List(ctx context.Context, base, quote *string, limit, offset int32) ([]domain.ExchangeRate, error)
+	GetLatest(ctx context.Context, base, quote string, asOf time.Time) (domain.ExchangeRate, error)
 }
 
 type ExpenseRepository interface {
@@ -180,4 +180,21 @@ type CostCenterService interface {
 type CostAllocationService interface {
 	AllocateCost(ctx context.Context, ca domain.CostAllocation) (domain.CostAllocation, error)
 	ListAllocations(ctx context.Context, limit, offset int32) ([]domain.CostAllocation, error)
+}
+
+type FinanceEventRepository interface {
+	InsertInvoiceCreated(ctx context.Context, e domain.FinanceInvoiceCreatedEvent) (domain.FinanceInvoiceCreatedEvent, error)
+	ListInvoiceCreated(ctx context.Context, orgID string, limit, offset int32) ([]domain.FinanceInvoiceCreatedEvent, error)
+
+	InsertPaymentReceived(ctx context.Context, e domain.FinancePaymentReceivedEvent) (domain.FinancePaymentReceivedEvent, error)
+	ListPaymentReceived(ctx context.Context, orgID string, limit, offset int32) ([]domain.FinancePaymentReceivedEvent, error)
+
+	InsertInventoryCostPosted(ctx context.Context, e domain.InventoryCostPostedEvent) (domain.InventoryCostPostedEvent, error)
+	ListInventoryCostPosted(ctx context.Context, orgID string, limit, offset int32) ([]domain.InventoryCostPostedEvent, error)
+
+	InsertPayrollPosted(ctx context.Context, e domain.PayrollPostedEvent) (domain.PayrollPostedEvent, error)
+	ListPayrollPosted(ctx context.Context, orgID string, limit, offset int32) ([]domain.PayrollPostedEvent, error)
+
+	InsertVendorBillApproved(ctx context.Context, e domain.VendorBillApprovedEvent) (domain.VendorBillApprovedEvent, error)
+	ListVendorBillApproved(ctx context.Context, orgID string, limit, offset int32) ([]domain.VendorBillApprovedEvent, error)
 }
