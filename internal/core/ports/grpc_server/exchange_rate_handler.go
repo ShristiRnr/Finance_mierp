@@ -147,4 +147,3 @@ func (h *ExchangeRateHandler) ListExchangeRates(ctx context.Context, req *pb.Lis
         },
     }, nil
 }
-
