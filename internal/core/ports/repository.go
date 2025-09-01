@@ -133,3 +133,51 @@ type ExchangeRateService interface {
     List(ctx context.Context, base, quote *string, limit, offset int32) ([]domain.ExchangeRate, error)
     GetLatest(ctx context.Context, base, quote string, asOf time.Time) (domain.ExchangeRate, error)
 }
+
+type ExpenseRepository interface {
+	Create(ctx context.Context, expense domain.Expense) (domain.Expense, error)
+	Get(ctx context.Context, id uuid.UUID) (domain.Expense, error)
+	List(ctx context.Context, limit, offset int32) ([]domain.Expense, error)
+	Update(ctx context.Context, expense domain.Expense) (domain.Expense, error)
+	Delete(ctx context.Context, id uuid.UUID) error
+
+	AddExternalRef(ctx context.Context, ref domain.ExpenseExternalRef) (domain.ExpenseExternalRef, error)
+	ListExternalRefs(ctx context.Context, expenseID uuid.UUID) ([]domain.ExpenseExternalRef, error)
+}
+
+type CostCenterRepository interface {
+	Create(ctx context.Context, cc domain.CostCenter) (domain.CostCenter, error)
+	Get(ctx context.Context, id uuid.UUID) (domain.CostCenter, error)
+	List(ctx context.Context, limit, offset int32) ([]domain.CostCenter, error)
+	Update(ctx context.Context, cc domain.CostCenter) (domain.CostCenter, error)
+	Delete(ctx context.Context, id uuid.UUID) error
+}
+
+type CostAllocationRepository interface {
+	Allocate(ctx context.Context, ca domain.CostAllocation) (domain.CostAllocation, error)
+	List(ctx context.Context, limit, offset int32) ([]domain.CostAllocation, error)
+}
+
+type ExpenseService interface {
+	CreateExpense(ctx context.Context, exp domain.Expense) (domain.Expense, error)
+	GetExpense(ctx context.Context, id uuid.UUID) (domain.Expense, error)
+	ListExpenses(ctx context.Context, limit, offset int32) ([]domain.Expense, error)
+	UpdateExpense(ctx context.Context, exp domain.Expense) (domain.Expense, error)
+	DeleteExpense(ctx context.Context, id uuid.UUID) error
+
+	AddExternalRef(ctx context.Context, ref domain.ExpenseExternalRef) (domain.ExpenseExternalRef, error)
+	ListExternalRefs(ctx context.Context, expenseID uuid.UUID) ([]domain.ExpenseExternalRef, error)
+}
+
+type CostCenterService interface {
+	CreateCostCenter(ctx context.Context, cc domain.CostCenter) (domain.CostCenter, error)
+	GetCostCenter(ctx context.Context, id uuid.UUID) (domain.CostCenter, error)
+	ListCostCenters(ctx context.Context, limit, offset int32) ([]domain.CostCenter, error)
+	UpdateCostCenter(ctx context.Context, cc domain.CostCenter) (domain.CostCenter, error)
+	DeleteCostCenter(ctx context.Context, id uuid.UUID) error
+}
+
+type CostAllocationService interface {
+	AllocateCost(ctx context.Context, ca domain.CostAllocation) (domain.CostAllocation, error)
+	ListAllocations(ctx context.Context, limit, offset int32) ([]domain.CostAllocation, error)
+}
