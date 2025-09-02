@@ -45,7 +45,6 @@ func NewPaymentDueService(repo ports.PaymentDueRepository) *PaymentDueService {
 }
 
 func (s *PaymentDueService) CreatePaymentDue(ctx context.Context, pd domain.PaymentDue) (domain.PaymentDue, error) {
-	// Assuming the interface method is named 'Create' as per your repository implementation
 	return s.repo.CreatePaymentDue(ctx, pd)
 }
 
@@ -78,7 +77,6 @@ func NewBankTransactionService(repo ports.BankTransactionRepository) *BankTransa
 }
 
 func (s *BankTransactionService) ImportBankTransaction(ctx context.Context, tx domain.BankTransaction) (domain.BankTransaction, error) {
-	// Assuming the interface method is named 'Import'
 	return s.repo.ImportBankTransaction(ctx, tx)
 }
 

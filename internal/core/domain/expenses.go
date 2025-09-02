@@ -9,7 +9,7 @@ import(
 type Expense struct {
 	ID          uuid.UUID
 	Category    string
-	Amount      string // consider decimal.Decimal for money
+	Amount      string // decimal.Decimal for money
 	ExpenseDate time.Time
 	CostCenter  *uuid.UUID
 	CreatedAt   time.Time
@@ -41,7 +41,7 @@ type CostCenter struct {
 type CostAllocation struct {
 	ID           uuid.UUID
 	CostCenterID uuid.UUID
-	Amount       string // again consider decimal
+	Amount       string // decimal.Decimal for money
 	ReferenceType string
 	ReferenceID   string
 	CreatedAt    time.Time

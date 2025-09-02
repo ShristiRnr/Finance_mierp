@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 )
-
+//Profit and Loss Report
 type ProfitLossReport struct {
 	ID            uuid.UUID
 	OrganizationID string
@@ -21,6 +21,7 @@ type ProfitLossReport struct {
 	Revision       int32
 }
 
+// Balance Sheet Report
 type BalanceSheetReport struct {
 	ID              uuid.UUID
 	OrganizationID   string
@@ -36,6 +37,7 @@ type BalanceSheetReport struct {
 	Revision         int32
 }
 
+//Trial Balance Report
 type TrialBalanceReport struct {
 	ID             uuid.UUID
 	OrganizationID string
@@ -48,6 +50,7 @@ type TrialBalanceReport struct {
 	Revision       int32
 }
 
+//Trail Balance Entry
 type TrialBalanceEntry struct {
 	ID            uuid.UUID
 	ReportID      uuid.UUID
@@ -58,6 +61,7 @@ type TrialBalanceEntry struct {
 	CreatedBy     string
 }
 
+//Compliance Report
 type ComplianceReport struct {
 	ID             uuid.UUID
 	OrganizationID string

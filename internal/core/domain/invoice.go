@@ -5,6 +5,7 @@ import (
     "github.com/google/uuid"
 )
 
+//Invoice
 type Invoice struct {
     ID                   uuid.UUID
     InvoiceNumber        string
@@ -40,6 +41,7 @@ type Invoice struct {
     Revision             int32
 }
 
+//Invoice Item
 type InvoiceItem struct {
     ID           uuid.UUID
     InvoiceID    uuid.UUID
@@ -58,6 +60,7 @@ type InvoiceItem struct {
     Revision     int32
 }
 
+//Invoice Tax
 type InvoiceTax struct {
 	ID        uuid.UUID
 	InvoiceID uuid.UUID
@@ -69,6 +72,7 @@ type InvoiceTax struct {
 	Revision  *int32
 }
 
+//Invoice Discount
 type InvoiceDiscount struct {
 	ID          uuid.UUID
 	InvoiceID   uuid.UUID

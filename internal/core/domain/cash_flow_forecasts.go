@@ -4,8 +4,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-)
+)	
 
+// CashFlowForecast represents a forecast for cash inflows and outflows
 type CashFlowForecast struct {
 	ID             uuid.UUID
 	OrganizationID string

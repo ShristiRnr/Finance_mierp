@@ -1,4 +1,3 @@
-// internal/core/domain/consolidation.go
 package domain
 
 import (
@@ -7,6 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// Consolidation represents a financial consolidation for a specific period
 type Consolidation struct {
 	ID         uuid.UUID
 	EntityIds  []string

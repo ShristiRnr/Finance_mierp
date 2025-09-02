@@ -43,7 +43,7 @@ type JournalEntry struct {
 type JournalLine struct {
 	AccountID    uuid.UUID
 	Side         string // "DEBIT" or "CREDIT"
-	Amount       string // could be decimal.Decimal if using shopspring/decimal
+	Amount       string // decimal.Decimal if using shopspring/decimal
 	CostCenterID *string
 	Description  *string
 	CreatedAt    time.Time

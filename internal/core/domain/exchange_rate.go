@@ -7,6 +7,7 @@ import (
     "github.com/google/uuid"
 )
 
+//Exchnage Rate
 type ExchangeRate struct {
     ID            uuid.UUID
     BaseCurrency  string

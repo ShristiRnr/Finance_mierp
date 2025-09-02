@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// NoteType could be an enum in proto, mapped to string here
 type NoteType string
 
 const (
@@ -21,11 +20,12 @@ type ExternalRef struct {
 	CreatedAt time.Time
 }
 
+// CreditDebitNote represents a credit or debit note for an invoice
 type CreditDebitNote struct {
 	ID        uuid.UUID
 	InvoiceID uuid.UUID
 	Type      NoteType
-	Amount    string // map from google.type.Money later
+	Amount    string // mapping done from google.type.Money
 	Reason    string
 	CreatedAt time.Time
 	CreatedBy string

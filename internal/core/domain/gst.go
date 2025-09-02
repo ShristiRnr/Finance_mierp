@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
+//Gst Breakup
 type GstBreakup struct {
 	ID            uuid.UUID
 	InvoiceID     uuid.UUID
@@ -19,6 +20,7 @@ type GstBreakup struct {
 	Revision      int32
 }
 
+//Gst Regime
 type GstRegime struct {
 	ID            uuid.UUID
 	InvoiceID     uuid.UUID
@@ -30,6 +32,7 @@ type GstRegime struct {
 	Revision      int32
 }
 
+//Gst Document Status
 type GstDocStatus struct {
 	ID            uuid.UUID
 	InvoiceID     uuid.UUID

@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
+//Event Of Finance Invoice Created
 type FinanceInvoiceCreatedEvent struct {
 	ID             uuid.UUID
 	InvoiceID      uuid.UUID
@@ -17,6 +18,7 @@ type FinanceInvoiceCreatedEvent struct {
 	CreatedAt      time.Time
 }
 
+//Event Of Finance Payment Received
 type FinancePaymentReceivedEvent struct {
 	ID             uuid.UUID
 	PaymentDueID   uuid.UUID
@@ -28,6 +30,7 @@ type FinancePaymentReceivedEvent struct {
 	CreatedAt      time.Time
 }
 
+//Event Of Inventory Cost Posted
 type InventoryCostPostedEvent struct {
 	ID             uuid.UUID
 	ReferenceType  string
@@ -38,6 +41,7 @@ type InventoryCostPostedEvent struct {
 	CreatedAt      time.Time
 }
 
+//Event Of Payroll Posted
 type PayrollPostedEvent struct {
 	ID             uuid.UUID
 	PayrollRunID   uuid.UUID
@@ -48,6 +52,7 @@ type PayrollPostedEvent struct {
 	CreatedAt      time.Time
 }
 
+//Event Of Vendor Bill Approved
 type VendorBillApprovedEvent struct {
 	ID             uuid.UUID
 	VendorBillID   uuid.UUID

@@ -7,9 +7,7 @@ import (
 	"database/sql"
 )
 
-// =====================
 // Bank Accounts
-// =====================
 type BankAccount struct {
 	ID              uuid.UUID
 	Name            string
@@ -23,9 +21,8 @@ type BankAccount struct {
 	Revision        int32
 }
 
-// =====================
+
 // Bank Transactions
-// =====================
 type BankTransaction struct {
 	ID                 uuid.UUID
 	BankAccountID      uuid.UUID
@@ -43,9 +40,8 @@ type BankTransaction struct {
 	Revision           int32
 }
 
-// =====================
+
 // Payment Dues
-// =====================
 type PaymentDue struct {
 	ID        uuid.UUID
 	InvoiceID uuid.UUID

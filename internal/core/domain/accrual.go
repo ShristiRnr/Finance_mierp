@@ -5,8 +5,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-)
+)	
 
+// Accrual represents a financial accrual for a specific period
 type Accrual struct {
 	ID          uuid.UUID
 	Description *string
@@ -20,6 +21,7 @@ type Accrual struct {
 	Revision    sql.NullInt32
 }
 
+// ExternalReference represents an external reference for an accrual
 type AccrualExternalRef struct {
 	ID        uuid.UUID
 	AccrualID uuid.UUID
@@ -28,6 +30,7 @@ type AccrualExternalRef struct {
 	CreatedAt time.Time
 }
 
+// AllocationRule represents a rule for allocating amounts to different cost centers
 type AllocationRule struct {
 	ID                  uuid.UUID
 	Name                string

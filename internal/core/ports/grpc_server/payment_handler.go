@@ -171,10 +171,11 @@ func (h *PaymentDueHandler) MarkAsPaid(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid UUID", http.StatusBadRequest)
 		return
 	}
-
-	// Assuming 'updatedBy' might come from a user session or a simple request body
-	// For simplicity, we'll use a hardcoded value here.
-	const updatedBy = "api_user"
+	var updatedBy string
+	if err := json.NewDecoder(r.Body).Decode(&updatedBy); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	paid, err := h.svc.MarkPaymentAsPaid(r.Context(), id, updatedBy)
 	if err != nil {
