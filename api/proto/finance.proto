@@ -34,7 +34,7 @@ message AuditFields {
 }
 
 message PageRequest {
-  int32 page_size = 1;            // server may cap (e.g., 1000)
+  int32 page_size = 1;       
   string page_token = 2;          // opaque
   string filter = 3;              // e.g., "status = 'ISSUED' AND due_date < '2025-09-01'"
   string order_by = 4;            // e.g., "invoice_date desc, invoice_number asc"

@@ -185,10 +185,10 @@ func toDomainJournal(j db.JournalEntry) domain.JournalEntry {
 	return domain.JournalEntry{
 		ID:         j.ID,
 		JournalDate: j.JournalDate,
-		Reference:   nullableString(j.Reference),
-		Memo:        nullableString(j.Memo),
-		SourceType:  nullableString(j.SourceType),
-		SourceID:    nullableString(j.SourceID),
+		Reference:   nullStringToPtr(j.Reference),
+		Memo:        nullStringToPtr(j.Memo),
+		SourceType:  nullStringToPtr(j.SourceType),
+		SourceID:    nullStringToPtr(j.SourceID),
 		CreatedAt:   j.CreatedAt.Time,
 		CreatedBy:   j.CreatedBy.String,
 		UpdatedAt:   j.UpdatedAt.Time,
@@ -227,17 +227,9 @@ func (r *ledgerRepository) List(ctx context.Context, limit, offset int32) ([]dom
 	return result, nil
 }
 
-func nullableString(ns sql.NullString) *string {
-	if ns.Valid {
-		return &ns.String
-	}
-	return nil
-}
-
 func derefString(s *string) string {
 	if s == nil {
 		return ""
 	}
 	return *s
 }
-

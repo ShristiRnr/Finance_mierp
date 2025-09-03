@@ -103,7 +103,7 @@ func (r *accrualRepository) AddExternalRef(ctx context.Context, ref domain.Accru
 func toDomainAccrual(a db.Accrual) domain.Accrual {
 	return domain.Accrual{
 		ID:          a.ID,
-		Description: nullableString(a.Description),
+		Description: nullStringToPtr(a.Description),
 		Amount:      a.Amount,
 		AccrualDate: a.AccrualDate,
 		AccountID:   a.AccountID,

@@ -10,6 +10,8 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 	money "google.golang.org/genproto/googleapis/type/money"
 	"google.golang.org/grpc/metadata"
+	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
+	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 )
 
 //
@@ -134,17 +136,6 @@ func floatToMoney(amount float64, currency string) *money.Money {
 	}
 }
 
-func derefString(s *string) string {
-	if s == nil {
-		return ""
-	}
-	return *s
-}
-
-func stringPtr(s string) *string {
-	return &s
-}
-
 func stringToMoney(amountStr string, currency string) *money.Money {
 	f, err := strconv.ParseFloat(amountStr, 64)
 	if err != nil {
@@ -231,4 +222,43 @@ func mapDomainToProtoExchangeRate(rate domain.ExchangeRate) *pb.ExchangeRate {
         AsOf:          timestamppb.New(rate.AsOf),
     }
 }
+type ledgerRepository struct {
+	q *db.Queries
+}
 
+func NewLedgerRepository(q *db.Queries) ports.LedgerRepository {
+	return &ledgerRepository{q: q}
+}
+
+func (r *ledgerRepository) List(ctx context.Context, limit, offset int32) ([]domain.LedgerEntry, error) {
+	rows, err := r.q.ListLedgerEntries(ctx, db.ListLedgerEntriesParams{
+		Limit:  limit,
+		Offset: offset,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]domain.LedgerEntry, 0, len(rows))
+	for _, l := range rows {
+		result = append(result, domain.LedgerEntry{
+			EntryID:   l.ID,
+			AccountID: l.AccountID,
+			Side:      l.Side,
+			Amount:    l.Amount,
+			PostedAt:  l.TransactionDate,
+		})
+	}
+	return result, nil
+}
+
+func stringPtr(s string) *string {
+	return &s
+}
+
+func derefString(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}

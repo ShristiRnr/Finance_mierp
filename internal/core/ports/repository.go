@@ -233,16 +233,8 @@ type GstRepository interface {
 	GetGstRegime(ctx context.Context, invoiceID uuid.UUID) (domain.GstRegime, error)
 
 	// Doc Status
-	AddGstDocStatus(
-		ctx context.Context,
-		invoiceID uuid.UUID,
-		einvoiceStatus, irn, ackNo *string,
-		ackDate *time.Time,
-		ewayStatus, ewayBillNo *string,
-		ewayValidUpto *time.Time,
-		lastError *string,
-		lastSyncedAt *time.Time,
-	) (domain.GstDocStatus, error)
+	AddGstDocStatus(ctx context.Context, invoiceID uuid.UUID, einvoiceStatus, irn, ackNo *string, ackDate *time.Time, ewayStatus, ewayBillNo *string, ewayValidUpto *time.Time,
+		lastError *string, lastSyncedAt *time.Time) (domain.GstDocStatus, error)
 
 	GetGstDocStatus(ctx context.Context, invoiceID uuid.UUID) (domain.GstDocStatus, error)
 }
