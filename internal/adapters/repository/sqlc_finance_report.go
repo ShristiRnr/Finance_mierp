@@ -19,10 +19,9 @@ func NewFinancialReportsRepo(q *db.Queries) ports.FinancialReportsRepository {
 	return &FinancialReportsRepo{q: q}
 }
 
-//
-// ==========================
-// Mapping functions
-// ==========================
+
+// =============================================== Mapping functions ===============================================
+
 func mapProfitLossToDomain(r db.ProfitLossReport) domain.ProfitLossReport {
 	revenue, err := strconv.ParseFloat(r.TotalRevenue, 64)
 	if err != nil {
@@ -142,10 +141,9 @@ func mapComplianceToDomain(r db.ComplianceReport) domain.ComplianceReport {
 	}
 }
 
-//
-// ==========================
-// Profit & Loss
-// ==========================
+
+// =============================================== Profit & Loss ================================================
+
 func (r *FinancialReportsRepo) GenerateProfitLossReport(ctx context.Context, report domain.ProfitLossReport) (domain.ProfitLossReport, error) {
 	dbReport, err := r.q.GenerateProfitLossReport(ctx, db.GenerateProfitLossReportParams{
 		OrganizationID: report.OrganizationID,
@@ -186,10 +184,9 @@ func (r *FinancialReportsRepo) ListProfitLossReports(ctx context.Context, orgID 
 	return reports, nil
 }
 
-//
-// ==========================
-// Balance Sheet
-// ==========================
+
+// ================================================== Balance Sheet ================================================
+
 func (r *FinancialReportsRepo) GenerateBalanceSheetReport(ctx context.Context, report domain.BalanceSheetReport) (domain.BalanceSheetReport, error) {
 	dbReport, err := r.q.GenerateBalanceSheetReport(ctx, db.GenerateBalanceSheetReportParams{
 		OrganizationID:   report.OrganizationID,
@@ -230,10 +227,9 @@ func (r *FinancialReportsRepo) ListBalanceSheetReports(ctx context.Context, orgI
 	return reports, nil
 }
 
-//
-// ==========================
-// Trial Balance
-// ==========================
+
+// ================================================== Trial Balance ===================================================
+
 func (r *FinancialReportsRepo) CreateTrialBalanceReport(ctx context.Context, report domain.TrialBalanceReport) (domain.TrialBalanceReport, error) {
 	dbReport, err := r.q.CreateTrialBalanceReport(ctx, db.CreateTrialBalanceReportParams{
 		OrganizationID: report.OrganizationID,
@@ -296,10 +292,9 @@ func (r *FinancialReportsRepo) ListTrialBalanceEntries(ctx context.Context, repo
 	return entries, nil
 }
 
-//
-// ==========================
-// Compliance
-// ==========================
+
+// ====================================================== Compliance ======================================================
+
 func (r *FinancialReportsRepo) GenerateComplianceReport(ctx context.Context, report domain.ComplianceReport) (domain.ComplianceReport, error) {
 	dbReport, err := r.q.GenerateComplianceReport(ctx, db.GenerateComplianceReportParams{
 		OrganizationID: report.OrganizationID,

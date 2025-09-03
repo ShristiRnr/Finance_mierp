@@ -74,7 +74,7 @@ func nullStrToPtr(ns sql.NullString) *string {
 	return &s
 }
 
-// -------------------- mappers --------------------
+// ========================================= mappers =========================================
 
 func mapGstBreakup(r db.GstBreakup) domain.GstBreakup {
 	taxable, _ := strconv.ParseFloat(r.TaxableAmount, 64)
@@ -129,7 +129,7 @@ func mapGstDocStatus(r db.GstDocStatus) domain.GstDocStatus {
 	}
 }
 
-// -------------------- repo methods --------------------
+// ================================================ repo methods ================================================
 
 // Breakup
 func (r *GstRepo) AddGstBreakup(ctx context.Context, invoiceID uuid.UUID, taxableAmount float64, cgst, sgst, igst, totalGst *float64) (domain.GstBreakup, error) {
@@ -181,7 +181,8 @@ func (r *GstRepo) GetGstRegime(ctx context.Context, invoiceID uuid.UUID) (domain
 	return mapGstRegime(dbRow), nil
 }
 
-// Doc Status
+// ================================================ Doc Status ================================================
+
 func (r *GstRepo) AddGstDocStatus(
 	ctx context.Context,
 	invoiceID uuid.UUID,

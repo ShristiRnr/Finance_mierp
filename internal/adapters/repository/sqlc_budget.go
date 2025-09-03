@@ -20,7 +20,7 @@ func NewBudgetRepo(queries *sql.DB) *BudgetRepository {
 	}
 }
 
-// --------------------- Budgets ---------------------
+// ======================================== Budgets ========================================
 
 func (r *BudgetRepository) Create(ctx context.Context, b *domain.Budget) (*domain.Budget, error) {
 	row, err := r.queries.CreateBudget(ctx, db.CreateBudgetParams{
@@ -79,7 +79,7 @@ func (r *BudgetRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.queries.DeleteBudget(ctx, id)
 }
 
-// --------------------- Budget Allocations ---------------------
+// ===================================== Budget Allocations =======================================
 
 func (r *BudgetRepository) Allocate(ctx context.Context, ba *domain.BudgetAllocation) (*domain.BudgetAllocation, error) {
 	row, err := r.queries.AllocateBudget(ctx, db.AllocateBudgetParams{
@@ -139,7 +139,7 @@ func (r *BudgetRepository) DeleteAllocation(ctx context.Context, id uuid.UUID) e
 	return r.queries.DeleteBudgetAllocation(ctx, id)
 }
 
-// --------------------- Budget Comparison ---------------------
+// ======================================== Budget Comparison =======================================
 
 func (r *BudgetRepository) GetBudgetComparison(ctx context.Context, id uuid.UUID) (*domain.BudgetComparisonReport, error) {
 	row, err := r.queries.GetBudgetComparisonReport(ctx, id)

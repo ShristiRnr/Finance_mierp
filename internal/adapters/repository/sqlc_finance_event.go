@@ -17,9 +17,7 @@ func NewFinanceEventRepo(q *db.Queries) ports.FinanceEventRepository {
 	return &FinanceEventRepo{q: q}
 }
 
-//
-// ─── INVOICE CREATED ─────────────────────────────────────────────────────────────
-//
+// ======================================================= INVOICE CREATED ===========================================================
 
 func (r *FinanceEventRepo) InsertInvoiceCreated(ctx context.Context, e domain.FinanceInvoiceCreatedEvent) (domain.FinanceInvoiceCreatedEvent, error) {
 	params := db.InsertInvoiceCreatedEventParams{
@@ -53,9 +51,7 @@ func (r *FinanceEventRepo) ListInvoiceCreated(ctx context.Context, orgID string,
 	return events, nil
 }
 
-//
-// ─── PAYMENT RECEIVED ───────────────────────────────────────────────────────────
-//
+// ======================================================= PAYMENT RECEIVED ==============================================================
 
 func (r *FinanceEventRepo) InsertPaymentReceived(ctx context.Context, e domain.FinancePaymentReceivedEvent) (domain.FinancePaymentReceivedEvent, error) {
 	params := db.InsertPaymentReceivedEventParams{
@@ -89,9 +85,7 @@ func (r *FinanceEventRepo) ListPaymentReceived(ctx context.Context, orgID string
 	return events, nil
 }
 
-//
-// ─── INVENTORY COST POSTED ──────────────────────────────────────────────────────
-//
+// ========================================================== INVENTORY COST POSTED ===============================================================
 
 func (r *FinanceEventRepo) InsertInventoryCostPosted(ctx context.Context, e domain.InventoryCostPostedEvent) (domain.InventoryCostPostedEvent, error) {
 	params := db.InsertInventoryCostPostedEventParams{
@@ -124,9 +118,7 @@ func (r *FinanceEventRepo) ListInventoryCostPosted(ctx context.Context, orgID st
 	return events, nil
 }
 
-//
-// ─── PAYROLL POSTED ─────────────────────────────────────────────────────────────
-//
+// =========================================================== PAYROLL POSTED ==============================================================
 
 func (r *FinanceEventRepo) InsertPayrollPosted(ctx context.Context, e domain.PayrollPostedEvent) (domain.PayrollPostedEvent, error) {
 	params := db.InsertPayrollPostedEventParams{
@@ -159,9 +151,7 @@ func (r *FinanceEventRepo) ListPayrollPosted(ctx context.Context, orgID string, 
 	return events, nil
 }
 
-//
-// ─── VENDOR BILL APPROVED ───────────────────────────────────────────────────────
-//
+// =================================================== VENDOR BILL APPROVED ====================================================
 
 func (r *FinanceEventRepo) InsertVendorBillApproved(ctx context.Context, e domain.VendorBillApprovedEvent) (domain.VendorBillApprovedEvent, error) {
 	params := db.InsertVendorBillApprovedEventParams{
@@ -193,9 +183,7 @@ func (r *FinanceEventRepo) ListVendorBillApproved(ctx context.Context, orgID str
 	return events, nil
 }
 
-//
-// ─── MAPPERS ────────────────────────────────────────────────────────────────────
-//
+// =========================================================== MAPPERS ================================================================
 
 func mapInvoiceCreatedRowToDomain(row db.FinanceInvoiceCreatedEvent) domain.FinanceInvoiceCreatedEvent {
 	return domain.FinanceInvoiceCreatedEvent{

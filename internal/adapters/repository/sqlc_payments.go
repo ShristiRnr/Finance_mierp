@@ -9,9 +9,9 @@ import (
 	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
 )
 
-// ================================
-// BankAccount Repository
-// ================================
+
+// =========================================== BankAccount Repository ========================================
+
 type BankAccountRepository struct {
 	queries *db.Queries
 }
@@ -78,9 +78,8 @@ func (r *BankAccountRepository) ListBankAccounts(ctx context.Context, limit, off
 	return result, nil
 }
 
-// ================================
-// PaymentDue Repository
-// ================================
+//============================================ PaymentDue Repository ========================================
+
 type PaymentDueRepository struct {
 	queries *db.Queries
 }
@@ -159,9 +158,8 @@ func (r *PaymentDueRepository) MarkPaymentAsPaid(ctx context.Context, id uuid.UU
 }
 
 
-// ================================
-// BankTransaction Repository
-// ================================
+// ======================================== BankTransaction Repository ========================================
+
 type BankTransactionRepository struct {
 	queries *db.Queries
 }
@@ -221,9 +219,9 @@ func (r *BankTransactionRepository) ReconcileTransaction(ctx context.Context, tx
 	return dbBankTransactionToDomain(b), nil
 }
 
-// ================================
-// Helpers: convert db structs to domain
-// ================================
+
+// =================================================== Helpers ==========================================
+
 func dbBankAccountToDomain(b db.BankAccount) domain.BankAccount {
 	return domain.BankAccount{
 		ID:              b.ID,

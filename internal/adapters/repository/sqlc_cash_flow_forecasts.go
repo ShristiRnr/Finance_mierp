@@ -58,7 +58,7 @@ func (r *CashFlowForecastRepository) List(ctx context.Context, organizationID st
 	return result, nil
 }
 
-// --------------------- Helpers ---------------------
+// ===================================================== Helpers ========================================================
 
 func mapCashFlowForecast(row db.CashFlowForecast) *domain.CashFlowForecast {
 	var revision int32

@@ -21,7 +21,8 @@ func NewInvoiceRepo(q *db.Queries) ports.InvoiceRepository {
 	return &InvoiceRepo{q: q}
 }
 
-// ---------- Invoice ----------
+// ======================================= Invoice =========================================
+
 func (r *InvoiceRepo) CreateInvoice(ctx context.Context, inv domain.Invoice) (domain.Invoice, error) {
 	dbRow, err := r.q.CreateInvoice(ctx, db.CreateInvoiceParams{
 		InvoiceNumber:        inv.InvoiceNumber,
@@ -138,7 +139,8 @@ func (r *InvoiceRepo) SearchInvoices(ctx context.Context, query string, limit, o
 	return invoices, nil
 }
 
-// ---------- InvoiceItem ----------
+// =========================================== InvoiceItem ===========================================
+
 func (r *InvoiceRepo) CreateInvoiceItem(ctx context.Context, item domain.InvoiceItem) (domain.InvoiceItem, error) {
 	dbRow, err := r.q.CreateInvoiceItem(ctx, db.CreateInvoiceItemParams{
 		InvoiceID:    item.InvoiceID,
@@ -183,7 +185,8 @@ func (r *InvoiceRepo) AddInvoiceTax(ctx context.Context, tax domain.InvoiceTax) 
 	return mapInvoiceTax(dbRow), nil
 }
 
-// ---------- InvoiceDiscount ----------
+// =========================================== InvoiceDiscount ===========================================
+
 func (r *InvoiceRepo) AddInvoiceDiscount(ctx context.Context, disc domain.InvoiceDiscount) (domain.InvoiceDiscount, error) {
 	dbRow, err := r.q.AddInvoiceDiscount(ctx, db.AddInvoiceDiscountParams{
 		InvoiceID:   disc.InvoiceID,
@@ -196,7 +199,8 @@ func (r *InvoiceRepo) AddInvoiceDiscount(ctx context.Context, disc domain.Invoic
 	return mapInvoiceDiscount(dbRow), nil
 }
 
-// ---------- Mapping functions ----------
+// ============================================ Mapping functions =======================================
+
 func mapInvoice(i db.Invoice) domain.Invoice {
 	var partyRefID *uuid.UUID
 	if i.PartyRefID.Valid {
@@ -270,7 +274,8 @@ func mapInvoiceDiscount(i db.InvoiceDiscount) domain.InvoiceDiscount {
 	}
 }
 
-// ---------- Helper functions ----------
+//========================================== Helper functions ==========================================
+
 func nullStr2Ptr(ns sql.NullString) *string {
 	if ns.Valid {
 		return &ns.String
