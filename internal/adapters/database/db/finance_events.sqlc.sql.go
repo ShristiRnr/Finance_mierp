@@ -215,7 +215,7 @@ const listInventoryCostPostedEvents = `-- name: ListInventoryCostPostedEvents :m
 SELECT id, reference_type, reference_id, amount, cost_center_id, organization_id, created_at 
 FROM inventory_cost_posted_events
 WHERE organization_id = $1
-ORDER BY created_at DESC
+ORDER BY created_at DESC 
 LIMIT $2 OFFSET $3
 `
 

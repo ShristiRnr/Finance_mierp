@@ -10,9 +10,9 @@ import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 import "google/type/money.proto";
 
-// =========================================================
-// ================ Common & Infrastructure ================
-// =========================================================
+
+// ============================ Common & Infrastructure ===============================
+
 
 message RequestMetadata {
   string request_id = 1;        // Idempotency key
@@ -63,9 +63,9 @@ message PartyRef {
   string display_name = 3; // optional tiny snapshot for UX
 }
 
-// =========================================================
-// ====================== Enumerations =====================
-// =========================================================
+
+// =================================== Enumerations =====================================
+
 
 enum InvoiceType {
   INVOICE_TYPE_UNSPECIFIED = 0;
@@ -130,9 +130,9 @@ enum AccountStatus {
   ACCOUNT_ARCHIVED = 3;
 }
 
-// =========================================================
-// ======================= Tax / GST =======================
-// =========================================================
+
+// ===================================== Tax / GST ========================================
+
 
 //enum TaxType {
   //TAX_TYPE_UNSPECIFIED = 0;
@@ -200,9 +200,8 @@ message GstDocStatus {
   google.protobuf.Timestamp last_synced_at = 9;
 }
 
-// =========================================================
-// ==================== PHASE 1: Core ======================
-// =========================================================
+// =============================== PHASE 1: Core ==============================
+
 // Invoice Mgmt • Credit/Debit • Payments & Bank Reco
 // Ledger Mgmt • Budgeting & Tracking • Cost Accounting (base)
 // Basic Audit Trails
@@ -292,7 +291,7 @@ service InvoiceService {
   rpc DeleteInvoice(DeleteInvoiceRequest) returns (google.protobuf.Empty);
 }
 
-// ------------------ Credit / Debit Notes -----------------
+// ============================== Credit / Debit Notes ==============================
 
 message CreditDebitNote {
   string id = 1;
@@ -323,7 +322,7 @@ service CreditDebitNoteService {
   rpc DeleteCreditDebitNote(DeleteCreditDebitNoteRequest) returns (google.protobuf.Empty);
 }
 
-// --------------- Payments & Bank Reconciliation ----------
+// ========================== Payments & Bank Reconciliation ==========================
 
 message PaymentDue {
   string id = 1;
@@ -438,7 +437,7 @@ service BankReconciliationService {
   rpc ReconcileTransaction(ReconcileTransactionRequest) returns (Reconciliation);
 }
 
-// ----------------- Chart of Accounts / Ledger ------------
+// ============================= Chart of Accounts / Ledger =============================
 
 // Chart of Accounts
 message Account {
@@ -533,7 +532,7 @@ service LedgerService {
   rpc ListLedgerEntries(ListLedgerEntriesRequest) returns (ListLedgerEntriesResponse);
 }
 
-// -------------------- Budgeting & Tracking ---------------
+// ============================= Budgeting & Tracking =================================
 
 message Budget {
   string id = 1;
@@ -606,7 +605,7 @@ service BudgetComparisonService {
   rpc GetBudgetComparisonReport(BudgetComparisonRequest) returns (BudgetComparisonResponse);
 }
 
-// -------------------- Cost Accounting (base) --------------
+// ================================ Cost Accounting (base) =================================
 
 message ExpenseRate {
   string id = 1;
@@ -687,7 +686,7 @@ service CostAccountingService {
   rpc ListCostAllocations(ListCostAllocationsRequest) returns (ListCostAllocationsResponse);
 }
 
-// ------------------------ Audit Trail --------------------
+// ==================================== Audit Trail =======================================
 
 message AuditEvent {
   string id = 1;
@@ -724,12 +723,11 @@ service AuditTrailService {
   rpc FilterAuditEvents(FilterAuditEventsRequest) returns (FilterAuditEventsResponse);
 }
 
-// =========================================================
-/* =============== PHASE 2: Advanced / Compliance ========= */
-// =========================================================
+
+/* ========================== PHASE 2: Advanced / Compliance =========================== */
 // Advanced Costing, Compliance Reporting, Accruals & Allocations automation
 
-// -------------------- Accruals & Allocations --------------
+// ============================== Accruals & Allocations ===============================
 
 message Accrual {
   string id = 1;
@@ -789,7 +787,7 @@ service AllocationAutomationService {
   rpc ListAllocationRules(ListAllocationRulesRequest) returns (ListAllocationRulesResponse);
 }
 
-// -------------------- Compliance Reporting ----------------
+// ============================= Compliance Reporting ================================
 
 message ReportPeriod {
   google.protobuf.Timestamp start_date = 1;
@@ -832,12 +830,11 @@ service FinancialComplianceService {
   rpc GenerateComplianceReport(ComplianceReportRequest) returns (ComplianceReport);
 }
 
-// =========================================================
+
 /* =============== PHASE 3: Enterprise Scale ============== */
-// =========================================================
 // Consolidation (multi-entity), Multi-currency, Advanced Treasury
 
-// ----------------------- Consolidation --------------------
+// ================================== Consolidation ==================================
 
 message Consolidation {
   string id = 1;
@@ -873,7 +870,7 @@ service ConsolidationService {
   rpc DeleteConsolidation(DeleteConsolidationRequest) returns (google.protobuf.Empty);
 }
 
-// ----------------------- Multi-currency -------------------
+// ================================== Multi-currency ===================================
 
 message ExchangeRate {
   string id = 1;
@@ -912,7 +909,7 @@ service FxService {
   rpc ConvertMoney(ConvertMoneyRequest) returns (ConvertMoneyResponse);
 }
 
-// ----------------------- Treasury ------------------------
+// ===================================== Treasury =======================================
 
 message CashFlowForecastRequest { ReportPeriod period = 1; }
 message CashFlowForecastResponse { string forecast_details = 1; }
@@ -923,9 +920,8 @@ service CashFlowService {
   rpc ListForecasts(CashFlowForecastRequest) returns (CashFlowForecastResponse);
 }
 
-// =========================================================
-// =============== Interservice Event Contracts ============
-// =========================================================
+// ============================= Interservice Event Contracts ===========================
+
 // These map cleanly to Kafka topics via an adapter.
 // Keep payloads minimal + referential.
 
