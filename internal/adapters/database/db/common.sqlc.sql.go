@@ -38,54 +38,6 @@ func (q *Queries) CreateAuditFields(ctx context.Context, arg CreateAuditFieldsPa
 	return i, err
 }
 
-const createExternalRef = `-- name: CreateExternalRef :one
-INSERT INTO external_refs (system, ref_id)
-VALUES ($1, $2)
-RETURNING id, system, ref_id, created_at
-`
-
-type CreateExternalRefParams struct {
-	System string
-	RefID  string
-}
-
-func (q *Queries) CreateExternalRef(ctx context.Context, arg CreateExternalRefParams) (ExternalRef, error) {
-	row := q.db.QueryRowContext(ctx, createExternalRef, arg.System, arg.RefID)
-	var i ExternalRef
-	err := row.Scan(
-		&i.ID,
-		&i.System,
-		&i.RefID,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
-const createPartyRef = `-- name: CreatePartyRef :one
-INSERT INTO party_refs (kind, external_ref_id, display_name)
-VALUES ($1, $2, $3)
-RETURNING id, kind, external_ref_id, display_name, created_at
-`
-
-type CreatePartyRefParams struct {
-	Kind          int16
-	ExternalRefID uuid.NullUUID
-	DisplayName   sql.NullString
-}
-
-func (q *Queries) CreatePartyRef(ctx context.Context, arg CreatePartyRefParams) (PartyRef, error) {
-	row := q.db.QueryRowContext(ctx, createPartyRef, arg.Kind, arg.ExternalRefID, arg.DisplayName)
-	var i PartyRef
-	err := row.Scan(
-		&i.ID,
-		&i.Kind,
-		&i.ExternalRefID,
-		&i.DisplayName,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
 const createRequestMetadata = `-- name: CreateRequestMetadata :one
 
 INSERT INTO request_metadata (request_id, organization_id, tenant_id, auth_subject, source_system, trace_id)
@@ -122,39 +74,6 @@ func (q *Queries) CreateRequestMetadata(ctx context.Context, arg CreateRequestMe
 		&i.AuthSubject,
 		&i.SourceSystem,
 		&i.TraceID,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
-const getExternalRef = `-- name: GetExternalRef :one
-SELECT id, system, ref_id, created_at FROM external_refs WHERE id = $1
-`
-
-func (q *Queries) GetExternalRef(ctx context.Context, id uuid.UUID) (ExternalRef, error) {
-	row := q.db.QueryRowContext(ctx, getExternalRef, id)
-	var i ExternalRef
-	err := row.Scan(
-		&i.ID,
-		&i.System,
-		&i.RefID,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
-const getPartyRef = `-- name: GetPartyRef :one
-SELECT id, kind, external_ref_id, display_name, created_at FROM party_refs WHERE id = $1
-`
-
-func (q *Queries) GetPartyRef(ctx context.Context, id uuid.UUID) (PartyRef, error) {
-	row := q.db.QueryRowContext(ctx, getPartyRef, id)
-	var i PartyRef
-	err := row.Scan(
-		&i.ID,
-		&i.Kind,
-		&i.ExternalRefID,
-		&i.DisplayName,
 		&i.CreatedAt,
 	)
 	return i, err

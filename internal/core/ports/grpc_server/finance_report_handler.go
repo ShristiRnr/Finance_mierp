@@ -17,29 +17,29 @@ func NewFinancialReportsHandler(svc *services.FinancialReportsService) *Financia
 	return &FinancialReportsHandler{svc: svc}
 }
 
-func (h *FinancialReportsHandler) RegisterRoutes(r chi.Router) {
-	// Profit & Loss
-	r.Post("/reports/profit-loss", h.GenerateProfitLoss)
-	r.Get("/reports/profit-loss/{id}", h.GetProfitLoss)
-	r.Get("/reports/profit-loss", h.ListProfitLossReports)
+// func (h *FinancialReportsHandler) RegisterRoutes(r chi.Router) {
+// 	// Profit & Loss
+// 	r.Post("/reports/profit-loss", h.GenerateProfitLoss)
+// 	r.Get("/reports/profit-loss/{id}", h.GetProfitLoss)
+// 	r.Get("/reports/profit-loss", h.ListProfitLossReports)
 
-	// Balance Sheet
-	r.Post("/reports/balance-sheet", h.GenerateBalanceSheet)
-	r.Get("/reports/balance-sheet/{id}", h.GetBalanceSheet)
-	r.Get("/reports/balance-sheet", h.ListBalanceSheetReports)
+// 	// Balance Sheet
+// 	r.Post("/reports/balance-sheet", h.GenerateBalanceSheet)
+// 	r.Get("/reports/balance-sheet/{id}", h.GetBalanceSheet)
+// 	r.Get("/reports/balance-sheet", h.ListBalanceSheetReports)
 
-	// Trial Balance
-	r.Post("/reports/trial-balance", h.CreateTrialBalance)
-	r.Post("/reports/trial-balance/{id}/entries", h.AddTrialBalanceEntry)
-	r.Get("/reports/trial-balance/{id}", h.GetTrialBalance)
-	r.Get("/reports/trial-balance/{id}/entries", h.ListTrialBalanceEntries)
-	r.Get("/reports/trial-balance", h.ListTrialBalanceReports)
+// 	// Trial Balance
+// 	r.Post("/reports/trial-balance", h.CreateTrialBalance)
+// 	r.Post("/reports/trial-balance/{id}/entries", h.AddTrialBalanceEntry)
+// 	r.Get("/reports/trial-balance/{id}", h.GetTrialBalance)
+// 	r.Get("/reports/trial-balance/{id}/entries", h.ListTrialBalanceEntries)
+// 	r.Get("/reports/trial-balance", h.ListTrialBalanceReports)
 
-	// Compliance
-	r.Post("/reports/compliance", h.GenerateCompliance)
-	r.Get("/reports/compliance/{id}", h.GetCompliance)
-	r.Get("/reports/compliance", h.ListComplianceReports)
-}
+// 	// Compliance
+// 	r.Post("/reports/compliance", h.GenerateCompliance)
+// 	r.Get("/reports/compliance/{id}", h.GetCompliance)
+// 	r.Get("/reports/compliance", h.ListComplianceReports)
+// }
 
 //
 // ==========================

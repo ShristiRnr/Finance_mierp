@@ -74,31 +74,6 @@ func (r *accrualRepository) List(ctx context.Context, limit, offset int32) ([]do
 	return result, nil
 }
 
-func (r *accrualRepository) ListExternalRefs(ctx context.Context, accrualID uuid.UUID) ([]domain.AccrualExternalRef, error) {
-	rows, err := r.q.ListAccrualExternalRefs(ctx, accrualID)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]domain.AccrualExternalRef, 0, len(rows))
-	for _, row := range rows {
-		result = append(result, toDomainAccrualRef(row))
-	}
-	return result, nil
-}
-
-func (r *accrualRepository) AddExternalRef(ctx context.Context, ref domain.AccrualExternalRef) (domain.AccrualExternalRef, error) {
-	arg := db.AddAccrualExternalRefParams{
-		AccrualID: ref.AccrualID,
-		System:    ref.System,
-		RefID:     ref.RefID,
-	}
-	res, err := r.q.AddAccrualExternalRef(ctx, arg)
-	if err != nil {
-		return domain.AccrualExternalRef{}, err
-	}
-	return toDomainAccrualRef(res), nil
-}
-
 // --- mapping helpers ---
 func toDomainAccrual(a db.Accrual) domain.Accrual {
 	return domain.Accrual{
@@ -112,15 +87,5 @@ func toDomainAccrual(a db.Accrual) domain.Accrual {
 		UpdatedAt:   a.UpdatedAt.Time,
 		UpdatedBy:   a.UpdatedBy.String,
 		Revision:    a.Revision,
-	}
-}
-
-func toDomainAccrualRef(r db.AccrualExternalRef) domain.AccrualExternalRef {
-	return domain.AccrualExternalRef{
-		ID:        r.ID,
-		AccrualID: r.AccrualID,
-		System:    r.System,
-		RefID:     r.RefID,
-		CreatedAt: r.CreatedAt.Time,
 	}
 }

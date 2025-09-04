@@ -33,14 +33,6 @@ RETURNING *;
 -- name: DeleteAccrual :exec
 DELETE FROM accruals WHERE id = $1;
 
--- External refs for accrual
--- name: AddAccrualExternalRef :one
-INSERT INTO accrual_external_refs (accrual_id, system, ref_id)
-VALUES ($1, $2, $3) RETURNING *;
-
--- name: ListAccrualExternalRefs :many
-SELECT * FROM accrual_external_refs WHERE accrual_id = $1;
-
 -- =====================================================
 -- Allocation Rule Queries
 -- =====================================================

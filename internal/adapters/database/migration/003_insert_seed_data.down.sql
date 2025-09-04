@@ -11,6 +11,5 @@ DELETE FROM exchange_rates WHERE base_currency IN ('USD','EUR','GBP') AND quote_
 DELETE FROM gst_regimes WHERE gstin = '22AAAAA0000A1Z5';
 
 DELETE FROM cost_centers WHERE name IN ('General','Sales','Operations');
-DELETE FROM party_refs WHERE display_name IN ('Default Customer','Default Vendor');
 
 DELETE FROM accounts WHERE code IN ('1000','2000','3000','4000');

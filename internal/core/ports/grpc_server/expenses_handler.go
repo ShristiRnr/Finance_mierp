@@ -17,17 +17,6 @@ func NewExpenseHandler(s ports.ExpenseService) *ExpenseHandler {
 	return &ExpenseHandler{service: s}
 }
 
-func (h *ExpenseHandler) RegisterRoutes(r *gin.Engine) {
-	exp := r.Group("/expenses")
-	{
-		exp.POST("/", h.CreateExpense)
-		exp.GET("/:id", h.GetExpense)
-		exp.GET("/", h.ListExpenses)
-		exp.PUT("/:id", h.UpdateExpense)
-		exp.DELETE("/:id", h.DeleteExpense)
-	}
-}
-
 func (h *ExpenseHandler) CreateExpense(c *gin.Context) {
 	var req domain.Expense
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -106,17 +95,6 @@ func NewCostCenterHandler(s ports.CostCenterService) *CostCenterHandler {
 	return &CostCenterHandler{service: s}
 }
 
-func (h *CostCenterHandler) RegisterRoutes(r *gin.Engine) {
-	cc := r.Group("/cost-centers")
-	{
-		cc.POST("/", h.CreateCostCenter)
-		cc.GET("/:id", h.GetCostCenter)
-		cc.GET("/", h.ListCostCenters)
-		cc.PUT("/:id", h.UpdateCostCenter)
-		cc.DELETE("/:id", h.DeleteCostCenter)
-	}
-}
-
 func (h *CostCenterHandler) CreateCostCenter(c *gin.Context) {
 	var req domain.CostCenter
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -193,14 +171,6 @@ type CostAllocationHandler struct {
 
 func NewCostAllocationHandler(s ports.CostAllocationService) *CostAllocationHandler {
 	return &CostAllocationHandler{service: s}
-}
-
-func (h *CostAllocationHandler) RegisterRoutes(r *gin.Engine) {
-	ca := r.Group("/cost-allocations")
-	{
-		ca.POST("/", h.AllocateCost)
-		ca.GET("/", h.ListAllocations)
-	}
 }
 
 func (h *CostAllocationHandler) AllocateCost(c *gin.Context) {

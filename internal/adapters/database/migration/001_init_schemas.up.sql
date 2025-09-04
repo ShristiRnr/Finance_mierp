@@ -27,27 +27,6 @@ CREATE TABLE audit_fields (
     revision TEXT                         -- optimistic concurrency token
 );
 
--- ================================
--- External Reference
--- ================================
-CREATE TABLE external_refs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    system TEXT NOT NULL,                 -- CRM/VMS/HRMS/GST etc.
-    ref_id TEXT NOT NULL,                 -- foreign id in that system
-    created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- ================================
--- Party Reference
--- ================================
-CREATE TABLE party_refs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    kind SMALLINT NOT NULL,               -- 1 = CUSTOMER, 2 = VENDOR
-    external_ref_id UUID REFERENCES external_refs(id) ON DELETE SET NULL,
-    display_name TEXT,
-    created_at TIMESTAMPTZ DEFAULT now()
-);
-
 -- =====================================
 -- Chart of Accounts (must exist early for FKs)
 -- =====================================
@@ -80,7 +59,6 @@ CREATE TABLE invoices (
     invoice_date TIMESTAMPTZ NOT NULL,
     due_date TIMESTAMPTZ,
     delivery_date TIMESTAMPTZ,
-    party_ref_id UUID REFERENCES party_refs(id),
     organization_id TEXT NOT NULL,
     po_number TEXT,
     eway_number_legacy TEXT,
@@ -260,16 +238,6 @@ CREATE TABLE credit_debit_notes (
     revision INT DEFAULT 1
 );
 CREATE INDEX idx_credit_debit_notes_invoice_id ON credit_debit_notes(invoice_id);
-
--- external references for credit/debit notes
-CREATE TABLE credit_debit_note_external_refs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    note_id UUID NOT NULL REFERENCES credit_debit_notes(id) ON DELETE CASCADE,
-    system TEXT NOT NULL,
-    ref_id TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT now()
-);
-
 -- =====================================================
 -- Payment Dues
 -- =====================================================
@@ -288,15 +256,6 @@ CREATE TABLE payment_dues (
     revision INT DEFAULT 1
 );
 CREATE INDEX idx_payment_dues_invoice ON payment_dues(invoice_id);
-
--- external refs for dues
-CREATE TABLE payment_due_external_refs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    payment_due_id UUID NOT NULL REFERENCES payment_dues(id) ON DELETE CASCADE,
-    system TEXT NOT NULL,
-    ref_id TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT now()
-);
 
 -- =====================================================
 -- Bank Accounts
@@ -389,15 +348,6 @@ CREATE TABLE journal_lines (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- External references (for journal)
-CREATE TABLE journal_entry_external_refs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    entry_id UUID NOT NULL REFERENCES journal_entries(id) ON DELETE CASCADE,
-    system TEXT NOT NULL,
-    ref_id TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT now()
-);
-
 -- =====================================================
 -- Ledger Entries (derived)
 -- =====================================================
@@ -421,15 +371,6 @@ CREATE TABLE ledger_entries (
 );
 CREATE INDEX idx_ledger_entries_account_date ON ledger_entries(account_id, transaction_date);
 
--- External references (for ledger)
-CREATE TABLE ledger_entry_external_refs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    ledger_entry_id UUID NOT NULL REFERENCES ledger_entries(id) ON DELETE CASCADE,
-    system TEXT NOT NULL,
-    ref_id TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT now()
-);
-
 -- =====================================================
 -- Budgets
 -- =====================================================
@@ -445,15 +386,6 @@ CREATE TABLE budgets (
     updated_at TIMESTAMPTZ DEFAULT now(),
     updated_by TEXT,
     revision INT DEFAULT 1
-);
-
--- external references for budgets
-CREATE TABLE budget_external_refs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    budget_id UUID NOT NULL REFERENCES budgets(id) ON DELETE CASCADE,
-    system TEXT NOT NULL,
-    ref_id TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- =====================================================
@@ -475,15 +407,6 @@ CREATE TABLE budget_allocations (
     revision INT DEFAULT 1
 );
 
--- external references for allocations
-CREATE TABLE budget_allocation_external_refs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    allocation_id UUID NOT NULL REFERENCES budget_allocations(id) ON DELETE CASCADE,
-    system TEXT NOT NULL,
-    ref_id TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT now()
-);
-
 -- =====================================================
 -- Expenses
 -- =====================================================
@@ -500,15 +423,6 @@ CREATE TABLE expenses (
     updated_at TIMESTAMPTZ DEFAULT now(),
     updated_by TEXT,
     revision INT DEFAULT 1
-);
-
--- expense external references
-CREATE TABLE expense_external_refs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    expense_id UUID NOT NULL REFERENCES expenses(id) ON DELETE CASCADE,
-    system TEXT NOT NULL,
-    ref_id TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- =====================================================
@@ -565,15 +479,6 @@ CREATE TABLE accruals (
     updated_at TIMESTAMPTZ DEFAULT now(),
     updated_by TEXT,
     revision INT DEFAULT 1
-);
-
--- External references for accruals
-CREATE TABLE accrual_external_refs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    accrual_id UUID NOT NULL REFERENCES accruals(id) ON DELETE CASCADE,
-    system TEXT NOT NULL,
-    ref_id TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- =====================================================
@@ -735,7 +640,6 @@ CREATE TABLE finance_invoice_created_events (
     invoice_id UUID NOT NULL,
     invoice_number TEXT NOT NULL,
     invoice_date TIMESTAMPTZ NOT NULL,
-    party_ref_id UUID REFERENCES party_refs(id),
     total NUMERIC(18,2) NOT NULL,
     organization_id TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT now()

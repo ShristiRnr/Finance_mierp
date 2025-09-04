@@ -12,32 +12,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const addCreditDebitNoteExternalRef = `-- name: AddCreditDebitNoteExternalRef :one
-
-INSERT INTO credit_debit_note_external_refs (note_id, system, ref_id)
-VALUES ($1, $2, $3) RETURNING id, note_id, system, ref_id, created_at
-`
-
-type AddCreditDebitNoteExternalRefParams struct {
-	NoteID uuid.UUID
-	System string
-	RefID  string
-}
-
-// External Refs --------------------------------------
-func (q *Queries) AddCreditDebitNoteExternalRef(ctx context.Context, arg AddCreditDebitNoteExternalRefParams) (CreditDebitNoteExternalRef, error) {
-	row := q.db.QueryRowContext(ctx, addCreditDebitNoteExternalRef, arg.NoteID, arg.System, arg.RefID)
-	var i CreditDebitNoteExternalRef
-	err := row.Scan(
-		&i.ID,
-		&i.NoteID,
-		&i.System,
-		&i.RefID,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
 const createCreditDebitNote = `-- name: CreateCreditDebitNote :one
 INSERT INTO credit_debit_notes (
     invoice_id, type, amount, reason, created_by, updated_by, revision
@@ -109,39 +83,6 @@ func (q *Queries) GetCreditDebitNote(ctx context.Context, id uuid.UUID) (CreditD
 		&i.Revision,
 	)
 	return i, err
-}
-
-const listCreditDebitNoteExternalRefs = `-- name: ListCreditDebitNoteExternalRefs :many
-SELECT id, note_id, system, ref_id, created_at FROM credit_debit_note_external_refs WHERE note_id = $1
-`
-
-func (q *Queries) ListCreditDebitNoteExternalRefs(ctx context.Context, noteID uuid.UUID) ([]CreditDebitNoteExternalRef, error) {
-	rows, err := q.db.QueryContext(ctx, listCreditDebitNoteExternalRefs, noteID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []CreditDebitNoteExternalRef
-	for rows.Next() {
-		var i CreditDebitNoteExternalRef
-		if err := rows.Scan(
-			&i.ID,
-			&i.NoteID,
-			&i.System,
-			&i.RefID,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const listCreditDebitNotes = `-- name: ListCreditDebitNotes :many

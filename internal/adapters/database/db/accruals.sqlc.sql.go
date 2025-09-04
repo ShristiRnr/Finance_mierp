@@ -14,31 +14,6 @@ import (
 	"github.com/lib/pq"
 )
 
-const addAccrualExternalRef = `-- name: AddAccrualExternalRef :one
-INSERT INTO accrual_external_refs (accrual_id, system, ref_id)
-VALUES ($1, $2, $3) RETURNING id, accrual_id, system, ref_id, created_at
-`
-
-type AddAccrualExternalRefParams struct {
-	AccrualID uuid.UUID
-	System    string
-	RefID     string
-}
-
-// External refs for accrual
-func (q *Queries) AddAccrualExternalRef(ctx context.Context, arg AddAccrualExternalRefParams) (AccrualExternalRef, error) {
-	row := q.db.QueryRowContext(ctx, addAccrualExternalRef, arg.AccrualID, arg.System, arg.RefID)
-	var i AccrualExternalRef
-	err := row.Scan(
-		&i.ID,
-		&i.AccrualID,
-		&i.System,
-		&i.RefID,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
 const createAccrual = `-- name: CreateAccrual :one
 
 INSERT INTO accruals (
@@ -197,39 +172,6 @@ func (q *Queries) GetAllocationRule(ctx context.Context, id uuid.UUID) (Allocati
 		&i.Revision,
 	)
 	return i, err
-}
-
-const listAccrualExternalRefs = `-- name: ListAccrualExternalRefs :many
-SELECT id, accrual_id, system, ref_id, created_at FROM accrual_external_refs WHERE accrual_id = $1
-`
-
-func (q *Queries) ListAccrualExternalRefs(ctx context.Context, accrualID uuid.UUID) ([]AccrualExternalRef, error) {
-	rows, err := q.db.QueryContext(ctx, listAccrualExternalRefs, accrualID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []AccrualExternalRef
-	for rows.Next() {
-		var i AccrualExternalRef
-		if err := rows.Scan(
-			&i.ID,
-			&i.AccrualID,
-			&i.System,
-			&i.RefID,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const listAccruals = `-- name: ListAccruals :many

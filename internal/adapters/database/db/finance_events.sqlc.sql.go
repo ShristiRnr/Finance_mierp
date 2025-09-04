@@ -54,16 +54,15 @@ func (q *Queries) InsertInventoryCostPostedEvent(ctx context.Context, arg Insert
 
 const insertInvoiceCreatedEvent = `-- name: InsertInvoiceCreatedEvent :one
 INSERT INTO finance_invoice_created_events (
-    invoice_id, invoice_number, invoice_date, party_ref_id, total, organization_id
-) VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, invoice_id, invoice_number, invoice_date, party_ref_id, total, organization_id, created_at
+    invoice_id, invoice_number, invoice_date, total, organization_id
+) VALUES ($1, $2, $3, $4, $5)
+RETURNING id, invoice_id, invoice_number, invoice_date, total, organization_id, created_at
 `
 
 type InsertInvoiceCreatedEventParams struct {
 	InvoiceID      uuid.UUID
 	InvoiceNumber  string
 	InvoiceDate    time.Time
-	PartyRefID     uuid.NullUUID
 	Total          string
 	OrganizationID string
 }
@@ -76,7 +75,6 @@ func (q *Queries) InsertInvoiceCreatedEvent(ctx context.Context, arg InsertInvoi
 		arg.InvoiceID,
 		arg.InvoiceNumber,
 		arg.InvoiceDate,
-		arg.PartyRefID,
 		arg.Total,
 		arg.OrganizationID,
 	)
@@ -86,7 +84,6 @@ func (q *Queries) InsertInvoiceCreatedEvent(ctx context.Context, arg InsertInvoi
 		&i.InvoiceID,
 		&i.InvoiceNumber,
 		&i.InvoiceDate,
-		&i.PartyRefID,
 		&i.Total,
 		&i.OrganizationID,
 		&i.CreatedAt,
@@ -257,7 +254,7 @@ func (q *Queries) ListInventoryCostPostedEvents(ctx context.Context, arg ListInv
 }
 
 const listInvoiceCreatedEvents = `-- name: ListInvoiceCreatedEvents :many
-SELECT id, invoice_id, invoice_number, invoice_date, party_ref_id, total, organization_id, created_at 
+SELECT id, invoice_id, invoice_number, invoice_date, total, organization_id, created_at 
 FROM finance_invoice_created_events
 WHERE organization_id = $1
 ORDER BY invoice_date DESC
@@ -284,7 +281,6 @@ func (q *Queries) ListInvoiceCreatedEvents(ctx context.Context, arg ListInvoiceC
 			&i.InvoiceID,
 			&i.InvoiceNumber,
 			&i.InvoiceDate,
-			&i.PartyRefID,
 			&i.Total,
 			&i.OrganizationID,
 			&i.CreatedAt,

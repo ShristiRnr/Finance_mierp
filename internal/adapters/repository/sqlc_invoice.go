@@ -30,7 +30,6 @@ func (r *InvoiceRepo) CreateInvoice(ctx context.Context, inv domain.Invoice) (do
 		InvoiceDate:          inv.InvoiceDate,
 		DueDate:              ptrT2NullTime(inv.DueDate),
 		DeliveryDate:         ptrT2NullTime(inv.DeliveryDate),
-		PartyRefID:           ptrUUID2NullUUID(inv.PartyRefID),
 		OrganizationID:       inv.OrganizationID,
 		PoNumber:             ptrS2NullStr(inv.PoNumber),
 		EwayNumberLegacy:     ptrS2NullStr(inv.EwayNumberLegacy),
@@ -89,7 +88,6 @@ func (r *InvoiceRepo) UpdateInvoice(ctx context.Context, inv domain.Invoice) (do
 		InvoiceDate:          inv.InvoiceDate,
 		DueDate:              ptrT2NullTime(inv.DueDate),
 		DeliveryDate:         ptrT2NullTime(inv.DeliveryDate),
-		PartyRefID:           ptrUUID2NullUUID(inv.PartyRefID),
 		OrganizationID:       inv.OrganizationID,
 		PoNumber:             ptrS2NullStr(inv.PoNumber),
 		EwayNumberLegacy:     ptrS2NullStr(inv.EwayNumberLegacy),
@@ -202,10 +200,6 @@ func (r *InvoiceRepo) AddInvoiceDiscount(ctx context.Context, disc domain.Invoic
 // ============================================ Mapping functions =======================================
 
 func mapInvoice(i db.Invoice) domain.Invoice {
-	var partyRefID *uuid.UUID
-	if i.PartyRefID.Valid {
-		partyRefID = &i.PartyRefID.UUID
-	}
 	return domain.Invoice{
 		ID:                   i.ID,
 		InvoiceNumber:        i.InvoiceNumber,
@@ -213,7 +207,6 @@ func mapInvoice(i db.Invoice) domain.Invoice {
 		InvoiceDate:          i.InvoiceDate,
 		DueDate:              nullTime2Ptr(i.DueDate),
 		DeliveryDate:         nullTime2Ptr(i.DeliveryDate),
-		PartyRefID:           partyRefID,
 		OrganizationID:       i.OrganizationID,
 		PoNumber:             nullStr2Ptr(i.PoNumber),
 		EwayNumberLegacy:     nullStr2Ptr(i.EwayNumberLegacy),
@@ -288,13 +281,6 @@ func nullTime2Ptr(nt sql.NullTime) *time.Time {
 		return &nt.Time
 	}
 	return nil
-}
-
-func ptrUUID2NullUUID(u *uuid.UUID) uuid.NullUUID {
-	if u == nil {
-		return uuid.NullUUID{UUID: uuid.Nil, Valid: false}
-	}
-	return uuid.NullUUID{UUID: *u, Valid: true}
 }
 
 func i32ToNullInt(i int32) sql.NullInt32 {

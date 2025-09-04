@@ -3,8 +3,8 @@
 -- =====================================================
 -- name: InsertInvoiceCreatedEvent :one
 INSERT INTO finance_invoice_created_events (
-    invoice_id, invoice_number, invoice_date, party_ref_id, total, organization_id
-) VALUES ($1, $2, $3, $4, $5, $6)
+    invoice_id, invoice_number, invoice_date, total, organization_id
+) VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
 
 -- name: ListInvoiceCreatedEvents :many

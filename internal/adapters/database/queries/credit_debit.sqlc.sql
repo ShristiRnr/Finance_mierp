@@ -29,12 +29,3 @@ RETURNING *;
 
 -- name: DeleteCreditDebitNote :exec
 DELETE FROM credit_debit_notes WHERE id = $1;
-
--- External Refs --------------------------------------
-
--- name: AddCreditDebitNoteExternalRef :one
-INSERT INTO credit_debit_note_external_refs (note_id, system, ref_id)
-VALUES ($1, $2, $3) RETURNING *;
-
--- name: ListCreditDebitNoteExternalRefs :many
-SELECT * FROM credit_debit_note_external_refs WHERE note_id = $1;

@@ -11,13 +11,6 @@ VALUES
 ('4000', 'Operating Expenses', 'EXPENSE', 'ACTIVE', true, 'system')
 ON CONFLICT (code) DO NOTHING;
 
--- Party Refs: Seed one default Customer & Vendor
-INSERT INTO party_refs (kind, display_name)
-VALUES
-(1, 'Default Customer'),
-(2, 'Default Vendor')
-ON CONFLICT DO NOTHING;
-
 -- Cost Centers
 INSERT INTO cost_centers (name, description, created_by)
 VALUES

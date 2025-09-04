@@ -79,30 +79,6 @@ func (r *CreditDebitNoteRepo) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.queries.DeleteCreditDebitNote(ctx, id)
 }
 
-func (r *CreditDebitNoteRepo) AddExternalRef(ctx context.Context, ref domain.ExternalRef) (domain.ExternalRef, error) {
-	param := db.AddCreditDebitNoteExternalRefParams{
-		System:  ref.System,
-		RefID:   ref.RefID,
-	}
-	e, err := r.queries.AddCreditDebitNoteExternalRef(ctx, param)
-	if err != nil {
-		return domain.ExternalRef{}, err
-	}
-	return mapSQLCExternalRefToDomain(e), nil
-}
-
-func (r *CreditDebitNoteRepo) ListExternalRefs(ctx context.Context, noteID uuid.UUID) ([]domain.ExternalRef, error) {
-	rows, err := r.queries.ListCreditDebitNoteExternalRefs(ctx, noteID)
-	if err != nil {
-		return nil, err
-	}
-	refs := make([]domain.ExternalRef, len(rows))
-	for i, e := range rows {
-		refs[i] = mapSQLCExternalRefToDomain(e)
-	}
-	return refs, nil
-}
-
 func mapSQLCToDomains(n db.CreditDebitNote) domain.CreditDebitNote {
 	var reason, createdBy, updatedBy string
 	if n.Reason.Valid {
@@ -125,14 +101,5 @@ func mapSQLCToDomains(n db.CreditDebitNote) domain.CreditDebitNote {
 		CreatedBy: createdBy,
 		UpdatedAt: n.UpdatedAt.Time,
 		UpdatedBy: updatedBy,
-	}
-}
-
-func mapSQLCExternalRefToDomain(r db.CreditDebitNoteExternalRef) domain.ExternalRef {
-	return domain.ExternalRef{
-		ID:        r.ID,
-		System:    r.System,
-		RefID:     r.RefID,
-		CreatedAt: r.CreatedAt.Time,
 	}
 }

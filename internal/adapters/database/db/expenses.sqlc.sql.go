@@ -13,31 +13,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const addExpenseExternalRef = `-- name: AddExpenseExternalRef :one
-INSERT INTO expense_external_refs (expense_id, system, ref_id)
-VALUES ($1, $2, $3)
-RETURNING id, expense_id, system, ref_id, created_at
-`
-
-type AddExpenseExternalRefParams struct {
-	ExpenseID uuid.UUID
-	System    string
-	RefID     string
-}
-
-func (q *Queries) AddExpenseExternalRef(ctx context.Context, arg AddExpenseExternalRefParams) (ExpenseExternalRef, error) {
-	row := q.db.QueryRowContext(ctx, addExpenseExternalRef, arg.ExpenseID, arg.System, arg.RefID)
-	var i ExpenseExternalRef
-	err := row.Scan(
-		&i.ID,
-		&i.ExpenseID,
-		&i.System,
-		&i.RefID,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
 const allocateCost = `-- name: AllocateCost :one
 
 INSERT INTO cost_allocations (cost_center_id, amount, reference_type, reference_id, created_by, updated_by)
@@ -298,39 +273,6 @@ func (q *Queries) ListCostCenters(ctx context.Context, arg ListCostCentersParams
 			&i.UpdatedAt,
 			&i.UpdatedBy,
 			&i.Revision,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listExpenseExternalRefs = `-- name: ListExpenseExternalRefs :many
-SELECT id, expense_id, system, ref_id, created_at FROM expense_external_refs WHERE expense_id = $1
-`
-
-func (q *Queries) ListExpenseExternalRefs(ctx context.Context, expenseID uuid.UUID) ([]ExpenseExternalRef, error) {
-	rows, err := q.db.QueryContext(ctx, listExpenseExternalRefs, expenseID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []ExpenseExternalRef
-	for rows.Next() {
-		var i ExpenseExternalRef
-		if err := rows.Scan(
-			&i.ID,
-			&i.ExpenseID,
-			&i.System,
-			&i.RefID,
-			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}

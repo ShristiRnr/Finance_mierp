@@ -47,23 +47,6 @@ message PageResponse {
 
 message Id { string id = 1; }
 
-message ExternalRef {
-  string system = 1; // "CRM","VMS","INVENTORY","GST","HRMS","MAINTENANCE", etc.
-  string id = 2;     // foreign id in that system
-}
-
-message PartyRef {
-  enum Kind {
-    KIND_UNSPECIFIED = 0;
-    KIND_CUSTOMER = 1; // CRM
-    KIND_VENDOR = 2;   // VMS
-  }
-  Kind kind = 1;
-  ExternalRef ref = 2;
-  string display_name = 3; // optional tiny snapshot for UX
-}
-
-
 // =================================== Enumerations =====================================
 
 
@@ -133,15 +116,6 @@ enum AccountStatus {
 
 // ===================================== Tax / GST ========================================
 
-
-//enum TaxType {
-  //TAX_TYPE_UNSPECIFIED = 0;
-  //TAX_TYPE_CGST = 1;
-  //TAX_TYPE_SGST = 2;
-  //TAX_TYPE_IGST = 3;
-  //TAX_TYPE_VAT = 4;
-  //TAX_TYPE_OTHER = 10;
-//}
 
 message TaxLine {
   TaxType type = 1;
@@ -229,23 +203,22 @@ message Invoice {
   google.protobuf.Timestamp invoice_date = 4;
   google.protobuf.Timestamp due_date = 5;
   google.protobuf.Timestamp delivery_date = 6;
-  PartyRef party = 7;
-  string organization_id = 8;
-  string po_number = 9;
-  string eway_number_legacy = 10; // prefer gst_docs
-  string status_note = 11;
-  InvoiceStatus status = 12;
+  string organization_id = 7;
+  string po_number = 8;
+  string eway_number_legacy = 9; // prefer gst_docs
+  string status_note = 10;
+  InvoiceStatus status = 11;
 
   // Payments/logistics references
-  string payment_reference = 13;   // cheque/UTR/ref no.
-  string challan_number = 14;
-  google.protobuf.Timestamp challan_date = 15;
-  string lr_number = 16;
-  string transporter_name = 17;
-  string transporter_id = 18;
-  string vehicle_number = 19;
-  string against_invoice_number = 20;
-  google.protobuf.Timestamp against_invoice_date = 21;
+  string payment_reference = 12;   // cheque/UTR/ref no.
+  string challan_number = 13;
+  google.protobuf.Timestamp challan_date = 14;
+  string lr_number = 15;
+  string transporter_name = 16;
+  string transporter_id = 17;
+  string vehicle_number = 18;
+  string against_invoice_number = 19;
+  google.protobuf.Timestamp against_invoice_date = 20;
 
   repeated InvoiceItem items = 22;
 
@@ -262,11 +235,10 @@ message Invoice {
   GstTaxRegime gst = 29;
   GstDocStatus gst_docs = 30;
 
-  repeated ExternalRef external_refs = 31;
 }
 
 message CreateInvoiceRequest { RequestMetadata meta = 1; Invoice invoice = 2; }
-message GetInvoiceRequest { string id = 1; }
+message GetInvoiceRequest {RequestMetadata meta = 1; string id = 2; }
 message UpdateInvoiceRequest {
   RequestMetadata meta = 1;
   Invoice invoice = 2;
@@ -300,7 +272,6 @@ message CreditDebitNote {
   google.type.Money amount = 4;
   string reason = 5;
   AuditFields audit = 6;
-  repeated ExternalRef external_refs = 7;
 }
 
 message CreateCreditDebitNoteRequest { RequestMetadata meta = 1; CreditDebitNote note = 2; }
@@ -331,7 +302,6 @@ message PaymentDue {
   google.protobuf.Timestamp due_date = 4;
   PaymentStatus status = 5;
   AuditFields audit = 6;
-  repeated ExternalRef external_refs = 7;
 }
 
 message CreatePaymentDueRequest { RequestMetadata meta = 1; PaymentDue due = 2; }
@@ -481,7 +451,6 @@ message JournalEntry {
   string source_type = 6;           // INVOICE/PAYMENT/ADJUSTMENT
   string source_id = 7;
   AuditFields audit = 8;
-  repeated ExternalRef external_refs = 9;
 }
 
 message CreateJournalEntryRequest { RequestMetadata meta = 1; JournalEntry entry = 2; }
@@ -507,7 +476,6 @@ message LedgerEntry {
   string reference_type = 8;      // "INVOICE"/"PAYMENT"/"JOURNAL"
   string reference_id = 9;
   AuditFields audit = 10;
-  repeated ExternalRef external_refs = 11;
 }
 
 message ListLedgerEntriesRequest { PageRequest page = 1; }
@@ -540,7 +508,6 @@ message Budget {
   google.type.Money total_amount = 3;
   string status = 4; // consider enum later (DRAFT/ACTIVE/CLOSED)
   AuditFields audit = 5;
-  repeated ExternalRef external_refs = 6;
 }
 
 message CreateBudgetRequest { RequestMetadata meta = 1; Budget budget = 2; }
@@ -570,7 +537,6 @@ message BudgetAllocation {
   google.type.Money spent_amount = 5;
   google.type.Money remaining_amount = 6;
   AuditFields audit = 7;
-  repeated ExternalRef external_refs = 8;
 }
 
 message AllocateBudgetRequest { RequestMetadata meta = 1; BudgetAllocation allocation = 2; }
@@ -614,7 +580,6 @@ message ExpenseRate {
   google.protobuf.Timestamp expense_date = 4;
   string cost_center_id = 5;
   AuditFields audit = 6;
-  repeated ExternalRef external_refs = 7;
 }
 
 message CreateExpenseRateRequest { RequestMetadata meta = 1; ExpenseRate expense_rate = 2; }
@@ -696,7 +661,6 @@ message AuditEvent {
   string details = 5;
   string resource_type = 6; // e.g., INVOICE
   string resource_id = 7;
-  // Optional: IP/user-agent/OPA attrs could be added later
 }
 
 message RecordAuditEventRequest { RequestMetadata meta = 1; AuditEvent event = 2; }
@@ -736,7 +700,6 @@ message Accrual {
   google.protobuf.Timestamp accrual_date = 4;
   string account_id = 5; // target account
   AuditFields audit = 6;
-  repeated ExternalRef external_refs = 7;
 }
 
 message CreateAccrualRequest { RequestMetadata meta = 1; Accrual accrual = 2; }
@@ -929,7 +892,6 @@ message FinanceInvoiceCreatedEvent {
   string invoice_id = 1;
   string invoice_number = 2;
   google.protobuf.Timestamp invoice_date = 3;
-  PartyRef party = 4;
   google.type.Money total = 5;
   string organization_id = 6;
 }

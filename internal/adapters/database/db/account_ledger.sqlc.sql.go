@@ -13,45 +13,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const addJournalLine = `-- name: AddJournalLine :one
-INSERT INTO journal_lines (entry_id, account_id, side, amount, cost_center_id, description)
-VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, entry_id, account_id, side, amount, cost_center_id, description, created_at
-`
-
-type AddJournalLineParams struct {
-	EntryID      uuid.UUID
-	AccountID    uuid.UUID
-	Side         string
-	Amount       string
-	CostCenterID sql.NullString
-	Description  sql.NullString
-}
-
-// Journal Lines
-func (q *Queries) AddJournalLine(ctx context.Context, arg AddJournalLineParams) (JournalLine, error) {
-	row := q.db.QueryRowContext(ctx, addJournalLine,
-		arg.EntryID,
-		arg.AccountID,
-		arg.Side,
-		arg.Amount,
-		arg.CostCenterID,
-		arg.Description,
-	)
-	var i JournalLine
-	err := row.Scan(
-		&i.ID,
-		&i.EntryID,
-		&i.AccountID,
-		&i.Side,
-		&i.Amount,
-		&i.CostCenterID,
-		&i.Description,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
 const createAccount = `-- name: CreateAccount :one
 
 INSERT INTO accounts (code, name, type, parent_id, status, allow_manual_journal, created_by, updated_by)
@@ -289,42 +250,6 @@ func (q *Queries) ListJournalEntries(ctx context.Context, arg ListJournalEntries
 			&i.UpdatedAt,
 			&i.UpdatedBy,
 			&i.Revision,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listJournalLines = `-- name: ListJournalLines :many
-SELECT id, entry_id, account_id, side, amount, cost_center_id, description, created_at FROM journal_lines WHERE entry_id = $1
-`
-
-func (q *Queries) ListJournalLines(ctx context.Context, entryID uuid.UUID) ([]JournalLine, error) {
-	rows, err := q.db.QueryContext(ctx, listJournalLines, entryID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []JournalLine
-	for rows.Next() {
-		var i JournalLine
-		if err := rows.Scan(
-			&i.ID,
-			&i.EntryID,
-			&i.AccountID,
-			&i.Side,
-			&i.Amount,
-			&i.CostCenterID,
-			&i.Description,
-			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}

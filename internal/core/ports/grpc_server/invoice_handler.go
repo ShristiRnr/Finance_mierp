@@ -22,23 +22,23 @@ func NewInvoiceHandler(svc *services.InvoiceService) *InvoiceHandler {
 }
 
 // RegisterRoutes registers all invoice routes
-func (h *InvoiceHandler) RegisterRoutes(r chi.Router) {
-	// Invoice CRUD
-	r.Post("/invoices", h.CreateInvoice)
-	r.Get("/invoices/{id}", h.GetInvoice)
-	r.Put("/invoices/{id}", h.UpdateInvoice)
-	r.Delete("/invoices/{id}", h.DeleteInvoice)
-	r.Get("/invoices", h.ListInvoices)
-	r.Get("/invoices/search", h.SearchInvoices)
+// func (h *InvoiceHandler) RegisterRoutes(r chi.Router) {
+// 	// Invoice CRUD
+// 	r.Post("/invoices", h.CreateInvoice)
+// 	r.Get("/invoices/{id}", h.GetInvoice)
+// 	r.Put("/invoices/{id}", h.UpdateInvoice)
+// 	r.Delete("/invoices/{id}", h.DeleteInvoice)
+// 	r.Get("/invoices", h.ListInvoices)
+// 	r.Get("/invoices/search", h.SearchInvoices)
 
-	// Invoice items
-	r.Post("/invoices/{id}/items", h.CreateInvoiceItem)
-	r.Get("/invoices/{id}/items", h.ListInvoiceItems)
+// 	// Invoice items
+// 	r.Post("/invoices/{id}/items", h.CreateInvoiceItem)
+// 	r.Get("/invoices/{id}/items", h.ListInvoiceItems)
 
-	// Invoice taxes and discounts
-	r.Post("/invoices/{id}/taxes", h.AddInvoiceTax)
-	r.Post("/invoices/{id}/discounts", h.AddInvoiceDiscount)
-}
+// 	// Invoice taxes and discounts
+// 	r.Post("/invoices/{id}/taxes", h.AddInvoiceTax)
+// 	r.Post("/invoices/{id}/discounts", h.AddInvoiceDiscount)
+// }
 
 // ---------- Invoice Handlers ----------
 

@@ -39,14 +39,6 @@ type Accrual struct {
 	Revision    sql.NullInt32
 }
 
-type AccrualExternalRef struct {
-	ID        uuid.UUID
-	AccrualID uuid.UUID
-	System    string
-	RefID     string
-	CreatedAt sql.NullTime
-}
-
 type AllocationRule struct {
 	ID                  uuid.UUID
 	Name                string
@@ -152,22 +144,6 @@ type BudgetAllocation struct {
 	Revision        sql.NullInt32
 }
 
-type BudgetAllocationExternalRef struct {
-	ID           uuid.UUID
-	AllocationID uuid.UUID
-	System       string
-	RefID        string
-	CreatedAt    sql.NullTime
-}
-
-type BudgetExternalRef struct {
-	ID        uuid.UUID
-	BudgetID  uuid.UUID
-	System    string
-	RefID     string
-	CreatedAt sql.NullTime
-}
-
 type CashFlowForecast struct {
 	ID              uuid.UUID
 	OrganizationID  string
@@ -245,14 +221,6 @@ type CreditDebitNote struct {
 	Revision  sql.NullInt32
 }
 
-type CreditDebitNoteExternalRef struct {
-	ID        uuid.UUID
-	NoteID    uuid.UUID
-	System    string
-	RefID     string
-	CreatedAt sql.NullTime
-}
-
 type ExchangeRate struct {
 	ID            uuid.UUID
 	BaseCurrency  string
@@ -279,27 +247,11 @@ type Expense struct {
 	Revision     sql.NullInt32
 }
 
-type ExpenseExternalRef struct {
-	ID        uuid.UUID
-	ExpenseID uuid.UUID
-	System    string
-	RefID     string
-	CreatedAt sql.NullTime
-}
-
-type ExternalRef struct {
-	ID        uuid.UUID
-	System    string
-	RefID     string
-	CreatedAt sql.NullTime
-}
-
 type FinanceInvoiceCreatedEvent struct {
 	ID             uuid.UUID
 	InvoiceID      uuid.UUID
 	InvoiceNumber  string
 	InvoiceDate    time.Time
-	PartyRefID     uuid.NullUUID
 	Total          string
 	OrganizationID string
 	CreatedAt      sql.NullTime
@@ -374,7 +326,6 @@ type Invoice struct {
 	InvoiceDate          time.Time
 	DueDate              sql.NullTime
 	DeliveryDate         sql.NullTime
-	PartyRefID           uuid.NullUUID
 	OrganizationID       string
 	PoNumber             sql.NullString
 	EwayNumberLegacy     sql.NullString
@@ -476,14 +427,6 @@ type JournalEntry struct {
 	Revision    sql.NullInt32
 }
 
-type JournalEntryExternalRef struct {
-	ID        uuid.UUID
-	EntryID   uuid.UUID
-	System    string
-	RefID     string
-	CreatedAt sql.NullTime
-}
-
 type JournalLine struct {
 	ID           uuid.UUID
 	EntryID      uuid.UUID
@@ -512,22 +455,6 @@ type LedgerEntry struct {
 	Revision        sql.NullInt32
 }
 
-type LedgerEntryExternalRef struct {
-	ID            uuid.UUID
-	LedgerEntryID uuid.UUID
-	System        string
-	RefID         string
-	CreatedAt     sql.NullTime
-}
-
-type PartyRef struct {
-	ID            uuid.UUID
-	Kind          int16
-	ExternalRefID uuid.NullUUID
-	DisplayName   sql.NullString
-	CreatedAt     sql.NullTime
-}
-
 type PaymentDue struct {
 	ID        uuid.UUID
 	InvoiceID uuid.UUID
@@ -539,14 +466,6 @@ type PaymentDue struct {
 	UpdatedAt sql.NullTime
 	UpdatedBy sql.NullString
 	Revision  sql.NullInt32
-}
-
-type PaymentDueExternalRef struct {
-	ID           uuid.UUID
-	PaymentDueID uuid.UUID
-	System       string
-	RefID        string
-	CreatedAt    sql.NullTime
 }
 
 type PayrollPostedEvent struct {

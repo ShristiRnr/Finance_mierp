@@ -30,14 +30,6 @@ RETURNING *;
 -- name: DeleteExpense :exec 
 DELETE FROM expenses WHERE id = $1;
 
--- name: AddExpenseExternalRef :one 
-INSERT INTO expense_external_refs (expense_id, system, ref_id)
-VALUES ($1, $2, $3)
-RETURNING *;
-
--- name: ListExpenseExternalRefs :many 
-SELECT * FROM expense_external_refs WHERE expense_id = $1;
-
 -- =====================================================
 -- Cost Center Queries
 -- =====================================================

@@ -18,16 +18,16 @@ func NewGstHandler(svc *services.GstService) *GstHandler {
 	return &GstHandler{svc: svc}
 }
 
-func (h *GstHandler) RegisterRoutes(r chi.Router) {
-	r.Post("/gst/breakup", h.AddGstBreakup)
-	r.Get("/gst/breakup/{invoice_id}", h.GetGstBreakup)
+// func (h *GstHandler) RegisterRoutes(r chi.Router) {
+// 	r.Post("/gst/breakup", h.AddGstBreakup)
+// 	r.Get("/gst/breakup/{invoice_id}", h.GetGstBreakup)
 
-	r.Post("/gst/regime", h.AddGstRegime)
-	r.Get("/gst/regime/{invoice_id}", h.GetGstRegime)
+// 	r.Post("/gst/regime", h.AddGstRegime)
+// 	r.Get("/gst/regime/{invoice_id}", h.GetGstRegime)
 
-	r.Post("/gst/doc-status", h.AddGstDocStatus)
-	r.Get("/gst/doc-status/{invoice_id}", h.GetGstDocStatus)
-}
+// 	r.Post("/gst/doc-status", h.AddGstDocStatus)
+// 	r.Get("/gst/doc-status/{invoice_id}", h.GetGstDocStatus)
+// }
 
 // ---------- Breakup ----------
 func (h *GstHandler) AddGstBreakup(w http.ResponseWriter, r *http.Request) {

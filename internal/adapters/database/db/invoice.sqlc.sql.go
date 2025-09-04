@@ -74,12 +74,8 @@ func (q *Queries) AddInvoiceTax(ctx context.Context, arg AddInvoiceTaxParams) (I
 
 const createInvoice = `-- name: CreateInvoice :one
 INSERT INTO invoices (
-    invoice_number, type, invoice_date, due_date, delivery_date, 
-    party_ref_id, organization_id, po_number, eway_number_legacy, 
-    status_note, status, payment_reference, challan_number, challan_date,
-    lr_number, transporter_name, transporter_id, vehicle_number,
-    against_invoice_number, against_invoice_date,
-    subtotal, gst_cgst, gst_sgst, gst_igst, gst_rate, grand_total,
+    invoice_number, type, invoice_date, due_date, delivery_date, organization_id, po_number, eway_number_legacy, status_note, status, payment_reference, challan_number, challan_date,
+    lr_number, transporter_name, transporter_id, vehicle_number, against_invoice_number, against_invoice_date, subtotal, gst_cgst, gst_sgst, gst_igst, gst_rate, grand_total,
     created_by, updated_by, revision
 ) VALUES (
     $1, $2, $3, $4, $5,
@@ -88,8 +84,7 @@ INSERT INTO invoices (
     $15, $16, $17, $18,
     $19, $20,
     $21, $22, $23, $24, $25, $26,
-    $27, $28, $29
-) RETURNING id, invoice_number, type, invoice_date, due_date, delivery_date, party_ref_id, organization_id, po_number, eway_number_legacy, status_note, status, payment_reference, challan_number, challan_date, lr_number, transporter_name, transporter_id, vehicle_number, against_invoice_number, against_invoice_date, subtotal, grand_total, gst_rate, gst_cgst, gst_sgst, gst_igst, created_at, created_by, updated_at, updated_by, revision
+    $27, $28) RETURNING id, invoice_number, type, invoice_date, due_date, delivery_date, organization_id, po_number, eway_number_legacy, status_note, status, payment_reference, challan_number, challan_date, lr_number, transporter_name, transporter_id, vehicle_number, against_invoice_number, against_invoice_date, subtotal, grand_total, gst_rate, gst_cgst, gst_sgst, gst_igst, created_at, created_by, updated_at, updated_by, revision
 `
 
 type CreateInvoiceParams struct {
@@ -98,7 +93,6 @@ type CreateInvoiceParams struct {
 	InvoiceDate          time.Time
 	DueDate              sql.NullTime
 	DeliveryDate         sql.NullTime
-	PartyRefID           uuid.NullUUID
 	OrganizationID       string
 	PoNumber             sql.NullString
 	EwayNumberLegacy     sql.NullString
@@ -131,7 +125,6 @@ func (q *Queries) CreateInvoice(ctx context.Context, arg CreateInvoiceParams) (I
 		arg.InvoiceDate,
 		arg.DueDate,
 		arg.DeliveryDate,
-		arg.PartyRefID,
 		arg.OrganizationID,
 		arg.PoNumber,
 		arg.EwayNumberLegacy,
@@ -164,7 +157,6 @@ func (q *Queries) CreateInvoice(ctx context.Context, arg CreateInvoiceParams) (I
 		&i.InvoiceDate,
 		&i.DueDate,
 		&i.DeliveryDate,
-		&i.PartyRefID,
 		&i.OrganizationID,
 		&i.PoNumber,
 		&i.EwayNumberLegacy,
@@ -257,7 +249,7 @@ func (q *Queries) DeleteInvoice(ctx context.Context, id uuid.UUID) error {
 }
 
 const getInvoice = `-- name: GetInvoice :one
-SELECT id, invoice_number, type, invoice_date, due_date, delivery_date, party_ref_id, organization_id, po_number, eway_number_legacy, status_note, status, payment_reference, challan_number, challan_date, lr_number, transporter_name, transporter_id, vehicle_number, against_invoice_number, against_invoice_date, subtotal, grand_total, gst_rate, gst_cgst, gst_sgst, gst_igst, created_at, created_by, updated_at, updated_by, revision FROM invoices WHERE id = $1
+SELECT id, invoice_number, type, invoice_date, due_date, delivery_date, organization_id, po_number, eway_number_legacy, status_note, status, payment_reference, challan_number, challan_date, lr_number, transporter_name, transporter_id, vehicle_number, against_invoice_number, against_invoice_date, subtotal, grand_total, gst_rate, gst_cgst, gst_sgst, gst_igst, created_at, created_by, updated_at, updated_by, revision FROM invoices WHERE id = $1
 `
 
 func (q *Queries) GetInvoice(ctx context.Context, id uuid.UUID) (Invoice, error) {
@@ -270,7 +262,6 @@ func (q *Queries) GetInvoice(ctx context.Context, id uuid.UUID) (Invoice, error)
 		&i.InvoiceDate,
 		&i.DueDate,
 		&i.DeliveryDate,
-		&i.PartyRefID,
 		&i.OrganizationID,
 		&i.PoNumber,
 		&i.EwayNumberLegacy,
@@ -344,7 +335,7 @@ func (q *Queries) ListInvoiceItems(ctx context.Context, invoiceID uuid.UUID) ([]
 }
 
 const listInvoices = `-- name: ListInvoices :many
-SELECT id, invoice_number, type, invoice_date, due_date, delivery_date, party_ref_id, organization_id, po_number, eway_number_legacy, status_note, status, payment_reference, challan_number, challan_date, lr_number, transporter_name, transporter_id, vehicle_number, against_invoice_number, against_invoice_date, subtotal, grand_total, gst_rate, gst_cgst, gst_sgst, gst_igst, created_at, created_by, updated_at, updated_by, revision FROM invoices ORDER BY invoice_date DESC LIMIT $1 OFFSET $2
+SELECT id, invoice_number, type, invoice_date, due_date, delivery_date, organization_id, po_number, eway_number_legacy, status_note, status, payment_reference, challan_number, challan_date, lr_number, transporter_name, transporter_id, vehicle_number, against_invoice_number, against_invoice_date, subtotal, grand_total, gst_rate, gst_cgst, gst_sgst, gst_igst, created_at, created_by, updated_at, updated_by, revision FROM invoices ORDER BY invoice_date DESC LIMIT $1 OFFSET $2
 `
 
 type ListInvoicesParams struct {
@@ -368,7 +359,6 @@ func (q *Queries) ListInvoices(ctx context.Context, arg ListInvoicesParams) ([]I
 			&i.InvoiceDate,
 			&i.DueDate,
 			&i.DeliveryDate,
-			&i.PartyRefID,
 			&i.OrganizationID,
 			&i.PoNumber,
 			&i.EwayNumberLegacy,
@@ -409,7 +399,7 @@ func (q *Queries) ListInvoices(ctx context.Context, arg ListInvoicesParams) ([]I
 }
 
 const searchInvoices = `-- name: SearchInvoices :many
-SELECT id, invoice_number, type, invoice_date, due_date, delivery_date, party_ref_id, organization_id, po_number, eway_number_legacy, status_note, status, payment_reference, challan_number, challan_date, lr_number, transporter_name, transporter_id, vehicle_number, against_invoice_number, against_invoice_date, subtotal, grand_total, gst_rate, gst_cgst, gst_sgst, gst_igst, created_at, created_by, updated_at, updated_by, revision
+SELECT id, invoice_number, type, invoice_date, due_date, delivery_date, organization_id, po_number, eway_number_legacy, status_note, status, payment_reference, challan_number, challan_date, lr_number, transporter_name, transporter_id, vehicle_number, against_invoice_number, against_invoice_date, subtotal, grand_total, gst_rate, gst_cgst, gst_sgst, gst_igst, created_at, created_by, updated_at, updated_by, revision
 FROM invoices
 WHERE 
     (invoice_number ILIKE '%' || $1 || '%'
@@ -445,7 +435,6 @@ func (q *Queries) SearchInvoices(ctx context.Context, arg SearchInvoicesParams) 
 			&i.InvoiceDate,
 			&i.DueDate,
 			&i.DeliveryDate,
-			&i.PartyRefID,
 			&i.OrganizationID,
 			&i.PoNumber,
 			&i.EwayNumberLegacy,
@@ -488,37 +477,36 @@ func (q *Queries) SearchInvoices(ctx context.Context, arg SearchInvoicesParams) 
 const updateInvoice = `-- name: UpdateInvoice :one
 UPDATE invoices
 SET 
-    invoice_number = $2,
-    type = $3,
-    invoice_date = $4,
-    due_date = $5,
-    delivery_date = $6,
-    party_ref_id = $7,
-    organization_id = $8,
-    po_number = $9,
-    eway_number_legacy = $10,
-    status_note = $11,
-    status = $12,
-    payment_reference = $13,
-    challan_number = $14,
-    challan_date = $15,
-    lr_number = $16,
-    transporter_name = $17,
-    transporter_id = $18,
-    vehicle_number = $19,
-    against_invoice_number = $20,
-    against_invoice_date = $21,
-    subtotal = $22,
-    grand_total = $23,
-    gst_rate = $24,
-    gst_cgst = $25,
-    gst_sgst = $26,
-    gst_igst = $27,
-    updated_by = $28,
-    revision = $29,
-    updated_at = now()
+    invoice_number       = $2,
+    type                 = $3,
+    invoice_date         = $4,
+    due_date             = $5,
+    delivery_date        = $6,
+    organization_id      = $7,
+    po_number            = $8,
+    eway_number_legacy   = $9,
+    status_note          = $10,
+    status               = $11,
+    payment_reference    = $12,
+    challan_number       = $13,
+    challan_date         = $14,
+    lr_number            = $15,
+    transporter_name     = $16,
+    transporter_id       = $17,
+    vehicle_number       = $18,
+    against_invoice_number = $19,
+    against_invoice_date = $20,
+    subtotal             = $21,
+    grand_total          = $22,
+    gst_rate             = $23,
+    gst_cgst             = $24,
+    gst_sgst             = $25,
+    gst_igst             = $26,
+    updated_by           = $27,
+    revision             = $28,
+    updated_at           = now()
 WHERE id = $1
-RETURNING id, invoice_number, type, invoice_date, due_date, delivery_date, party_ref_id, organization_id, po_number, eway_number_legacy, status_note, status, payment_reference, challan_number, challan_date, lr_number, transporter_name, transporter_id, vehicle_number, against_invoice_number, against_invoice_date, subtotal, grand_total, gst_rate, gst_cgst, gst_sgst, gst_igst, created_at, created_by, updated_at, updated_by, revision
+RETURNING id, invoice_number, type, invoice_date, due_date, delivery_date, organization_id, po_number, eway_number_legacy, status_note, status, payment_reference, challan_number, challan_date, lr_number, transporter_name, transporter_id, vehicle_number, against_invoice_number, against_invoice_date, subtotal, grand_total, gst_rate, gst_cgst, gst_sgst, gst_igst, created_at, created_by, updated_at, updated_by, revision
 `
 
 type UpdateInvoiceParams struct {
@@ -528,7 +516,6 @@ type UpdateInvoiceParams struct {
 	InvoiceDate          time.Time
 	DueDate              sql.NullTime
 	DeliveryDate         sql.NullTime
-	PartyRefID           uuid.NullUUID
 	OrganizationID       string
 	PoNumber             sql.NullString
 	EwayNumberLegacy     sql.NullString
@@ -561,7 +548,6 @@ func (q *Queries) UpdateInvoice(ctx context.Context, arg UpdateInvoiceParams) (I
 		arg.InvoiceDate,
 		arg.DueDate,
 		arg.DeliveryDate,
-		arg.PartyRefID,
 		arg.OrganizationID,
 		arg.PoNumber,
 		arg.EwayNumberLegacy,
@@ -593,7 +579,6 @@ func (q *Queries) UpdateInvoice(ctx context.Context, arg UpdateInvoiceParams) (I
 		&i.InvoiceDate,
 		&i.DueDate,
 		&i.DeliveryDate,
-		&i.PartyRefID,
 		&i.OrganizationID,
 		&i.PoNumber,
 		&i.EwayNumberLegacy,

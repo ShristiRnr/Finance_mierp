@@ -74,31 +74,6 @@ func (r *ExpenseRepo) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.q.DeleteExpense(ctx, id)
 }
 
-func (r *ExpenseRepo) AddExternalRef(ctx context.Context, ref domain.ExpenseExternalRef) (domain.ExpenseExternalRef, error) {
-	arg := db.AddExpenseExternalRefParams{
-		ExpenseID: ref.ExpenseID,
-		System:    ref.System,
-		RefID:     ref.RefID,
-	}
-	row, err := r.q.AddExpenseExternalRef(ctx, arg)
-	if err != nil {
-		return domain.ExpenseExternalRef{}, err
-	}
-	return mapDbExpenseRef(row), nil
-}
-
-func (r *ExpenseRepo) ListExternalRefs(ctx context.Context, expenseID uuid.UUID) ([]domain.ExpenseExternalRef, error) {
-	rows, err := r.q.ListExpenseExternalRefs(ctx, expenseID)
-	if err != nil {
-		return nil, err
-	}
-	refs := make([]domain.ExpenseExternalRef, 0, len(rows))
-	for _, row := range rows {
-		refs = append(refs, mapDbExpenseRef(row))
-	}
-	return refs, nil
-}
-
 type CostCenterRepo struct {
 	q *db.Queries
 }
@@ -205,16 +180,6 @@ func mapDbExpense(row db.Expense) domain.Expense {
 		UpdatedAt:    row.UpdatedAt.Time,
 		CreatedBy:    nullStringToPtr(row.CreatedBy),
 		UpdatedBy:    nullStringToPtr(row.UpdatedBy),
-	}
-}
-
-func mapDbExpenseRef(row db.ExpenseExternalRef) domain.ExpenseExternalRef {
-	return domain.ExpenseExternalRef{
-		ID:        row.ID,
-		ExpenseID: row.ExpenseID,
-		System:    row.System,
-		RefID:     row.RefID,
-		CreatedAt: row.CreatedAt.Time,
 	}
 }
 

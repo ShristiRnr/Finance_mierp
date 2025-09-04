@@ -24,7 +24,6 @@ func (r *FinanceEventRepo) InsertInvoiceCreated(ctx context.Context, e domain.Fi
 		InvoiceID:      e.InvoiceID,
 		InvoiceNumber:  e.InvoiceNumber,
 		InvoiceDate:    e.InvoiceDate,
-		PartyRefID:     e.PartyRefID,
 		Total:          e.Total,
 		OrganizationID: e.OrganizationID,
 	}
@@ -191,7 +190,6 @@ func mapInvoiceCreatedRowToDomain(row db.FinanceInvoiceCreatedEvent) domain.Fina
 		InvoiceID:      row.InvoiceID,
 		InvoiceNumber:  row.InvoiceNumber,
 		InvoiceDate:    row.InvoiceDate,
-		PartyRefID:     row.PartyRefID,
 		Total:          row.Total,
 		OrganizationID: row.OrganizationID,
 		CreatedAt:      row.CreatedAt.Time,

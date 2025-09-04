@@ -36,15 +36,6 @@ func (s *ExpenseService) DeleteExpense(ctx context.Context, id uuid.UUID) error 
 	return s.repo.Delete(ctx, id)
 }
 
-func (s *ExpenseService) AddExternalRef(ctx context.Context, ref domain.ExpenseExternalRef) (domain.ExpenseExternalRef, error) {
-	return s.repo.AddExternalRef(ctx, ref)
-}
-
-func (s *ExpenseService) ListExternalRefs(ctx context.Context, expenseID uuid.UUID) ([]domain.ExpenseExternalRef, error) {
-	return s.repo.ListExternalRefs(ctx, expenseID)
-}
-
-
 type CostCenterService struct {
 	repo ports.CostCenterRepository
 }

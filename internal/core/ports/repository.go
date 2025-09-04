@@ -38,9 +38,6 @@ type AccrualRepository interface {
 	Update(ctx context.Context, a domain.Accrual) (domain.Accrual, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	List(ctx context.Context, limit, offset int32) ([]domain.Accrual, error)
-
-	AddExternalRef(ctx context.Context, ref domain.AccrualExternalRef) (domain.AccrualExternalRef, error)
-	ListExternalRefs(ctx context.Context, accrualID uuid.UUID) ([]domain.AccrualExternalRef, error)
 }
 
 // Allocation
@@ -140,9 +137,6 @@ type ExpenseRepository interface {
 	List(ctx context.Context, limit, offset int32) ([]domain.Expense, error)
 	Update(ctx context.Context, expense domain.Expense) (domain.Expense, error)
 	Delete(ctx context.Context, id uuid.UUID) error
-
-	AddExternalRef(ctx context.Context, ref domain.ExpenseExternalRef) (domain.ExpenseExternalRef, error)
-	ListExternalRefs(ctx context.Context, expenseID uuid.UUID) ([]domain.ExpenseExternalRef, error)
 }
 
 type CostCenterRepository interface {
@@ -164,9 +158,6 @@ type ExpenseService interface {
 	ListExpenses(ctx context.Context, limit, offset int32) ([]domain.Expense, error)
 	UpdateExpense(ctx context.Context, exp domain.Expense) (domain.Expense, error)
 	DeleteExpense(ctx context.Context, id uuid.UUID) error
-
-	AddExternalRef(ctx context.Context, ref domain.ExpenseExternalRef) (domain.ExpenseExternalRef, error)
-	ListExternalRefs(ctx context.Context, expenseID uuid.UUID) ([]domain.ExpenseExternalRef, error)
 }
 
 type CostCenterService interface {

@@ -102,7 +102,6 @@ func toPbLedgerEntry(le domain.LedgerEntry) *pb.LedgerEntry {
 		ReferenceType: "",
 		ReferenceId:   "",
 		Audit:         nil,
-		ExternalRefs:  nil,
 	}
 }
 
