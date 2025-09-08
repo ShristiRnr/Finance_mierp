@@ -10,10 +10,14 @@ import (
 
 type accrualRepository struct {
 	q *db.Queries
+	publisher ports.EventPublisher
 }
 
-func NewAccrualRepository(q *db.Queries) ports.AccrualRepository {
-	return &accrualRepository{q: q}
+func NewAccrualRepository(q *db.Queries, pub ports.EventPublisher) ports.AccrualRepository {
+	return &accrualRepository{
+		q:         q,
+		publisher: pub,
+	}
 }
 
 func (r *accrualRepository) Create(ctx context.Context, a db.Accrual) (db.Accrual, error) {
@@ -29,7 +33,12 @@ func (r *accrualRepository) Create(ctx context.Context, a db.Accrual) (db.Accrua
 	if err != nil {
 		return db.Accrual{}, err
 	}
-	return toDomainAccrual(res), nil
+	domainAccrual := toDomainAccrual(res)
+
+	// Publish Kafka event
+	_ = r.publisher.PublishAccrualCreated(ctx, domainAccrual)
+
+	return domainAccrual, nil
 }
 
 func (r *accrualRepository) Get(ctx context.Context, id uuid.UUID) (db.Accrual, error) {
@@ -53,11 +62,23 @@ func (r *accrualRepository) Update(ctx context.Context, a db.Accrual) (db.Accrua
 	if err != nil {
 		return db.Accrual{}, err
 	}
-	return toDomainAccrual(res), nil
+	domainAccrual := toDomainAccrual(res)
+
+	// Publish Kafka event
+	_ = r.publisher.PublishAccrualUpdated(ctx, domainAccrual)
+
+	return domainAccrual, nil
 }
 
 func (r *accrualRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	return r.q.DeleteAccrual(ctx, id)
+	if err := r.q.DeleteAccrual(ctx, id); err != nil {
+		return err
+	}
+
+	// Publish Kafka event
+	_ = r.publisher.PublishAccrualDeleted(ctx, id.String())
+
+	return nil
 }
 
 func (r *accrualRepository) List(ctx context.Context, limit, offset int32) ([]db.Accrual, error) {
@@ -84,4 +105,79 @@ func toDomainAccrual(a db.Accrual) db.Accrual {
 		UpdatedBy:   a.UpdatedBy,
 		Revision:    a.Revision,
 	}
+}
+
+type AllocationRuleRepository struct {
+	q         *db.Queries
+	publisher ports.EventPublisher
+}
+
+func NewAllocationRuleRepository(q *db.Queries, pub ports.EventPublisher) *AllocationRuleRepository {
+	return &AllocationRuleRepository{
+		q:         q,
+		publisher: pub,
+	}
+}
+
+func (r *AllocationRuleRepository) Create(ctx context.Context, rule db.AllocationRule) (db.AllocationRule, error) {
+	arg := db.CreateAllocationRuleParams{
+		Name:                rule.Name,
+		Basis:               rule.Basis,
+		SourceAccountID:     rule.SourceAccountID,
+		TargetCostCenterIds: rule.TargetCostCenterIds,
+		Formula:             rule.Formula,
+		CreatedBy:           rule.CreatedBy,
+		UpdatedBy:           rule.UpdatedBy,
+	}
+	res, err := r.q.CreateAllocationRule(ctx, arg)
+	if err != nil {
+		return db.AllocationRule{}, err
+	}
+
+	// Publish Kafka event
+	_ = r.publisher.PublishAllocationRuleCreated(ctx, res)
+
+	return res, nil
+}
+
+func (r *AllocationRuleRepository) Get(ctx context.Context, id uuid.UUID) (db.AllocationRule, error) {
+	return r.q.GetAllocationRule(ctx, id)
+}
+
+func (r *AllocationRuleRepository) List(ctx context.Context, limit, offset int32) ([]db.AllocationRule, error) {
+	return r.q.ListAllocationRules(ctx, db.ListAllocationRulesParams{
+		Limit:  limit,
+		Offset: offset,
+	})
+}
+
+func (r *AllocationRuleRepository) Update(ctx context.Context, rule db.AllocationRule) (db.AllocationRule, error) {
+	arg := db.UpdateAllocationRuleParams{
+		ID:                  rule.ID,
+		Name:                rule.Name,
+		Basis:               rule.Basis,
+		SourceAccountID:     rule.SourceAccountID,
+		TargetCostCenterIds: rule.TargetCostCenterIds,
+		Formula:             rule.Formula,
+		UpdatedBy:           rule.UpdatedBy,
+	}
+	res, err := r.q.UpdateAllocationRule(ctx, arg)
+	if err != nil {
+		return db.AllocationRule{}, err
+	}
+
+	// Publish Kafka event
+	_ = r.publisher.PublishAllocationRuleUpdated(ctx, res)
+
+	return res, nil
+}
+
+func (r *AllocationRuleRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	if err := r.q.DeleteAllocationRule(ctx, id); err != nil {
+		return err
+	}
+
+	// Publish Kafka event
+	_ = r.publisher.PublishAllocationRuleDeleted(ctx, id.String())
+	return nil
 }

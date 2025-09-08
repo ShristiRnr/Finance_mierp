@@ -56,7 +56,6 @@ type AllocationService interface {
 	ListRules(ctx context.Context, limit, offset int32) ([]db.AllocationRule, error)
 	UpdateRule(ctx context.Context, r db.AllocationRule) (db.AllocationRule, error)
 	DeleteRule(ctx context.Context, id uuid.UUID) error
-	ApplyRule(ctx context.Context, ruleID uuid.UUID) error
 }
 
 // AuditRepository is the port for database interactions related to audit events.

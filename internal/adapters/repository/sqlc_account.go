@@ -219,6 +219,7 @@ func (r *JournalSQLCRepository) Delete(ctx context.Context, id uuid.UUID) error 
 	if err := r.queries.DeleteJournalEntry(ctx, id); err != nil {
 		return err
 	}
+	// Publish Kafka event with ID map
 	_ = r.publisher.PublishJournalDeleted(ctx, id.String())
 	return nil
 }

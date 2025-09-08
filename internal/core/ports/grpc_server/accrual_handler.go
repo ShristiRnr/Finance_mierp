@@ -3,6 +3,7 @@ package grpc_server
 import (
 	"context"
 	"strconv"
+	"database/sql"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
@@ -11,16 +12,18 @@ import (
 
 	pb "github.com/ShristiRnr/Finance_mierp/api/pb"
 	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
+	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/services"
 )
 
 type AccrualHandler struct {
 	pb.UnimplementedAccrualServiceServer
 	svc *services.AccrualService
+	publisher ports.EventPublisher
 }
 
-func NewAccrualHandler(svc *services.AccrualService) *AccrualHandler {
-	return &AccrualHandler{svc: svc}
+func NewAccrualHandler(svc *services.AccrualService,  pub ports.EventPublisher) *AccrualHandler {
+	return &AccrualHandler{svc: svc, publisher: pub}
 }
 
 func (h *AccrualHandler) CreateAccrual(ctx context.Context, req *pb.CreateAccrualRequest) (*pb.Accrual, error) {
@@ -40,6 +43,9 @@ func (h *AccrualHandler) CreateAccrual(ctx context.Context, req *pb.CreateAccrua
 		return nil, err
 
 	}
+	// Kafka publish
+	_ = h.publisher.PublishAccrualCreated(ctx, acc)
+
 	return toPbAccrual(acc), nil
 }
 
@@ -71,6 +77,9 @@ func (h *AccrualHandler) UpdateAccrual(ctx context.Context, req *pb.UpdateAccrua
 	if err != nil {
 		return nil, err
 	}
+	// Kafka publish
+	_ = h.publisher.PublishAccrualUpdated(ctx, acc)
+
 	return toPbAccrual(acc), nil
 }
 
@@ -82,6 +91,9 @@ func (h *AccrualHandler) DeleteAccrual(ctx context.Context, req *pb.DeleteAccrua
 	if err := h.svc.Delete(ctx, id); err != nil {
 		return nil, err
 	}
+	// Kafka publish
+	_ = h.publisher.PublishAccrualDeleted(ctx, id.String())
+
 	return &emptypb.Empty{}, nil
 }
 
@@ -129,4 +141,93 @@ func (h *AccrualHandler) ListAccruals(ctx context.Context, req *pb.ListAccrualsR
 			TotalSize:     totalCount,
 		},
 	}, nil
+}
+
+type AllocationHandler struct {
+	pb.UnimplementedAllocationAutomationServiceServer
+	svc       ports.AllocationService
+	publisher ports.EventPublisher // Kafka publisher
+}
+
+func NewAllocationHandler(svc ports.AllocationService, pub ports.EventPublisher) *AllocationHandler {
+	return &AllocationHandler{svc: svc, publisher: pub}
+}
+
+func (h *AllocationHandler) CreateRule(ctx context.Context, req *pb.CreateAllocationRuleRequest) (*pb.AllocationRule, error) {
+	rule, err := h.svc.CreateRule(ctx, db.AllocationRule{
+		Name:                req.Rule.Name,
+		Basis:               req.Rule.Basis,
+		SourceAccountID:     req.Rule.SourceAccountId,
+		TargetCostCenterIds: req.Rule.TargetCostCenterIds,
+		Formula:             toNullString(req.Rule.Formula),
+		CreatedBy:           toNullString(getUserFromContext(ctx)),
+		UpdatedBy:           toNullString(getUserFromContext(ctx)),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Kafka publish
+	_ = h.publisher.PublishAllocationRuleCreated(ctx, rule)
+
+	return toPbAllocationRule(rule), nil
+}
+
+func (h *AllocationHandler) UpdateRule(ctx context.Context, req *pb.UpdateAllocationRuleRequest) (*pb.AllocationRule, error) {
+	id, err := uuid.Parse(req.Rule.Id)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid id")
+	}
+
+	rule, err := h.svc.UpdateRule(ctx, db.AllocationRule{
+		ID:                  id,
+		Name:                req.Rule.Name,
+		Basis:               req.Rule.Basis,
+		SourceAccountID:     req.Rule.SourceAccountId,
+		TargetCostCenterIds: req.Rule.TargetCostCenterIds,
+		Formula:             toNullString(req.Rule.Formula),
+		UpdatedBy:           toNullString(getUserFromContext(ctx)),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Kafka publish
+	_ = h.publisher.PublishAllocationRuleUpdated(ctx, rule)
+
+	return toPbAllocationRule(rule), nil
+}
+
+func (h *AllocationHandler) DeleteRule(ctx context.Context, req *pb.DeleteAllocationRuleRequest) (*emptypb.Empty, error) {
+	id, err := uuid.Parse(req.Id)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid id")
+	}
+
+	if err := h.svc.DeleteRule(ctx, id); err != nil {
+		return nil, err
+	}
+
+	// Kafka publish
+	_ = h.publisher.PublishAllocationRuleDeleted(ctx, id.String())
+
+	return &emptypb.Empty{}, nil
+}
+
+func toPbAllocationRule(r db.AllocationRule) *pb.AllocationRule {
+	return &pb.AllocationRule{
+		Id:                  r.ID.String(),
+		Name:                r.Name,
+		Basis:               r.Basis,
+		SourceAccountId:     r.SourceAccountID,
+		TargetCostCenterIds: r.TargetCostCenterIds,
+		Formula:             fromNullString(r.Formula),
+	}
+}
+
+func fromNullString(ns sql.NullString) string {
+	if ns.Valid {
+		return ns.String
+	}
+	return ""
 }
