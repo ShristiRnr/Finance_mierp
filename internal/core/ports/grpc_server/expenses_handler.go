@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
+	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 )
 
@@ -18,7 +18,7 @@ func NewExpenseHandler(s ports.ExpenseService) *ExpenseHandler {
 }
 
 func (h *ExpenseHandler) CreateExpense(c *gin.Context) {
-	var req domain.Expense
+	var req db.Expense
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -60,7 +60,7 @@ func (h *ExpenseHandler) UpdateExpense(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid UUID"})
 		return
 	}
-	var req domain.Expense
+	var req db.Expense
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -96,7 +96,7 @@ func NewCostCenterHandler(s ports.CostCenterService) *CostCenterHandler {
 }
 
 func (h *CostCenterHandler) CreateCostCenter(c *gin.Context) {
-	var req domain.CostCenter
+	var req db.CostCenter
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -138,7 +138,7 @@ func (h *CostCenterHandler) UpdateCostCenter(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid UUID"})
 		return
 	}
-	var req domain.CostCenter
+	var req db.CostCenter
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -174,7 +174,7 @@ func NewCostAllocationHandler(s ports.CostAllocationService) *CostAllocationHand
 }
 
 func (h *CostAllocationHandler) AllocateCost(c *gin.Context) {
-	var req domain.CostAllocation
+	var req db.CostAllocation
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

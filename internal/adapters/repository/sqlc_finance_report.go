@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 )
@@ -22,153 +21,129 @@ func NewFinancialReportsRepo(q *db.Queries) ports.FinancialReportsRepository {
 
 // =============================================== Mapping functions ===============================================
 
-func mapProfitLossToDomain(r db.ProfitLossReport) domain.ProfitLossReport {
-	revenue, err := strconv.ParseFloat(r.TotalRevenue, 64)
+func mapProfitLossToDomain(r db.ProfitLossReport) db.ProfitLossReport {
+	// Parse TotalRevenue
+	totalRevenue, err := strconv.ParseFloat(r.TotalRevenue, 64)
 	if err != nil {
-		revenue = 0
+		totalRevenue = 0
 	}
 
-	expense, err := strconv.ParseFloat(r.TotalExpenses, 64)
+	// Parse TotalExpenses
+	totalExpenses, err := strconv.ParseFloat(r.TotalExpenses, 64)
 	if err != nil {
-		expense = 0
+		totalExpenses = 0
 	}
 
-	profit, err := strconv.ParseFloat(r.NetProfit, 64)
-	if err != nil {
-		profit = 0
-	}
+	// Calculate NetProfit
+	netProfit := totalRevenue - totalExpenses
 
-	return domain.ProfitLossReport{
+	return db.ProfitLossReport{
 		ID:             r.ID,
 		OrganizationID: r.OrganizationID,
 		PeriodStart:    r.PeriodStart,
 		PeriodEnd:      r.PeriodEnd,
-		TotalRevenue:   revenue,
-		TotalExpenses:  expense,
-		NetProfit:      profit,
-		CreatedAt:      r.CreatedAt.Time,
-		CreatedBy:      r.CreatedBy.String,
-		UpdatedAt:      r.UpdatedAt.Time,
-		UpdatedBy:      r.UpdatedBy.String,
-		Revision:       r.Revision.Int32,
+		TotalRevenue:   fmt.Sprintf("%.2f", totalRevenue), // store as string
+		TotalExpenses:  fmt.Sprintf("%.2f", totalExpenses),
+		NetProfit:      fmt.Sprintf("%.2f", netProfit),
+		CreatedAt:      r.CreatedAt,
+		CreatedBy:      r.CreatedBy,
+		UpdatedAt:      r.UpdatedAt,
+		UpdatedBy:      r.UpdatedBy,
+		Revision:       r.Revision,
 	}
 }
 
+func mapBalanceSheetToDomain(r db.BalanceSheetReport) db.BalanceSheetReport {
 
-func mapBalanceSheetToDomain(r db.BalanceSheetReport) domain.BalanceSheetReport {
-	asset, err := strconv.ParseFloat(r.TotalAssets, 64)
-	if err != nil {
-		asset = 0 // or log the error
-	}
-
-	liability, err := strconv.ParseFloat(r.TotalLiabilities, 64)
-	if err != nil {
-		liability = 0 // or log the error
-	}
-
-	networth, err := strconv.ParseFloat(r.NetWorth, 64)
-	if err != nil {
-		networth = 0 // or log the error
-	}
-
-	return domain.BalanceSheetReport{
+	return db.BalanceSheetReport{
 		ID:              r.ID,
 		OrganizationID:  r.OrganizationID,
 		PeriodStart:     r.PeriodStart,
 		PeriodEnd:       r.PeriodEnd,
-		TotalAssets:     asset,
-		TotalLiabilities: liability,
-		NetWorth:        networth,
-		CreatedAt:       r.CreatedAt.Time,
-		CreatedBy:       r.CreatedBy.String,
-		UpdatedAt:       r.UpdatedAt.Time,
-		UpdatedBy:       r.UpdatedBy.String,
-		Revision:        r.Revision.Int32,
+		TotalAssets:     r.TotalAssets,
+		TotalLiabilities: r.TotalLiabilities,
+		NetWorth:        r.NetWorth,
+		CreatedAt:       r.CreatedAt,
+		CreatedBy:       r.CreatedBy,
+		UpdatedAt:       r.UpdatedAt,
+		UpdatedBy:       r.UpdatedBy,
+		Revision:        r.Revision,
 	}
 }
 
 
-func mapTrialBalanceToDomain(r db.TrialBalanceReport) domain.TrialBalanceReport {
-	return domain.TrialBalanceReport{
+func mapTrialBalanceToDomain(r db.TrialBalanceReport) db.TrialBalanceReport {
+	return db.TrialBalanceReport{
 		ID:             r.ID,
 		OrganizationID: r.OrganizationID,
 		PeriodStart:    r.PeriodStart,
 		PeriodEnd:      r.PeriodEnd,
-		CreatedAt:      r.CreatedAt.Time,
-		CreatedBy:      r.CreatedBy.String,
-		UpdatedAt:      r.UpdatedAt.Time,
-		UpdatedBy:      r.UpdatedBy.String,
-		Revision:       r.Revision.Int32,
+		CreatedAt:      r.CreatedAt,
+		CreatedBy:      r.CreatedBy,
+		UpdatedAt:      r.UpdatedAt,
+		UpdatedBy:      r.UpdatedBy,
+		Revision:       r.Revision,
 	}
 }
 
-func mapTrialBalanceEntryToDomain(r db.TrialBalanceEntry) domain.TrialBalanceEntry {
-	debit, err := strconv.ParseFloat(r.Debit, 64)
-	if err != nil {
-		debit = 0 // or handle/log the error
-	}
+func mapTrialBalanceEntryToDomain(r db.TrialBalanceEntry) db.TrialBalanceEntry {
 
-	credit, err := strconv.ParseFloat(r.Credit, 64)
-	if err != nil {
-		credit = 0 // or handle/log the error
-	}
-
-	return domain.TrialBalanceEntry{
+	return db.TrialBalanceEntry{
 		ID:            r.ID,
 		ReportID:      r.ReportID,
 		LedgerAccount: r.LedgerAccount,
-		Debit:         debit,
-		Credit:        credit,
-		CreatedAt:     r.CreatedAt.Time,
-		CreatedBy:     r.CreatedBy.String,
+		Debit:         r.Debit,
+		Credit:        r.Credit,
+		CreatedAt:     r.CreatedAt,
+		CreatedBy:     r.CreatedBy,
 	}
 }
 
 
-func mapComplianceToDomain(r db.ComplianceReport) domain.ComplianceReport {
-	return domain.ComplianceReport{
+func mapComplianceToDomain(r db.ComplianceReport) db.ComplianceReport {
+	return db.ComplianceReport{
 		ID:             r.ID,
 		OrganizationID: r.OrganizationID,
 		PeriodStart:    r.PeriodStart,
 		PeriodEnd:      r.PeriodEnd,
 		Jurisdiction:   r.Jurisdiction,
 		Details:        r.Details,
-		CreatedAt:      r.CreatedAt.Time,
-		CreatedBy:      r.CreatedBy.String,
-		UpdatedAt:      r.UpdatedAt.Time,
-		UpdatedBy:      r.UpdatedBy.String,
-		Revision:       r.Revision.Int32,
+		CreatedAt:      r.CreatedAt,
+		CreatedBy:      r.CreatedBy,
+		UpdatedAt:      r.UpdatedAt,
+		UpdatedBy:      r.UpdatedBy,
+		Revision:       r.Revision,
 	}
 }
 
 
 // =============================================== Profit & Loss ================================================
 
-func (r *FinancialReportsRepo) GenerateProfitLossReport(ctx context.Context, report domain.ProfitLossReport) (domain.ProfitLossReport, error) {
+func (r *FinancialReportsRepo) GenerateProfitLossReport(ctx context.Context, report db.ProfitLossReport) (db.ProfitLossReport, error) {
 	dbReport, err := r.q.GenerateProfitLossReport(ctx, db.GenerateProfitLossReportParams{
 		OrganizationID: report.OrganizationID,
 		PeriodStart:    report.PeriodStart,
 		PeriodEnd:      report.PeriodEnd,
-		TotalRevenue:   fmt.Sprintf("%f", report.TotalRevenue),  // convert float64 → string
-		TotalExpenses:  fmt.Sprintf("%f", report.TotalExpenses),
-		NetProfit:      fmt.Sprintf("%f", report.NetProfit),
+		TotalRevenue:   report.TotalRevenue,  // convert float64 → string
+		TotalExpenses:  report.TotalExpenses,
+		NetProfit:      report.NetProfit,
 	})
 	if err != nil {
-		return domain.ProfitLossReport{}, err
+		return db.ProfitLossReport{}, err
 	}
 	return mapProfitLossToDomain(dbReport), nil
 }
 
 
-func (r *FinancialReportsRepo) GetProfitLossReport(ctx context.Context, id uuid.UUID) (domain.ProfitLossReport, error) {
+func (r *FinancialReportsRepo) GetProfitLossReport(ctx context.Context, id uuid.UUID) (db.ProfitLossReport, error) {
 	dbReport, err := r.q.GetProfitLossReport(ctx, id)
 	if err != nil {
-		return domain.ProfitLossReport{}, err
+		return db.ProfitLossReport{}, err
 	}
 	return mapProfitLossToDomain(dbReport), nil
 }
 
-func (r *FinancialReportsRepo) ListProfitLossReports(ctx context.Context, orgID string, limit, offset int32) ([]domain.ProfitLossReport, error) {
+func (r *FinancialReportsRepo) ListProfitLossReports(ctx context.Context, orgID string, limit, offset int32) ([]db.ProfitLossReport, error) {
 	dbReports, err := r.q.ListProfitLossReports(ctx, db.ListProfitLossReportsParams{
 		OrganizationID: orgID,
 		Limit:          limit,
@@ -177,7 +152,7 @@ func (r *FinancialReportsRepo) ListProfitLossReports(ctx context.Context, orgID 
 	if err != nil {
 		return nil, err
 	}
-	var reports []domain.ProfitLossReport
+	var reports []db.ProfitLossReport
 	for _, r := range dbReports {
 		reports = append(reports, mapProfitLossToDomain(r))
 	}
@@ -187,31 +162,22 @@ func (r *FinancialReportsRepo) ListProfitLossReports(ctx context.Context, orgID 
 
 // ================================================== Balance Sheet ================================================
 
-func (r *FinancialReportsRepo) GenerateBalanceSheetReport(ctx context.Context, report domain.BalanceSheetReport) (domain.BalanceSheetReport, error) {
+func (r *FinancialReportsRepo) GenerateBalanceSheetReport(ctx context.Context, report db.BalanceSheetReport) (db.BalanceSheetReport, error) {
 	dbReport, err := r.q.GenerateBalanceSheetReport(ctx, db.GenerateBalanceSheetReportParams{
 		OrganizationID:   report.OrganizationID,
 		PeriodStart:      report.PeriodStart,
 		PeriodEnd:        report.PeriodEnd,
-		TotalAssets:      fmt.Sprintf("%f", report.TotalAssets),       // float64 → string
-		TotalLiabilities: fmt.Sprintf("%f", report.TotalLiabilities),  // float64 → string
-		NetWorth:         fmt.Sprintf("%f", report.NetWorth),          // float64 → string
+		TotalAssets:      report.TotalAssets,       // float64 → string
+		TotalLiabilities: report.TotalLiabilities,  // float64 → string
+		NetWorth:         report.NetWorth,          // float64 → string
 	})
 	if err != nil {
-		return domain.BalanceSheetReport{}, err
+		return db.BalanceSheetReport{}, err
 	}
 	return mapBalanceSheetToDomain(dbReport), nil
 }
 
-
-func (r *FinancialReportsRepo) GetBalanceSheetReport(ctx context.Context, id uuid.UUID) (domain.BalanceSheetReport, error) {
-	dbReport, err := r.q.GetBalanceSheetReport(ctx, id)
-	if err != nil {
-		return domain.BalanceSheetReport{}, err
-	}
-	return mapBalanceSheetToDomain(dbReport), nil
-}
-
-func (r *FinancialReportsRepo) ListBalanceSheetReports(ctx context.Context, orgID string, limit, offset int32) ([]domain.BalanceSheetReport, error) {
+func (r *FinancialReportsRepo) ListBalanceSheetReports(ctx context.Context, orgID string, limit, offset int32) ([]db.BalanceSheetReport, error) {
 	dbReports, err := r.q.ListBalanceSheetReports(ctx, db.ListBalanceSheetReportsParams{
 		OrganizationID: orgID,
 		Limit:          limit,
@@ -220,51 +186,59 @@ func (r *FinancialReportsRepo) ListBalanceSheetReports(ctx context.Context, orgI
 	if err != nil {
 		return nil, err
 	}
-	var reports []domain.BalanceSheetReport
-	for _, r := range dbReports {
-		reports = append(reports, mapBalanceSheetToDomain(r))
-	}
+	var reports []db.BalanceSheetReport
+	reports = append(reports, dbReports...)
+
 	return reports, nil
+}
+
+func (r *FinancialReportsRepo) GetBalanceSheetReport(ctx context.Context, id uuid.UUID) (db.BalanceSheetReport, error) {
+    // delegate to SQLC / DB query
+    report, err := r.q.GetBalanceSheetReport(ctx, id)
+    if err != nil {
+        return db.BalanceSheetReport{}, err
+    }
+    return report, nil
 }
 
 
 // ================================================== Trial Balance ===================================================
 
-func (r *FinancialReportsRepo) CreateTrialBalanceReport(ctx context.Context, report domain.TrialBalanceReport) (domain.TrialBalanceReport, error) {
+func (r *FinancialReportsRepo) CreateTrialBalanceReport(ctx context.Context, report db.TrialBalanceReport) (db.TrialBalanceReport, error) {
 	dbReport, err := r.q.CreateTrialBalanceReport(ctx, db.CreateTrialBalanceReportParams{
 		OrganizationID: report.OrganizationID,
 		PeriodStart:    report.PeriodStart,
 		PeriodEnd:      report.PeriodEnd,
 	})
 	if err != nil {
-		return domain.TrialBalanceReport{}, err
+		return db.TrialBalanceReport{}, err
 	}
 	return mapTrialBalanceToDomain(dbReport), nil
 }
 
-func (r *FinancialReportsRepo) AddTrialBalanceEntry(ctx context.Context, entry domain.TrialBalanceEntry) (domain.TrialBalanceEntry, error) {
+func (r *FinancialReportsRepo) AddTrialBalanceEntry(ctx context.Context, entry db.TrialBalanceEntry) (db.TrialBalanceEntry, error) {
 	dbEntry, err := r.q.AddTrialBalanceEntry(ctx, db.AddTrialBalanceEntryParams{
 		ReportID:      entry.ReportID,
 		LedgerAccount: entry.LedgerAccount,
-		Debit:         fmt.Sprintf("%f", entry.Debit),  // float64 → string
-		Credit:        fmt.Sprintf("%f", entry.Credit), // float64 → string
+		Debit:         entry.Debit,  // float64 → string
+		Credit:        entry.Credit, // float64 → string
 	})
 	if err != nil {
-		return domain.TrialBalanceEntry{}, err
+		return db.TrialBalanceEntry{}, err
 	}
 	return mapTrialBalanceEntryToDomain(dbEntry), nil
 }
 
 
-func (r *FinancialReportsRepo) GetTrialBalanceReport(ctx context.Context, id uuid.UUID) (domain.TrialBalanceReport, error) {
+func (r *FinancialReportsRepo) GetTrialBalanceReport(ctx context.Context, id uuid.UUID) (db.TrialBalanceReport, error) {
 	dbReport, err := r.q.GetTrialBalanceReport(ctx, id)
 	if err != nil {
-		return domain.TrialBalanceReport{}, err
+		return db.TrialBalanceReport{}, err
 	}
 	return mapTrialBalanceToDomain(dbReport), nil
 }
 
-func (r *FinancialReportsRepo) ListTrialBalanceReports(ctx context.Context, orgID string, limit, offset int32) ([]domain.TrialBalanceReport, error) {
+func (r *FinancialReportsRepo) ListTrialBalanceReports(ctx context.Context, orgID string, limit, offset int32) ([]db.TrialBalanceReport, error) {
 	dbReports, err := r.q.ListTrialBalanceReports(ctx, db.ListTrialBalanceReportsParams{
 		OrganizationID: orgID,
 		Limit:          limit,
@@ -273,29 +247,25 @@ func (r *FinancialReportsRepo) ListTrialBalanceReports(ctx context.Context, orgI
 	if err != nil {
 		return nil, err
 	}
-	var reports []domain.TrialBalanceReport
-	for _, r := range dbReports {
-		reports = append(reports, mapTrialBalanceToDomain(r))
-	}
+	var reports []db.TrialBalanceReport
+	reports = append(reports, dbReports...)
 	return reports, nil
 }
 
-func (r *FinancialReportsRepo) ListTrialBalanceEntries(ctx context.Context, reportID uuid.UUID) ([]domain.TrialBalanceEntry, error) {
+func (r *FinancialReportsRepo) ListTrialBalanceEntries(ctx context.Context, reportID uuid.UUID) ([]db.TrialBalanceEntry, error) {
 	dbEntries, err := r.q.ListTrialBalanceEntries(ctx, reportID)
 	if err != nil {
 		return nil, err
 	}
-	var entries []domain.TrialBalanceEntry
-	for _, e := range dbEntries {
-		entries = append(entries, mapTrialBalanceEntryToDomain(e))
-	}
+	var entries []db.TrialBalanceEntry
+	entries = append(entries, dbEntries...)
 	return entries, nil
 }
 
 
 // ====================================================== Compliance ======================================================
 
-func (r *FinancialReportsRepo) GenerateComplianceReport(ctx context.Context, report domain.ComplianceReport) (domain.ComplianceReport, error) {
+func (r *FinancialReportsRepo) GenerateComplianceReport(ctx context.Context, report db.ComplianceReport) (db.ComplianceReport, error) {
 	dbReport, err := r.q.GenerateComplianceReport(ctx, db.GenerateComplianceReportParams{
 		OrganizationID: report.OrganizationID,
 		PeriodStart:    report.PeriodStart,
@@ -304,20 +274,20 @@ func (r *FinancialReportsRepo) GenerateComplianceReport(ctx context.Context, rep
 		Details:        report.Details,
 	})
 	if err != nil {
-		return domain.ComplianceReport{}, err
+		return db.ComplianceReport{}, err
 	}
 	return mapComplianceToDomain(dbReport), nil
 }
 
-func (r *FinancialReportsRepo) GetComplianceReport(ctx context.Context, id uuid.UUID) (domain.ComplianceReport, error) {
+func (r *FinancialReportsRepo) GetComplianceReport(ctx context.Context, id uuid.UUID) (db.ComplianceReport, error) {
 	dbReport, err := r.q.GetComplianceReport(ctx, id)
 	if err != nil {
-		return domain.ComplianceReport{}, err
+		return db.ComplianceReport{}, err
 	}
 	return mapComplianceToDomain(dbReport), nil
 }
 
-func (r *FinancialReportsRepo) ListComplianceReports(ctx context.Context, orgID, jurisdiction string, limit, offset int32) ([]domain.ComplianceReport, error) {
+func (r *FinancialReportsRepo) ListComplianceReports(ctx context.Context, orgID, jurisdiction string, limit, offset int32) ([]db.ComplianceReport, error) {
 	dbReports, err := r.q.ListComplianceReports(ctx, db.ListComplianceReportsParams{
 		OrganizationID: orgID,
 		Jurisdiction:   jurisdiction,
@@ -327,9 +297,7 @@ func (r *FinancialReportsRepo) ListComplianceReports(ctx context.Context, orgID,
 	if err != nil {
 		return nil, err
 	}
-	var reports []domain.ComplianceReport
-	for _, r := range dbReports {
-		reports = append(reports, mapComplianceToDomain(r))
-	}
+	var reports []db.ComplianceReport
+	reports = append(reports, dbReports...)
 	return reports, nil
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db" // sqlc generated package
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 )
 
@@ -22,7 +21,7 @@ func NewConsolidationRepo(q *db.Queries) ports.ConsolidationRepository {
 }
 
 // Create inserts a new consolidation record into the database.
-func (r *ConsolidationRepo) Create(ctx context.Context, c domain.Consolidation) (domain.Consolidation, error) {
+func (r *ConsolidationRepo) Create(ctx context.Context, c db.Consolidation) (db.Consolidation, error) {
 	params := db.CreateConsolidationParams{
 		EntityIds:   c.EntityIds,
 		PeriodStart: c.PeriodStart,
@@ -31,22 +30,22 @@ func (r *ConsolidationRepo) Create(ctx context.Context, c domain.Consolidation) 
 	}
 	sqlcCon, err := r.queries.CreateConsolidation(ctx, params)
 	if err != nil {
-		return domain.Consolidation{}, err
+		return db.Consolidation{}, err
 	}
 	return mapSQLCToDomain(sqlcCon), nil
 }
 
 // Get retrieves a consolidation by its ID.
-func (r *ConsolidationRepo) Get(ctx context.Context, id uuid.UUID) (domain.Consolidation, error) {
+func (r *ConsolidationRepo) Get(ctx context.Context, id uuid.UUID) (db.Consolidation, error) {
 	sqlcCon, err := r.queries.GetConsolidation(ctx, id)
 	if err != nil {
-		return domain.Consolidation{}, err
+		return db.Consolidation{}, err
 	}
 	return mapSQLCToDomain(sqlcCon), nil
 }
 
 // List retrieves consolidations for given entity IDs and period range with pagination.
-func (r *ConsolidationRepo) List(ctx context.Context, entityIds []string, start, end time.Time, limit, offset int32) ([]domain.Consolidation, error) {
+func (r *ConsolidationRepo) List(ctx context.Context, entityIds []string, start, end time.Time, limit, offset int32) ([]db.Consolidation, error) {
 	params := db.ListConsolidationsParams{
 		PeriodStart: start,
 		PeriodEnd:   end,
@@ -58,7 +57,7 @@ func (r *ConsolidationRepo) List(ctx context.Context, entityIds []string, start,
 		return nil, err
 	}
 
-	domainItems := make([]domain.Consolidation, len(sqlcItems))
+	domainItems := make([]db.Consolidation, len(sqlcItems))
 	for i, c := range sqlcItems {
 		domainItems[i] = mapSQLCToDomain(c)
 	}
@@ -70,41 +69,17 @@ func (r *ConsolidationRepo) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.queries.DeleteConsolidation(ctx, id)
 }
 
-func mapSQLCToDomain(c db.Consolidation) domain.Consolidation {
-	var createdAt time.Time
-	if c.CreatedAt.Valid {
-		createdAt = c.CreatedAt.Time
-	}
+func mapSQLCToDomain(c db.Consolidation) db.Consolidation {
 
-	var updatedAt time.Time
-	if c.UpdatedAt.Valid {
-		updatedAt = c.UpdatedAt.Time
-	}
-
-	var createdBy string
-	if c.CreatedBy.Valid {
-		createdBy = c.CreatedBy.String
-	}
-
-	var updatedBy string
-	if c.UpdatedBy.Valid {
-		updatedBy = c.UpdatedBy.String
-	}
-
-	var revision int32
-	if c.Revision.Valid {
-		revision = c.Revision.Int32
-	}
-
-	return domain.Consolidation{
+	return db.Consolidation{
 		ID:          c.ID,
 		PeriodStart: c.PeriodStart,
 		PeriodEnd:   c.PeriodEnd,
 		Report:      c.Report,
-		CreatedAt:   createdAt,
-		CreatedBy:   createdBy,
-		UpdatedAt:   updatedAt,
-		UpdatedBy:   updatedBy,
-		Revision:    revision,
+		CreatedAt:   c.CreatedAt,
+		CreatedBy:   c.CreatedBy,
+		UpdatedAt:   c.UpdatedAt,
+		UpdatedBy:   c.UpdatedBy,
+		Revision:    c.Revision,
 	}
 }

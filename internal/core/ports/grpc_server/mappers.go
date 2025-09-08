@@ -5,41 +5,16 @@ import (
 	"strconv"
 	"fmt"
 	"github.com/shopspring/decimal"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
+	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 	pb "github.com/ShristiRnr/Finance_mierp/api/pb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	money "google.golang.org/genproto/googleapis/type/money"
 	"google.golang.org/grpc/metadata"
-	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 )
 
 //
 // ---------- Account Mapping ----------
 //
-func toDomainAccountType(t pb.AccountType) string {
-	return pb.AccountType_name[int32(t)] // direct proto string ("ACCOUNT_ASSET")
-}
-
-func toPbAccountType(s string) pb.AccountType {
-	if val, ok := pb.AccountType_value[s]; ok {
-		return pb.AccountType(val)
-	}
-	return pb.AccountType_ACCOUNT_TYPE_UNSPECIFIED
-}
-
-func toDomainStatus(s pb.AccountStatus) string {
-	switch s {
-	case pb.AccountStatus_ACCOUNT_ACTIVE:
-		return "ACTIVE"
-	case pb.AccountStatus_ACCOUNT_INACTIVE:
-		return "INACTIVE"
-	case pb.AccountStatus_ACCOUNT_ARCHIVED:
-		return "ARCHIVED"
-	default:
-		return "UNSPECIFIED"
-	}
-}
 
 func toPbStatus(s string) pb.AccountStatus {
 	switch s {
@@ -88,13 +63,13 @@ func parseMoney(amount string) *money.Money {
 //
 // ---------- Ledger Entry Mapping ----------
 //
-func toPbLedgerEntry(le domain.LedgerEntry) *pb.LedgerEntry {
+func toPbLedgerEntry(le db.LedgerEntry) *pb.LedgerEntry {
 	return &pb.LedgerEntry{
 		Id:              le.EntryID.String(),
 		AccountId:       le.AccountID.String(),
 		Side:            toPbLedgerSide(le.Side),
 		Amount:          parseMoney(le.Amount),
-		TransactionDate: timestamppb.New(le.PostedAt),
+		TransactionDate: le.TransactionDate,
 
 		// Not available in domain yet
 		Description:   "",
@@ -115,10 +90,10 @@ func strOrEmpty(s *string) string {
 	return ""
 }
 
-func toPbAccrual(a domain.Accrual) *pb.Accrual {
+func toPbAccrual(a db.Accrual) *pb.Accrual {
 	return &pb.Accrual{
 		Id:          a.ID.String(),
-		Description: derefString(a.Description),
+		Description: a.Description.String,
 		Amount:      stringToMoney(a.Amount, "USD"), // convert float64 → *money.Money
 		AccrualDate: timestamppb.New(a.AccrualDate),
 		AccountId:   a.AccountID,
@@ -163,7 +138,7 @@ func getUserFromContext(ctx context.Context) string {
 	return ""
 }
 
-func mapDomainNoteTypeToProto(t domain.NoteType) pb.NoteType {
+func mapDomainNoteTypeToProto(t db.Type) pb.NoteType {
 	switch t {
 	case "CREDIT":
 		return pb.NoteType_NOTE_TYPE_CREDIT
@@ -195,17 +170,17 @@ func mapDomainAmountToProto(amount string) *money.Money {
 
 
 // mapDomainToProtoCreditDebitNote converts a domain CreditDebitNote to a protobuf message.
-func mapDomainToProtoCreditDebitNote(note domain.CreditDebitNote) *pb.CreditDebitNote {
+func mapDomainToProtoCreditDebitNote(note db.CreditDebitNote) *pb.CreditDebitNote {
 	return &pb.CreditDebitNote{
 		Id:        note.ID.String(),
 		InvoiceId: note.InvoiceID.String(),
 		Type:      mapDomainNoteTypeToProto(note.Type),
 		Amount:    mapDomainAmountToProto(note.Amount),
-		Reason:    note.Reason,
+		Reason:    note.Reason.String,
 	}
 }
 
-func mapDomainToProtoExchangeRate(rate domain.ExchangeRate) *pb.ExchangeRate {
+func mapDomainToProtoExchangeRate(rate db.ExchangeRate) *pb.ExchangeRate {
     f64 := 0.0
     if rate.Rate != "" {
         if parsed, err := strconv.ParseFloat(rate.Rate, 64); err == nil {
@@ -220,35 +195,6 @@ func mapDomainToProtoExchangeRate(rate domain.ExchangeRate) *pb.ExchangeRate {
         Rate:          f64,
         AsOf:          timestamppb.New(rate.AsOf),
     }
-}
-type ledgerRepository struct {
-	q *db.Queries
-}
-
-func NewLedgerRepository(q *db.Queries) ports.LedgerRepository {
-	return &ledgerRepository{q: q}
-}
-
-func (r *ledgerRepository) List(ctx context.Context, limit, offset int32) ([]domain.LedgerEntry, error) {
-	rows, err := r.q.ListLedgerEntries(ctx, db.ListLedgerEntriesParams{
-		Limit:  limit,
-		Offset: offset,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]domain.LedgerEntry, 0, len(rows))
-	for _, l := range rows {
-		result = append(result, domain.LedgerEntry{
-			EntryID:   l.ID,
-			AccountID: l.AccountID,
-			Side:      l.Side,
-			Amount:    l.Amount,
-			PostedAt:  l.TransactionDate,
-		})
-	}
-	return result, nil
 }
 
 func stringPtr(s string) *string {

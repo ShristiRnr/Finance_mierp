@@ -4,232 +4,299 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db" // sqlc generated package
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
+	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 	"github.com/google/uuid"
 )
 
-type accountRepository struct {
-	q *db.Queries
+type AccountSQLCRepository struct {
+	queries *db.Queries
+	publisher ports.EventPublisher
 }
 
-func NewAccountRepository(q *db.Queries) ports.AccountRepository {
-	return &accountRepository{q: q}
-}
-
-func (r *accountRepository) Create(ctx context.Context, a domain.Account) (domain.Account, error) {
-	arg := db.CreateAccountParams{
-		Code:     a.Code,
-		Name:     a.Name,
-		Type:     a.Type,
-		ParentID: uuid.NullUUID{UUID: *a.ParentID, Valid: a.ParentID != nil},
-		Status:   a.Status,
-		AllowManualJournal: sql.NullBool{Bool: a.AllowManualJournal, Valid: true},
-		CreatedBy: sql.NullString{String: a.CreatedBy, Valid: a.CreatedBy != ""},
-		UpdatedBy: sql.NullString{String: a.UpdatedBy, Valid: a.UpdatedBy != ""},
+var _ ports.AccountRepository = (*AccountSQLCRepository)(nil)
+func NewAccountRepository(q *db.Queries, pub ports.EventPublisher) ports.AccountRepository {
+	return &AccountSQLCRepository{
+		queries:  q,
+		publisher: pub,
 	}
-	res, err := r.q.CreateAccount(ctx, arg)
+}
+
+func (r *AccountSQLCRepository) Create(ctx context.Context, a db.Account) (db.Account, error) {
+	params := db.CreateAccountParams{
+		Code:               a.Code,
+		Name:               a.Name,
+		Type:               a.Type,
+		Status:             a.Status,
+		AllowManualJournal: a.AllowManualJournal,
+	}
+	acc, err := r.queries.CreateAccount(ctx, params)
 	if err != nil {
-		return domain.Account{}, err
+		return db.Account{}, err
 	}
-	return toDomainAccount(res), nil
+	domainAcc := toDomainAccount(acc)
+	// Publish Kafka event
+	_ = r.publisher.PublishAccountCreated(ctx, domainAcc)
+
+	return domainAcc, nil
 }
 
-func (r *accountRepository) Get(ctx context.Context, id uuid.UUID) (domain.Account, error) {
-	res, err := r.q.GetAccount(ctx, id)
+func (r *AccountSQLCRepository) Get(ctx context.Context, id uuid.UUID) (db.Account, error) {
+	acc, err := r.queries.GetAccount(ctx, id)
 	if err != nil {
-		return domain.Account{}, err
+		return db.Account{}, err
 	}
-	return toDomainAccount(res), nil
+	return toDomainAccount(acc), nil
 }
 
-func (r *accountRepository) List(ctx context.Context, limit, offset int32) ([]domain.Account, error) {
-	accounts, err := r.q.ListAccounts(ctx, db.ListAccountsParams{
-		Limit:  limit,
-		Offset: offset,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]domain.Account, 0, len(accounts))
-	for _, acc := range accounts {
-		result = append(result, domain.Account{
-			ID:     acc.ID,
-			Code:   acc.Code,
-			Name:   acc.Name,
-			Type:   acc.Type,
-			Status: acc.Status,
-		})
-	}
-	return result, nil
-}
-
-func (r *accountRepository) Update(ctx context.Context, a domain.Account) (domain.Account, error) {
+func (r *AccountSQLCRepository) Update(ctx context.Context, a db.Account) (db.Account, error) {
 	arg := db.UpdateAccountParams{
-		ID:       a.ID,
-		Code:     a.Code,
-		Name:     a.Name,
-		Type:     a.Type,
-		ParentID: uuid.NullUUID{UUID: *a.ParentID, Valid: a.ParentID != nil},
-		Status:   a.Status,
-		AllowManualJournal: sql.NullBool{Bool: a.AllowManualJournal, Valid: true},
-		UpdatedBy: sql.NullString{String: a.UpdatedBy, Valid: a.UpdatedBy != ""},
-	}
-	res, err := r.q.UpdateAccount(ctx, arg)
-	if err != nil {
-		return domain.Account{}, err
-	}
-	return toDomainAccount(res), nil
-}
-
-func (r *accountRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	return r.q.DeleteAccount(ctx, id)
-}
-
-// helper mapper
-func toDomainAccount(a db.Account) domain.Account {
-	var parentID *uuid.UUID
-	if a.ParentID.Valid {
-		parentID = &a.ParentID.UUID
-	}
-	return domain.Account{
 		ID:                 a.ID,
 		Code:               a.Code,
 		Name:               a.Name,
 		Type:               a.Type,
-		ParentID:           parentID,
 		Status:             a.Status,
-		AllowManualJournal: a.AllowManualJournal.Bool,
-		CreatedAt:          a.CreatedAt.Time,
-		CreatedBy:          a.CreatedBy.String,
-		UpdatedAt:          a.UpdatedAt.Time,
-		UpdatedBy:          a.UpdatedBy.String,
-		Revision:           a.Revision,
+		AllowManualJournal: a.AllowManualJournal,
 	}
-}
-
-type journalRepository struct {
-	q *db.Queries
-}
-
-func NewJournalRepository(q *db.Queries) ports.JournalRepository {
-	return &journalRepository{q: q}
-}
-
-func (r *journalRepository) Create(ctx context.Context, j domain.JournalEntry) (domain.JournalEntry, error) {
-	arg := db.CreateJournalEntryParams{
-		JournalDate: j.JournalDate,
-		Reference:   sql.NullString{String: derefString(j.Reference), Valid: j.Reference != nil},
-		Memo:        sql.NullString{String: derefString(j.Memo), Valid: j.Memo != nil},
-		SourceType:  sql.NullString{String: derefString(j.SourceType), Valid: j.SourceType != nil},
-		SourceID:    sql.NullString{String: derefString(j.SourceID), Valid: j.SourceID != nil},
-		CreatedBy:   sql.NullString{String: j.CreatedBy, Valid: j.CreatedBy != ""},
-		UpdatedBy:   sql.NullString{String: j.UpdatedBy, Valid: j.UpdatedBy != ""},
-	}
-	res, err := r.q.CreateJournalEntry(ctx, arg)
+	dbAcc, err := r.queries.UpdateAccount(ctx, arg)
 	if err != nil {
-		return domain.JournalEntry{}, err
+		return db.Account{}, err
 	}
-	return toDomainJournal(res), nil
+
+	domainAcc := toDomainAccount(dbAcc)
+	// Publish Kafka event
+	_ = r.publisher.PublishAccountUpdated(ctx, domainAcc)
+
+	return domainAcc, nil
 }
 
-func (r *journalRepository) Get(ctx context.Context, id uuid.UUID) (domain.JournalEntry, error) {
-	res, err := r.q.GetJournalEntry(ctx, id)
-	if err != nil {
-		return domain.JournalEntry{}, err
+func (r *AccountSQLCRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	if err := r.queries.DeleteAccount(ctx, id); err != nil {
+		return err
 	}
-	return toDomainJournal(res), nil
+	// Publish Kafka event
+	_ = r.publisher.PublishAccountDeleted(ctx, id.String())
+	return nil
 }
 
-func (r *journalRepository) List(ctx context.Context, limit, offset int32) ([]domain.JournalEntry, error) {
-	rows, err := r.q.ListJournalEntries(ctx, db.ListJournalEntriesParams{
-		Limit:  limit,
-		Offset: offset,
-	})
+func (r *AccountSQLCRepository) List(ctx context.Context, limit, offset int32) ([]db.Account, error) {
+	dbAccs, err := r.queries.ListAccounts(ctx, db.ListAccountsParams{Limit: limit, Offset: offset})
 	if err != nil {
 		return nil, err
 	}
-
-	result := make([]domain.JournalEntry, 0, len(rows))
-	for _, rj := range rows {
-		result = append(result, toDomainJournal(rj))
-	}
-	return result, nil
+	accounts := make([]db.Account, len(dbAccs))
+	copy(accounts, dbAccs)
+	return accounts, nil
 }
 
-func (r *journalRepository) Update(ctx context.Context, j domain.JournalEntry) (domain.JournalEntry, error) {
-	arg := db.UpdateJournalEntryParams{
-		ID:         j.ID,
-		JournalDate: j.JournalDate,
-		Reference:   sql.NullString{String: derefString(j.Reference), Valid: j.Reference != nil},
-		Memo:        sql.NullString{String: derefString(j.Memo), Valid: j.Memo != nil},
-		SourceType:  sql.NullString{String: derefString(j.SourceType), Valid: j.SourceType != nil},
-		SourceID:    sql.NullString{String: derefString(j.SourceID), Valid: j.SourceID != nil},
-		UpdatedBy:   sql.NullString{String: j.UpdatedBy, Valid: j.UpdatedBy != ""},
+// ---------------- Journals ----------------
+
+type JournalSQLCRepository struct {
+	db        *sql.DB
+	queries   *db.Queries
+	publisher ports.EventPublisher
+}
+
+func NewJournalRepository(db *sql.DB, q *db.Queries, pub ports.EventPublisher) ports.JournalRepository {
+	return &JournalSQLCRepository{
+		db:        db,
+		queries:   q,
+		publisher: pub,
 	}
-	res, err := r.q.UpdateJournalEntry(ctx, arg)
+}
+
+// Create header + lines in a transaction
+func (r *JournalSQLCRepository) Create(ctx context.Context, j db.JournalEntry) (db.JournalEntry, error) {
+	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
-		return domain.JournalEntry{}, err
+		return db.JournalEntry{}, err
 	}
-	return toDomainJournal(res), nil
-}
+	defer tx.Rollback()
 
-func (r *journalRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	return r.q.DeleteJournalEntry(ctx, id)
-}
-
-// mapper
-func toDomainJournal(j db.JournalEntry) domain.JournalEntry {
-	return domain.JournalEntry{
-		ID:         j.ID,
+	txQueries := db.New(tx)
+	entry, err := txQueries.CreateJournalEntry(ctx, db.CreateJournalEntryParams{
 		JournalDate: j.JournalDate,
-		Reference:   nullStringToPtr(j.Reference),
-		Memo:        nullStringToPtr(j.Memo),
-		SourceType:  nullStringToPtr(j.SourceType),
-		SourceID:    nullStringToPtr(j.SourceID),
-		CreatedAt:   j.CreatedAt.Time,
-		CreatedBy:   j.CreatedBy.String,
-		UpdatedAt:   j.UpdatedAt.Time,
-		UpdatedBy:   j.UpdatedBy.String,
+		Reference:   j.Reference,
+		Memo:        j.Memo,
+		SourceType:  j.SourceType,
+		SourceID:    j.SourceID,
+		CreatedBy:   j.CreatedBy,
+		UpdatedBy:   j.UpdatedBy,
+	})
+	if err != nil {
+		return db.JournalEntry{}, err
+	}
+	if err := txQueries.DeleteJournalLinesByEntry(ctx, j.ID); err != nil {
+		return db.JournalEntry{}, err
+	}
+
+	lines := make([]db.JournalLine, len(j.Lines))
+	for i, line := range j.Lines {
+		dbLine, err := txQueries.CreateJournalLine(ctx, db.CreateJournalLineParams{
+			JournalID:    j.ID,
+			AccountID:    line.AccountID,
+			Side:         line.Side,
+			Amount:       line.Amount,
+			CostCenterID: line.CostCenterID,
+			Description:  line.Description,
+		})
+		if err != nil {
+			return db.JournalEntry{}, err
+		}
+		lines[i] = dbLine
+	}
+
+	if err := tx.Commit(); err != nil {
+		return db.JournalEntry{}, err
+	}
+
+	domainEntry := toDomainJournalWithLines(entry, lines)
+	// Publish Kafka event
+	_ = r.publisher.PublishJournalCreated(ctx, domainEntry)
+
+	return domainEntry, nil
+}
+
+func (r *JournalSQLCRepository) Get(ctx context.Context, id uuid.UUID) (db.JournalEntry, error) {
+	entry, err := r.queries.GetJournalEntry(ctx, id)
+	if err != nil {
+		return db.JournalEntry{}, err
+	}
+	lines, err := r.queries.ListJournalLinesByEntry(ctx, id)
+	if err != nil {
+		return db.JournalEntry{}, err
+	}
+	domainLines := make([]db.JournalLine, len(lines))
+	copy(domainLines, lines)
+	return toDomainJournalWithLines(entry, domainLines), nil
+}
+
+// Update header, handle lines separately (delete + recreate)
+func (r *JournalSQLCRepository) Update(ctx context.Context, j db.JournalEntry) (db.JournalEntry, error) {
+	_, err := r.queries.UpdateJournalEntry(ctx, db.UpdateJournalEntryParams{
+		ID:          j.ID,
+		JournalDate: j.JournalDate,
+		Reference:   j.Reference,
+		Memo:        j.Memo,
+		SourceType:  j.SourceType,
+		SourceID:    j.SourceID,
+	})
+	if err != nil {
+		return db.JournalEntry{}, err
+	}
+
+	if err := r.queries.DeleteJournalLinesByEntry(ctx, j.ID); err != nil {
+		return db.JournalEntry{}, err
+	}
+	lines := make([]db.JournalLine, len(j.Lines))
+	for i, line := range j.Lines {
+		dbLine, err := r.queries.CreateJournalLine(ctx, db.CreateJournalLineParams{
+			JournalID:    j.ID,
+			AccountID:    line.AccountID,
+			Side:         line.Side,
+			Amount:       line.Amount,
+			CostCenterID: line.CostCenterID,
+			Description:  line.Description,
+		})
+		if err != nil {
+			return db.JournalEntry{}, err
+		}
+		lines[i] = toDomainJournalLine(dbLine)
+	}
+
+	entry, err := r.queries.GetJournalEntry(ctx, j.ID)
+	if err != nil {
+		return db.JournalEntry{}, err
+	}
+	domainEntry := toDomainJournalWithLines(entry, lines)
+	// Publish Kafka event
+	_ = r.publisher.PublishJournalUpdated(ctx, domainEntry)
+
+	return domainEntry, nil
+}
+
+func (r *JournalSQLCRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	if err := r.queries.DeleteJournalEntry(ctx, id); err != nil {
+		return err
+	}
+	_ = r.publisher.PublishJournalDeleted(ctx, id.String())
+	return nil
+}
+
+func (r *JournalSQLCRepository) List(ctx context.Context, limit, offset int32) ([]db.JournalEntry, error) {
+	dbJEs, err := r.queries.ListJournalEntries(ctx, db.ListJournalEntriesParams{Limit: limit, Offset: offset})
+	if err != nil {
+		return nil, err
+	}
+	journals := make([]db.JournalEntry, len(dbJEs))
+	copy(journals, dbJEs)
+	return journals, nil
+}
+
+// ---------------- Ledger ----------------
+
+type LedgerSQLCRepository struct {
+	queries *db.Queries
+}
+
+func NewLedgerRepository(q *db.Queries) ports.LedgerRepository {
+	return &LedgerSQLCRepository{queries: q}
+}
+
+func (r *LedgerSQLCRepository) List(ctx context.Context, limit, offset int32) ([]db.LedgerEntry, error) {
+	rows, err := r.queries.ListLedgerEntries(ctx, db.ListLedgerEntriesParams{Limit: limit, Offset: offset})
+	if err != nil {
+		return nil, err
+	}
+	entries := make([]db.LedgerEntry, len(rows))
+	copy(entries, rows)
+	return entries, nil
+}
+
+// ---------------- mapping helpers ----------------
+
+func toDomainAccount(a db.Account) db.Account {
+	return db.Account{
+		ID:                 a.ID,
+		Code:               a.Code,
+		Name:               a.Name,
+		Type:               a.Type,
+		Status:             a.Status,
+		AllowManualJournal: a.AllowManualJournal,
+		CreatedAt:          a.CreatedAt,
+		UpdatedAt:          a.UpdatedAt,
+	}
+}
+
+func toDomainJournal(j db.JournalEntry) db.JournalEntry {
+	return db.JournalEntry{
+		ID:          j.ID,
+		JournalDate: j.JournalDate,
+		Reference:   j.Reference,
+		Memo:        j.Memo,
+		SourceType:  j.SourceType,
+		SourceID:    j.SourceID,
+		CreatedAt:   j.CreatedAt,
+		CreatedBy:   j.CreatedBy,
+		UpdatedAt:   j.UpdatedAt,
+		UpdatedBy:   j.UpdatedBy,
 		Revision:    j.Revision,
 	}
 }
 
-type ledgerRepository struct {
-	q *db.Queries
+func toDomainJournalWithLines(j db.JournalEntry, lines []db.JournalLine) db.JournalEntry {
+	je := toDomainJournal(j)
+	je.Lines = lines
+	return je
 }
 
-func NewLedgerRepository(q *db.Queries) ports.LedgerRepository {
-	return &ledgerRepository{q: q}
-}
-
-func (r *ledgerRepository) List(ctx context.Context, limit, offset int32) ([]domain.LedgerEntry, error) {
-	rows, err := r.q.ListLedgerEntries(ctx, db.ListLedgerEntriesParams{
-		Limit:  limit,
-		Offset: offset,
-	})
-	if err != nil {
-		return nil, err
+func toDomainJournalLine(l db.JournalLine) db.JournalLine {
+	return db.JournalLine{
+		AccountID:    l.AccountID,
+		Side:         l.Side,
+		Amount:       l.Amount,
+		CostCenterID: l.CostCenterID,
+		Description:  l.Description,
+		CreatedAt:    l.CreatedAt,
 	}
-
-	result := make([]domain.LedgerEntry, 0, len(rows))
-	for _, l := range rows {
-		result = append(result, domain.LedgerEntry{
-			EntryID:   l.ID,
-			AccountID: l.AccountID,
-			Side:      l.Side,
-			Amount:    l.Amount,
-			PostedAt:  l.TransactionDate,
-		})
-	}
-	return result, nil
-}
-
-func derefString(s *string) string {
-	if s == nil {
-		return ""
-	}
-	return *s
 }

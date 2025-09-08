@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
+	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/services"
 )
 
@@ -20,7 +20,7 @@ func NewBankAccountHandler(svc *services.BankService) *BankAccountHandler {
 }
 
 func (h *BankAccountHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var ba domain.BankAccount
+	var ba db.BankAccount
 	if err := json.NewDecoder(r.Body).Decode(&ba); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -53,7 +53,7 @@ func (h *BankAccountHandler) Update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid UUID", http.StatusBadRequest)
 		return
 	}
-	var ba domain.BankAccount
+	var ba db.BankAccount
 	if err := json.NewDecoder(r.Body).Decode(&ba); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -95,7 +95,7 @@ func NewPaymentDueHandler(svc *services.PaymentDueService) *PaymentDueHandler {
 }
 
 func (h *PaymentDueHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var pd domain.PaymentDue
+	var pd db.PaymentDue
 	if err := json.NewDecoder(r.Body).Decode(&pd); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -128,7 +128,7 @@ func (h *PaymentDueHandler) Update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid UUID", http.StatusBadRequest)
 		return
 	}
-	var pd domain.PaymentDue
+	var pd db.PaymentDue
 	if err := json.NewDecoder(r.Body).Decode(&pd); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -200,7 +200,7 @@ func (h *BankTransactionHandler) Import(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	var tx domain.BankTransaction
+	var tx db.BankTransaction
 	if err := json.NewDecoder(r.Body).Decode(&tx); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -238,7 +238,7 @@ func (h *BankTransactionHandler) Reconcile(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	var tx domain.BankTransaction
+	var tx db.BankTransaction
 	if err := json.NewDecoder(r.Body).Decode(&tx); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

@@ -50,6 +50,18 @@ RETURNING *;
 -- name: DeleteJournalEntry :exec
 DELETE FROM journal_entries WHERE id = $1;
 
+-- name: CreateJournalLine :one
+INSERT INTO journal_lines (
+    journal_id, account_id, side, amount, cost_center_id, description
+) VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING *;
+
+-- name: ListJournalLinesByEntry :many
+SELECT * FROM journal_lines WHERE journal_id = $1;
+
+-- name: DeleteJournalLinesByEntry :exec
+DELETE FROM journal_lines WHERE journal_id = $1;
+
 -- =====================================================
 -- Ledger Entries
 -- =====================================================

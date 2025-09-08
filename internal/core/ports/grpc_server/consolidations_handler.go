@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	pb "github.com/ShristiRnr/Finance_mierp/api/pb"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
+	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/services"
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -23,7 +23,7 @@ func NewConsolidationHandler(svc *services.ConsolidationService) *ConsolidationH
 
 func (h *ConsolidationHandler) CreateConsolidation(ctx context.Context, req *pb.CreateConsolidationRequest) (*pb.Consolidation, error) {
 	period := req.GetConsolidation().GetPeriod()
-c := domain.Consolidation{
+c := db.Consolidation{
     EntityIds:   req.GetConsolidation().GetEntityIds(),
     PeriodStart: period.GetStartDate().AsTime(),
     PeriodEnd:   period.GetEndDate().AsTime(),

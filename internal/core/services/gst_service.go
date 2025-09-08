@@ -5,7 +5,7 @@ import (
     "time"
 
     "github.com/google/uuid"
-    "github.com/ShristiRnr/Finance_mierp/internal/core/domain"
+    "github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
     "github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 )
 
@@ -18,35 +18,35 @@ func NewGstService(repo ports.GstRepository) *GstService {
 }
 
 // ---------- Breakup ----------
-func (s *GstService) AddGstBreakup(ctx context.Context, invoiceID string, taxableAmount float64, cgst, sgst, igst, totalGst *float64) (domain.GstBreakup, error) {
+func (s *GstService) AddGstBreakup(ctx context.Context, invoiceID string, taxableAmount float64, cgst, sgst, igst, totalGst *float64) (db.GstBreakup, error) {
     id, err := uuid.Parse(invoiceID)
     if err != nil {
-        return domain.GstBreakup{}, err
+        return db.GstBreakup{}, err
     }
     return s.repo.AddGstBreakup(ctx, id, taxableAmount, cgst, sgst, igst, totalGst)
 }
 
-func (s *GstService) GetGstBreakup(ctx context.Context, invoiceID string) (domain.GstBreakup, error) {
+func (s *GstService) GetGstBreakup(ctx context.Context, invoiceID string) (db.GstBreakup, error) {
     id, err := uuid.Parse(invoiceID)
     if err != nil {
-        return domain.GstBreakup{}, err
+        return db.GstBreakup{}, err
     }
     return s.repo.GetGstBreakup(ctx, id)
 }
 
 // ---------- Regime ----------
-func (s *GstService) AddGstRegime(ctx context.Context, invoiceID, gstin, placeOfSupply string, reverseCharge *bool) (domain.GstRegime, error) {
+func (s *GstService) AddGstRegime(ctx context.Context, invoiceID, gstin, placeOfSupply string, reverseCharge *bool) (db.GstRegime, error) {
     id, err := uuid.Parse(invoiceID)
     if err != nil {
-        return domain.GstRegime{}, err
+        return db.GstRegime{}, err
     }
     return s.repo.AddGstRegime(ctx, id, gstin, placeOfSupply, reverseCharge)
 }
 
-func (s *GstService) GetGstRegime(ctx context.Context, invoiceID string) (domain.GstRegime, error) {
+func (s *GstService) GetGstRegime(ctx context.Context, invoiceID string) (db.GstRegime, error) {
     id, err := uuid.Parse(invoiceID)
     if err != nil {
-        return domain.GstRegime{}, err
+        return db.GstRegime{}, err
     }
     return s.repo.GetGstRegime(ctx, id)
 }
@@ -61,10 +61,10 @@ func (s *GstService) AddGstDocStatus(
     ewayValidUpto *time.Time,
     lastError *string,
     lastSyncedAt *time.Time,
-) (domain.GstDocStatus, error) {
+) (db.GstDocStatus, error) {
     id, err := uuid.Parse(invoiceID)
     if err != nil {
-        return domain.GstDocStatus{}, err
+        return db.GstDocStatus{}, err
     }
     return s.repo.AddGstDocStatus(ctx, id,
         einvoiceStatus, irn, ackNo, ackDate,
@@ -73,10 +73,10 @@ func (s *GstService) AddGstDocStatus(
     )
 }
 
-func (s *GstService) GetGstDocStatus(ctx context.Context, invoiceID string) (domain.GstDocStatus, error) {
+func (s *GstService) GetGstDocStatus(ctx context.Context, invoiceID string) (db.GstDocStatus, error) {
     id, err := uuid.Parse(invoiceID)
     if err != nil {
-        return domain.GstDocStatus{}, err
+        return db.GstDocStatus{}, err
     }
     return s.repo.GetGstDocStatus(ctx, id)
 }

@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
+	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/services"
 )
 
@@ -43,7 +43,7 @@ func NewInvoiceHandler(svc *services.InvoiceService) *InvoiceHandler {
 // ---------- Invoice Handlers ----------
 
 func (h *InvoiceHandler) CreateInvoice(w http.ResponseWriter, r *http.Request) {
-	var inv domain.Invoice
+	var inv db.Invoice
 	if err := json.NewDecoder(r.Body).Decode(&inv); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -77,7 +77,7 @@ func (h *InvoiceHandler) UpdateInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var inv domain.Invoice
+	var inv db.Invoice
 	if err := json.NewDecoder(r.Body).Decode(&inv); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -135,7 +135,7 @@ func (h *InvoiceHandler) CreateInvoiceItem(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	var item domain.InvoiceItem
+	var item db.InvoiceItem
 	if err := json.NewDecoder(r.Body).Decode(&item); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -174,7 +174,7 @@ func (h *InvoiceHandler) AddInvoiceTax(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var tax domain.InvoiceTax
+	var tax db.InvoiceTax
 	if err := json.NewDecoder(r.Body).Decode(&tax); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -196,7 +196,7 @@ func (h *InvoiceHandler) AddInvoiceDiscount(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	var disc domain.InvoiceDiscount
+	var disc db.InvoiceDiscount
 	if err := json.NewDecoder(r.Body).Decode(&disc); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

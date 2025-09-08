@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
+	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 	"github.com/google/uuid"
 )
@@ -18,21 +18,21 @@ func NewCreditDebitNoteService(repo ports.CreditDebitNoteRepository) ports.Credi
 	return &creditDebitNoteService{repo: repo}
 }
 
-func (s *creditDebitNoteService) Create(ctx context.Context, note domain.CreditDebitNote) (domain.CreditDebitNote, error) {
+func (s *creditDebitNoteService) Create(ctx context.Context, note db.CreditDebitNote) (db.CreditDebitNote, error) {
 	// Business logic would go here (e.g., validation, calculations).
 	// For now, it's a direct pass-through to the repository.
 	return s.repo.Create(ctx, note)
 }
 
-func (s *creditDebitNoteService) Get(ctx context.Context, id uuid.UUID) (domain.CreditDebitNote, error) {
+func (s *creditDebitNoteService) Get(ctx context.Context, id uuid.UUID) (db.CreditDebitNote, error) {
 	return s.repo.Get(ctx, id)
 }
 
-func (s *creditDebitNoteService) List(ctx context.Context, limit, offset int32) ([]domain.CreditDebitNote, error) {
+func (s *creditDebitNoteService) List(ctx context.Context, limit, offset int32) ([]db.CreditDebitNote, error) {
 	return s.repo.List(ctx, limit, offset)
 }
 
-func (s *creditDebitNoteService) Update(ctx context.Context, note domain.CreditDebitNote) (domain.CreditDebitNote, error) {
+func (s *creditDebitNoteService) Update(ctx context.Context, note db.CreditDebitNote) (db.CreditDebitNote, error) {
 	return s.repo.Update(ctx, note)
 }
 

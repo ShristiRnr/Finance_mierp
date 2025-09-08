@@ -18,10 +18,10 @@ type Account struct {
 	Type               string
 	ParentID           uuid.NullUUID
 	Status             string
-	AllowManualJournal sql.NullBool
-	CreatedAt          sql.NullTime
+	AllowManualJournal bool
+	CreatedAt          time.Time
 	CreatedBy          sql.NullString
-	UpdatedAt          sql.NullTime
+	UpdatedAt          time.Time
 	UpdatedBy          sql.NullString
 	Revision           sql.NullInt32
 }
@@ -257,6 +257,20 @@ type FinanceInvoiceCreatedEvent struct {
 	CreatedAt      sql.NullTime
 }
 
+type Pagination struct {
+	Limit  int
+    Offset int
+}
+
+type FilterParams struct {
+	UserID       *string
+    Action       *string
+    ResourceType *string
+    ResourceID   *string
+    FromDate     *time.Time
+    ToDate       *time.Time
+}
+
 type FinancePaymentReceivedEvent struct {
 	ID             uuid.UUID
 	PaymentDueID   uuid.UUID
@@ -420,39 +434,31 @@ type JournalEntry struct {
 	Memo        sql.NullString
 	SourceType  sql.NullString
 	SourceID    sql.NullString
-	CreatedAt   sql.NullTime
+	CreatedAt   time.Time
 	CreatedBy   sql.NullString
-	UpdatedAt   sql.NullTime
+	UpdatedAt   time.Time
 	UpdatedBy   sql.NullString
 	Revision    sql.NullInt32
+	Lines       []JournalLine
 }
 
 type JournalLine struct {
 	ID           uuid.UUID
-	EntryID      uuid.UUID
+	JournalID    uuid.UUID
 	AccountID    uuid.UUID
 	Side         string
 	Amount       string
-	CostCenterID sql.NullString
+	CostCenterID uuid.NullUUID
 	Description  sql.NullString
-	CreatedAt    sql.NullTime
+	CreatedAt    time.Time
 }
 
 type LedgerEntry struct {
-	ID              uuid.UUID
+	EntryID         uuid.UUID
 	AccountID       uuid.UUID
-	Description     sql.NullString
 	Side            string
 	Amount          string
 	TransactionDate time.Time
-	CostCenterID    sql.NullString
-	ReferenceType   sql.NullString
-	ReferenceID     sql.NullString
-	CreatedAt       sql.NullTime
-	CreatedBy       sql.NullString
-	UpdatedAt       sql.NullTime
-	UpdatedBy       sql.NullString
-	Revision        sql.NullInt32
 }
 
 type PaymentDue struct {

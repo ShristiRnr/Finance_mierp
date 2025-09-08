@@ -26,7 +26,7 @@ type CreateAccountParams struct {
 	Type               string
 	ParentID           uuid.NullUUID
 	Status             string
-	AllowManualJournal sql.NullBool
+	AllowManualJournal bool
 	CreatedBy          sql.NullString
 	UpdatedBy          sql.NullString
 }
@@ -110,6 +110,45 @@ func (q *Queries) CreateJournalEntry(ctx context.Context, arg CreateJournalEntry
 	return i, err
 }
 
+const createJournalLine = `-- name: CreateJournalLine :one
+INSERT INTO journal_lines (
+    journal_id, account_id, side, amount, cost_center_id, description
+) VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, journal_id, account_id, side, amount, cost_center_id, description, created_at
+`
+
+type CreateJournalLineParams struct {
+	JournalID    uuid.UUID
+	AccountID    uuid.UUID
+	Side         string
+	Amount       string
+	CostCenterID uuid.NullUUID
+	Description  sql.NullString
+}
+
+func (q *Queries) CreateJournalLine(ctx context.Context, arg CreateJournalLineParams) (JournalLine, error) {
+	row := q.db.QueryRowContext(ctx, createJournalLine,
+		arg.JournalID,
+		arg.AccountID,
+		arg.Side,
+		arg.Amount,
+		arg.CostCenterID,
+		arg.Description,
+	)
+	var i JournalLine
+	err := row.Scan(
+		&i.ID,
+		&i.JournalID,
+		&i.AccountID,
+		&i.Side,
+		&i.Amount,
+		&i.CostCenterID,
+		&i.Description,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const deleteAccount = `-- name: DeleteAccount :exec
 DELETE FROM accounts WHERE id = $1
 `
@@ -125,6 +164,15 @@ DELETE FROM journal_entries WHERE id = $1
 
 func (q *Queries) DeleteJournalEntry(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, deleteJournalEntry, id)
+	return err
+}
+
+const deleteJournalLinesByEntry = `-- name: DeleteJournalLinesByEntry :exec
+DELETE FROM journal_lines WHERE journal_id = $1
+`
+
+func (q *Queries) DeleteJournalLinesByEntry(ctx context.Context, journalID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteJournalLinesByEntry, journalID)
 	return err
 }
 
@@ -264,9 +312,45 @@ func (q *Queries) ListJournalEntries(ctx context.Context, arg ListJournalEntries
 	return items, nil
 }
 
+const listJournalLinesByEntry = `-- name: ListJournalLinesByEntry :many
+SELECT id, journal_id, account_id, side, amount, cost_center_id, description, created_at FROM journal_lines WHERE journal_id = $1
+`
+
+func (q *Queries) ListJournalLinesByEntry(ctx context.Context, journalID uuid.UUID) ([]JournalLine, error) {
+	rows, err := q.db.QueryContext(ctx, listJournalLinesByEntry, journalID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []JournalLine
+	for rows.Next() {
+		var i JournalLine
+		if err := rows.Scan(
+			&i.ID,
+			&i.JournalID,
+			&i.AccountID,
+			&i.Side,
+			&i.Amount,
+			&i.CostCenterID,
+			&i.Description,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listLedgerEntries = `-- name: ListLedgerEntries :many
 
-SELECT id, account_id, description, side, amount, transaction_date, cost_center_id, reference_type, reference_id, created_at, created_by, updated_at, updated_by, revision FROM ledger_entries ORDER BY transaction_date DESC LIMIT $1 OFFSET $2
+SELECT entry_id, account_id, side, amount, transaction_date FROM ledger_entries ORDER BY transaction_date DESC LIMIT $1 OFFSET $2
 `
 
 type ListLedgerEntriesParams struct {
@@ -287,20 +371,11 @@ func (q *Queries) ListLedgerEntries(ctx context.Context, arg ListLedgerEntriesPa
 	for rows.Next() {
 		var i LedgerEntry
 		if err := rows.Scan(
-			&i.ID,
+			&i.EntryID,
 			&i.AccountID,
-			&i.Description,
 			&i.Side,
 			&i.Amount,
 			&i.TransactionDate,
-			&i.CostCenterID,
-			&i.ReferenceType,
-			&i.ReferenceID,
-			&i.CreatedAt,
-			&i.CreatedBy,
-			&i.UpdatedAt,
-			&i.UpdatedBy,
-			&i.Revision,
 		); err != nil {
 			return nil, err
 		}
@@ -331,7 +406,7 @@ type UpdateAccountParams struct {
 	Type               string
 	ParentID           uuid.NullUUID
 	Status             string
-	AllowManualJournal sql.NullBool
+	AllowManualJournal bool
 	UpdatedBy          sql.NullString
 }
 

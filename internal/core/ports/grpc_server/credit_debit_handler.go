@@ -3,9 +3,9 @@ package grpc_server
 import (
 	"context"
 
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 	pb "github.com/ShristiRnr/Finance_mierp/api/pb"
+	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
+	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -32,11 +32,11 @@ func (s *CreditDebitNoteHandler) CreateCreditDebitNote(ctx context.Context, req 
         return nil, status.Errorf(codes.InvalidArgument, "invalid invoice_id UUID format: %v", err)
     }
 
-    note := domain.CreditDebitNote{
+    note := db.CreditDebitNote{
         InvoiceID: invoiceID,
-        Type:      domain.NoteType(noteReq.Type.String()), 
+        Type:      noteReq.Type.String(), 
         Amount:    noteReq.Amount.String(),               
-        CreatedBy: noteReq.Audit.GetCreatedBy(),          
+        CreatedBy: toNullString(noteReq.Audit.GetCreatedBy()),          
     }
 
     createdNote, err := s.svc.Create(ctx, note)
@@ -108,13 +108,13 @@ func (s *CreditDebitNoteHandler) UpdateCreditDebitNote(ctx context.Context, req 
         return nil, status.Errorf(codes.InvalidArgument, "invalid invoice_id UUID format: %v", err)
     }
 
-    note := domain.CreditDebitNote{
+    note := db.CreditDebitNote{
         ID:        id,
         InvoiceID: invoiceID,
-        Type:      domain.NoteType(noteReq.Type.String()), // map enum → domain
+        Type:      noteReq.Type.String(), // map enum → domain
         Amount:    noteReq.Amount.String(),                // map Money → string, or convert properly
-        Reason:    noteReq.Reason,
-        UpdatedBy: noteReq.Audit.GetUpdatedBy(),           // comes from AuditFields inside CreditDebitNote
+        Reason:    toNullString(noteReq.Reason),
+        UpdatedBy: toNullString(noteReq.Audit.GetUpdatedBy()),           // comes from AuditFields inside CreditDebitNote
     }
 
     // Optionally: use req.UpdateMask to only update specific fields in DB

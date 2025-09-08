@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
+	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/services"
 	"github.com/go-chi/chi/v5"
 )
@@ -24,7 +24,7 @@ func NewFinanceEventHandler(svc *services.FinanceEventService) *FinanceEventHand
 
 // POST /org/{orgID}/invoice-events
 func (h *FinanceEventHandler) InsertInvoiceCreated(w http.ResponseWriter, r *http.Request) {
-	var event domain.FinanceInvoiceCreatedEvent
+	var event db.FinanceInvoiceCreatedEvent
 	if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -59,7 +59,7 @@ func (h *FinanceEventHandler) ListInvoiceCreated(w http.ResponseWriter, r *http.
 
 // POST /org/{orgID}/payment-received-events
 func (h *FinanceEventHandler) InsertPaymentReceived(w http.ResponseWriter, r *http.Request) {
-	var event domain.FinancePaymentReceivedEvent
+	var event db.FinancePaymentReceivedEvent
 	if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -94,7 +94,7 @@ func (h *FinanceEventHandler) ListPaymentReceived(w http.ResponseWriter, r *http
 
 // POST /org/{orgID}/inventory-cost-posted-events
 func (h *FinanceEventHandler) InsertInventoryCostPosted(w http.ResponseWriter, r *http.Request) {
-	var event domain.InventoryCostPostedEvent
+	var event db.InventoryCostPostedEvent
 	if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -129,7 +129,7 @@ func (h *FinanceEventHandler) ListInventoryCostPosted(w http.ResponseWriter, r *
 
 // POST /org/{orgID}/payroll-posted-events
 func (h *FinanceEventHandler) InsertPayrollPosted(w http.ResponseWriter, r *http.Request) {
-	var event domain.PayrollPostedEvent
+	var event db.PayrollPostedEvent
 	if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -164,7 +164,7 @@ func (h *FinanceEventHandler) ListPayrollPosted(w http.ResponseWriter, r *http.R
 
 // POST /org/{orgID}/vendor-bill-approved-events
 func (h *FinanceEventHandler) InsertVendorBillApproved(w http.ResponseWriter, r *http.Request) {
-	var event domain.VendorBillApprovedEvent
+	var event db.VendorBillApprovedEvent
 	if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

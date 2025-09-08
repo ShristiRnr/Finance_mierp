@@ -5,7 +5,6 @@ import (
 	"database/sql"
 
 	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"// Your generated sqlc package
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
 	"github.com/google/uuid"
 
 )
@@ -21,26 +20,26 @@ func NewAuditRepository(database *sql.DB) *AuditRepository {
 }
 
 // Helper to convert from sqlc model to domain model
-func toDomain(e db.AuditEvent) domain.AuditEvent {
-	return domain.AuditEvent{
-		ID:           e.ID.String(),
+func toDomain(e db.AuditEvent) db.AuditEvent {
+	return db.AuditEvent{
+		ID:           e.ID,
 		UserID:       e.UserID,
 		Action:       e.Action,
 		Timestamp:    e.Timestamp,
-		Details:      e.Details.String,
-		ResourceType: e.ResourceType.String,
-		ResourceID:   e.ResourceID.String,
+		Details:      e.Details,
+		ResourceType: e.ResourceType,
+		ResourceID:   e.ResourceID,
 	}
 }
 
-func (r *AuditRepository) RecordAuditEvent(ctx context.Context, event *domain.AuditEvent) (*domain.AuditEvent, error) {
+func (r *AuditRepository) RecordAuditEvent(ctx context.Context, event *db.AuditEvent) (*db.AuditEvent, error) {
 	params := db.RecordAuditEventParams{
 		UserID:       event.UserID,
 		Action:       event.Action,
 		Timestamp:    event.Timestamp,
-		Details:      sql.NullString{String: event.Details, Valid: event.Details != ""},
-		ResourceType: sql.NullString{String: event.ResourceType, Valid: event.ResourceType != ""},
-		ResourceID:   sql.NullString{String: event.ResourceID, Valid: event.ResourceID != ""},
+		Details:      event.Details,
+		ResourceType: event.ResourceType,
+		ResourceID:   event.ResourceID,
 	}
 	recordedEvent, err := r.queries.RecordAuditEvent(ctx, params)
 	if err != nil {
@@ -50,7 +49,7 @@ func (r *AuditRepository) RecordAuditEvent(ctx context.Context, event *domain.Au
 	return &res, nil
 }
 
-func (r *AuditRepository) GetAuditEventByID(ctx context.Context, id string) (*domain.AuditEvent, error) {
+func (r *AuditRepository) GetAuditEventByID(ctx context.Context, id string) (*db.AuditEvent, error) {
 	uuid, err := uuid.Parse(id)
 	if err != nil {
 		return nil, err // Invalid UUID format
@@ -63,26 +62,26 @@ func (r *AuditRepository) GetAuditEventByID(ctx context.Context, id string) (*do
 	return &res, nil
 }
 
-func (r *AuditRepository) ListAuditEvents(ctx context.Context, page domain.Pagination) ([]domain.AuditEvent, error) {
+func (r *AuditRepository) ListAuditEvents(ctx context.Context, page db.Pagination) ([]db.AuditEvent, error) {
 	params := db.ListAuditEventsParams{
-		Limit:  page.Limit,
-		Offset: page.Offset,
+		Limit:  int32(page.Limit),
+		Offset: int32(page.Offset),
 	}
 	events, err := r.queries.ListAuditEvents(ctx, params)
 	if err != nil {
 		return nil, err
 	}
-	domainEvents := make([]domain.AuditEvent, len(events))
+	domainEvents := make([]db.AuditEvent, len(events))
 	for i, e := range events {
 		domainEvents[i] = toDomain(e)
 	}
 	return domainEvents, nil
 }
 
-func (r *AuditRepository) FilterAuditEvents(ctx context.Context, filter domain.FilterParams, page domain.Pagination) ([]domain.AuditEvent, error) {
+func (r *AuditRepository) FilterAuditEvents(ctx context.Context, filter db.FilterParams, page db.Pagination) ([]db.AuditEvent, error) {
 	params := db.FilterAuditEventsParams{
-		Limit:  page.Limit,
-		Offset: page.Offset,
+		Limit:  int32(page.Limit),
+		Offset: int32(page.Offset),
 	}
 	if filter.UserID != nil {
 		params.Column1 = *filter.UserID
@@ -108,7 +107,7 @@ func (r *AuditRepository) FilterAuditEvents(ctx context.Context, filter domain.F
 		return nil, err
 	}
 
-	domainEvents := make([]domain.AuditEvent, len(events))
+	domainEvents := make([]db.AuditEvent, len(events))
 	for i, e := range events {
 		domainEvents[i] = toDomain(e)
 	}

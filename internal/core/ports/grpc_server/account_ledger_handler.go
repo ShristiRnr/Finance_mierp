@@ -3,9 +3,11 @@ package grpc_server
 import (
 	"context"
 	"strconv"
+	"database/sql"
 
 	pb "github.com/ShristiRnr/Finance_mierp/api/pb"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
+	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
+	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/services"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
@@ -19,30 +21,42 @@ type LedgerHandler struct {
 	accountSvc *services.AccountService
 	journalSvc *services.JournalService
 	ledgerSvc  *services.LedgerService
+	producer   ports.EventPublisher
 }
 
-func NewLedgerHandler(a *services.AccountService, j *services.JournalService, l *services.LedgerService) *LedgerHandler {
-	return &LedgerHandler{accountSvc: a, journalSvc: j, ledgerSvc: l}
+func NewLedgerHandler(acc *services.AccountService, j *services.JournalService, l *services.LedgerService, p ports.EventPublisher) *LedgerHandler {
+	return &LedgerHandler{
+		accountSvc: acc,
+		journalSvc: j,
+		ledgerSvc:  l,
+		producer:   p,
+	}
 }
 
-// ---------- Accounts ----------
 func (h *LedgerHandler) CreateAccount(ctx context.Context, req *pb.CreateAccountRequest) (*pb.Account, error) {
-	acc, err := h.accountSvc.Create(ctx, domain.Account{
-		ID:     uuid.New(),
-		Code:   req.Account.Code,
-		Name:   req.Account.Name,
-		Type:   toDomainAccountType(req.Account.Type),
-		Status: toDomainStatus(req.Account.Status),
+	acc, err := h.accountSvc.Create(ctx, db.Account{
+		ID:                 uuid.New(),
+		Code:               req.GetAccount().GetCode(),
+		Name:               req.GetAccount().GetName(),
+		Type:               fromPbAccountType(req.GetAccount().GetType()),     // convert enum → string
+		Status:             fromPbAccountStatus(req.GetAccount().GetStatus()), // convert enum → string
+		AllowManualJournal: req.GetAccount().GetAllowManualJournal(),
 	})
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "create account: %v", err)
 	}
+
+	// Publish Kafka event (domain object is clean, not proto)
+	_ = h.producer.PublishAccountCreated(ctx, acc)
+
+	// Map back to proto
 	return &pb.Account{
-		Id:     acc.ID.String(),
-		Code:   acc.Code,
-		Name:   acc.Name,
-		Type:   toPbAccountType(acc.Type),
-		Status: toPbStatus(acc.Status),
+		Id:                 acc.ID.String(),
+		Code:               acc.Code,
+		Name:               acc.Name,
+		Type:               toPbAccountType(acc.Type),     // convert string → enum
+		Status:             toPbAccountStatus(acc.Status), // convert string → enum
+		AllowManualJournal: acc.AllowManualJournal,
 	}, nil
 }
 
@@ -67,35 +81,47 @@ func (h *LedgerHandler) GetAccount(ctx context.Context, req *pb.GetAccountReques
 func (h *LedgerHandler) UpdateAccount(ctx context.Context, req *pb.UpdateAccountRequest) (*pb.Account, error) {
 	id, err := uuid.Parse(req.Account.Id)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.InvalidArgument, "invalid id: %v", err)
 	}
-	acc, err := h.accountSvc.Update(ctx, domain.Account{
-		ID:     id,
-		Code:   req.Account.Code,
-		Name:   req.Account.Name,
-		Type:   toDomainAccountType(req.Account.Type),
-		Status: toDomainStatus(req.Account.Status),
+
+	acc, err := h.accountSvc.Update(ctx, db.Account{
+		ID:                 id,
+		Code:               req.GetAccount().GetCode(),
+		Name:               req.GetAccount().GetName(),
+		Type:               fromPbAccountType(req.GetAccount().GetType()),     // enum → string
+		Status:             fromPbAccountStatus(req.GetAccount().GetStatus()), // enum → string
+		AllowManualJournal: req.GetAccount().GetAllowManualJournal(),
 	})
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "update account: %v", err)
 	}
+
+	h.producer.PublishAccountUpdated(ctx, acc)
+
 	return &pb.Account{
-		Id:     acc.ID.String(),
-		Code:   acc.Code,
-		Name:   acc.Name,
-		Type:   toPbAccountType(acc.Type),
-		Status: toPbStatus(acc.Status),
+		Id:                 acc.ID.String(),
+		Code:               acc.Code,
+		Name:               acc.Name,
+		Type:               toPbAccountType(acc.Type),     // string → enum
+		Status:             toPbAccountStatus(acc.Status), // string → enum
+		AllowManualJournal: acc.AllowManualJournal,
 	}, nil
 }
 
 func (h *LedgerHandler) DeleteAccount(ctx context.Context, req *pb.DeleteAccountRequest) (*emptypb.Empty, error) {
 	id, err := uuid.Parse(req.Id)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.InvalidArgument, "invalid id: %v", err)
 	}
+
 	if err := h.accountSvc.Delete(ctx, id); err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "delete account: %v", err)
 	}
+
+	if err := h.producer.PublishAccountDeleted(ctx, req.Id); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to publish account deleted event: %v", err)
+	}
+
 	return &emptypb.Empty{}, nil
 }
 
@@ -153,23 +179,20 @@ func (h *LedgerHandler) ListAccounts(ctx context.Context, req *pb.ListAccountsRe
 
 // ---------- Journals ----------
 func (h *LedgerHandler) CreateJournalEntry(ctx context.Context, req *pb.CreateJournalEntryRequest) (*pb.JournalEntry, error) {
-	j, err := h.journalSvc.Create(ctx, domain.JournalEntry{
+	j, err := h.journalSvc.Create(ctx, db.JournalEntry{
 		ID:          uuid.New(),
 		JournalDate: req.Entry.JournalDate.AsTime(),
-		Memo:        &req.Entry.Memo,
-		SourceType:  &req.Entry.SourceType,
-		SourceID:    &req.Entry.SourceId,
+		Memo:        toNullString(req.Entry.Memo),
+		SourceType:  toNullString(req.Entry.SourceType),
+		SourceID:    toNullString(req.Entry.SourceId),
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &pb.JournalEntry{
-		Id:          j.ID.String(),
-		JournalDate: timestamppb.New(j.JournalDate),
-		Memo:        strOrEmpty(j.Memo),
-		SourceType:  *j.SourceType,
-		SourceId:    *j.SourceID,
-	}, nil
+
+	h.producer.PublishJournalCreated(ctx, j)
+
+	return toPbJournalEntry(j), nil
 }
 
 func (h *LedgerHandler) GetJournalEntry(ctx context.Context, req *pb.GetJournalEntryRequest) (*pb.JournalEntry, error) {
@@ -184,9 +207,9 @@ func (h *LedgerHandler) GetJournalEntry(ctx context.Context, req *pb.GetJournalE
 	return &pb.JournalEntry{
 		Id:          j.ID.String(),
 		JournalDate: timestamppb.New(j.JournalDate),
-		Memo:        strOrEmpty(j.Memo),
-		SourceType:  strOrEmpty(j.SourceType),
-		SourceId:    strOrEmpty(j.SourceID),
+		Memo:        j.Memo.String,
+		SourceType:  j.SourceType.String,
+		SourceId:    j.SourceID.String,
 	}, nil
 }
 
@@ -195,23 +218,20 @@ func (h *LedgerHandler) UpdateJournalEntry(ctx context.Context, req *pb.UpdateJo
 	if err != nil {
 		return nil, err
 	}
-	j, err := h.journalSvc.Update(ctx, domain.JournalEntry{
+	j, err := h.journalSvc.Update(ctx, db.JournalEntry{
 		ID:          id,
 		JournalDate: req.Entry.JournalDate.AsTime(),
-		Memo:        &req.Entry.Memo,
-		SourceType:  &req.Entry.SourceType,
-		SourceID:    &req.Entry.SourceId,
+		Memo:        toNullString(req.Entry.Memo),
+		SourceType:  toNullString(req.Entry.SourceType),
+		SourceID:    toNullString(req.Entry.SourceId),
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &pb.JournalEntry{
-		Id:          j.ID.String(),
-		JournalDate: timestamppb.New(j.JournalDate),
-		Memo:        strOrEmpty(j.Memo),
-		SourceType:  strOrEmpty(j.SourceType),
-		SourceId:    strOrEmpty(j.SourceID),
-	}, nil
+
+	h.producer.PublishJournalUpdated(ctx, j)
+
+	return toPbJournalEntry(j), nil
 }
 
 func (h *LedgerHandler) DeleteJournalEntry(ctx context.Context, req *pb.DeleteJournalEntryRequest) (*emptypb.Empty, error) {
@@ -222,59 +242,62 @@ func (h *LedgerHandler) DeleteJournalEntry(ctx context.Context, req *pb.DeleteJo
 	if err := h.journalSvc.Delete(ctx, id); err != nil {
 		return nil, err
 	}
+
+	h.producer.PublishJournalDeleted(ctx, id.String())
+
 	return &emptypb.Empty{}, nil
 }
 
 func (h *LedgerHandler) ListJournalEntries(ctx context.Context, req *pb.ListJournalEntriesRequest) (*pb.ListJournalEntriesResponse, error) {
-    // default page size
-    limit := int32(50)
-    if req.GetPage().GetPageSize() > 0 {
-        limit = req.Page.PageSize
-    }
+	// default page size
+	limit := int32(50)
+	if req.GetPage().GetPageSize() > 0 {
+		limit = req.Page.PageSize
+	}
 
-    // decode page_token into offset
-    var offset int32
-    if req.GetPage().GetPageToken() != "" {
-        o, err := strconv.Atoi(req.Page.PageToken)
-        if err != nil {
-            return nil, status.Errorf(codes.InvalidArgument, "invalid page_token")
-        }
-        offset = int32(o)
-    }
+	// decode page_token into offset
+	var offset int32
+	if req.GetPage().GetPageToken() != "" {
+		o, err := strconv.Atoi(req.Page.PageToken)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid page_token")
+		}
+		offset = int32(o)
+	}
 
-    // query service
-    entries, err := h.journalSvc.List(ctx, limit, offset)
-    if err != nil {
-        return nil, err
-    }
+	// query service
+	entries, err := h.journalSvc.List(ctx, limit, offset)
+	if err != nil {
+		return nil, err
+	}
 
-    // map to proto
-    pbEntries := make([]*pb.JournalEntry, 0, len(entries))
-    for _, e := range entries {
-        pbEntries = append(pbEntries, &pb.JournalEntry{
-            Id:          e.ID.String(),
-            JournalDate: timestamppb.New(e.JournalDate),
-            Memo:        strOrEmpty(e.Memo),
-            SourceType:  strOrEmpty(e.SourceType),
-            SourceId:    strOrEmpty(e.SourceID),
-        })
-    }
+	// map to proto
+	pbEntries := make([]*pb.JournalEntry, 0, len(entries))
+	for _, e := range entries {
+		pbEntries = append(pbEntries, &pb.JournalEntry{
+			Id:          e.ID.String(),
+			JournalDate: timestamppb.New(e.JournalDate),
+			Memo:        e.Memo.String,
+			SourceType:  e.SourceType.String,
+			SourceId:    e.SourceID.String,
+		})
+	}
 
-    totalCount := int64(len(entries)) // TODO: ideally from DB
+	totalCount := int64(len(entries)) // TODO: ideally from DB
 
-    // compute next_page_token
-    nextToken := ""
-    if int64(offset)+int64(limit) < totalCount {
-        nextToken = strconv.Itoa(int(offset + limit))
-    }
+	// compute next_page_token
+	nextToken := ""
+	if int64(offset)+int64(limit) < totalCount {
+		nextToken = strconv.Itoa(int(offset + limit))
+	}
 
-    return &pb.ListJournalEntriesResponse{
-        Entries: pbEntries,
-        Page: &pb.PageResponse{
-            NextPageToken: nextToken,
-            TotalSize:     totalCount,
-        },
-    }, nil
+	return &pb.ListJournalEntriesResponse{
+		Entries: pbEntries,
+		Page: &pb.PageResponse{
+			NextPageToken: nextToken,
+			TotalSize:     totalCount,
+		},
+	}, nil
 }
 
 // ---------- Ledger (Read-only) ----------
@@ -321,3 +344,82 @@ func (h *LedgerHandler) ListLedgerEntries(ctx context.Context, req *pb.ListLedge
 		},
 	}, nil
 }
+
+func toPbJournalEntry(j db.JournalEntry) *pb.JournalEntry {
+	return &pb.JournalEntry{
+		Id:          j.ID.String(),
+		JournalDate: timestamppb.New(j.JournalDate),
+		Memo:        j.Memo.String,
+		SourceType:  j.SourceType.String,
+		SourceId:    j.SourceID.String,
+	}
+}
+
+// ---------- Enum Conversions ----------
+func fromPbAccountType(t pb.AccountType) string {
+	switch t {
+	case pb.AccountType_ACCOUNT_ASSET:
+		return "ASSET"
+	case pb.AccountType_ACCOUNT_LIABILITY:
+		return "LIABILITY"
+	case pb.AccountType_ACCOUNT_EQUITY:
+		return "EQUITY"
+	case pb.AccountType_ACCOUNT_REVENUE:
+		return "REVENUE"
+	case pb.AccountType_ACCOUNT_EXPENSE:
+		return "EXPENSE"
+	default:
+		return "UNSPECIFIED"
+	}
+}
+
+func fromPbAccountStatus(s pb.AccountStatus) string {
+	switch s {
+	case pb.AccountStatus_ACCOUNT_ACTIVE:
+		return "ACTIVE"
+	case pb.AccountStatus_ACCOUNT_INACTIVE:
+		return "INACTIVE"
+	case pb.AccountStatus_ACCOUNT_ARCHIVED:
+		return "ARCHIVED"
+	default:
+		return "UNSPECIFIED"
+	}
+}
+
+func toPbAccountType(s string) pb.AccountType {
+	switch s {
+	case "ASSET":
+		return pb.AccountType_ACCOUNT_ASSET
+	case "LIABILITY":
+		return pb.AccountType_ACCOUNT_LIABILITY
+	case "EQUITY":
+		return pb.AccountType_ACCOUNT_EQUITY
+	case "REVENUE":
+		return pb.AccountType_ACCOUNT_REVENUE
+	case "EXPENSE":
+		return pb.AccountType_ACCOUNT_EXPENSE
+	default:
+		return pb.AccountType_ACCOUNT_TYPE_UNSPECIFIED
+	}
+}
+
+func toPbAccountStatus(s string) pb.AccountStatus {
+	switch s {
+	case "ACTIVE":
+		return pb.AccountStatus_ACCOUNT_ACTIVE
+	case "INACTIVE":
+		return pb.AccountStatus_ACCOUNT_INACTIVE
+	case "ARCHIVED":
+		return pb.AccountStatus_ACCOUNT_ARCHIVED
+	default:
+		return pb.AccountStatus_ACCOUNT_STATUS_UNSPECIFIED
+	}
+}
+
+func toNullString(s string) sql.NullString {
+    if s == "" {
+        return sql.NullString{String: "", Valid: false}
+    }
+    return sql.NullString{String: s, Valid: true}
+}
+

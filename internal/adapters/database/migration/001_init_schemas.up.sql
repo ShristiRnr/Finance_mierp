@@ -27,23 +27,21 @@ CREATE TABLE audit_fields (
     revision TEXT                         -- optimistic concurrency token
 );
 
--- =====================================
--- Chart of Accounts (must exist early for FKs)
--- =====================================
-CREATE TABLE accounts (
+-- =====================================================
+-- Table: accounts
+-- =====================================================
+CREATE TABLE IF NOT EXISTS accounts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    code TEXT NOT NULL UNIQUE,
-    name TEXT NOT NULL,
-    type TEXT NOT NULL,                        -- AccountType (ASSET, LIABILITY, etc.)
-    parent_id UUID REFERENCES accounts(id),    -- hierarchy
-    status TEXT NOT NULL DEFAULT 'ACTIVE',     -- AccountStatus
-    allow_manual_journal BOOLEAN DEFAULT true,
-
-    -- Audit
-    created_at TIMESTAMPTZ DEFAULT now(),
-    created_by TEXT,
-    updated_at TIMESTAMPTZ DEFAULT now(),
-    updated_by TEXT,
+    code VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL,
+    type VARCHAR(20) NOT NULL, -- e.g., ASSET, LIABILITY, etc.
+    parent_id UUID REFERENCES accounts(id),
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    allow_manual_journal BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    created_by VARCHAR(50),
+    updated_at TIMESTAMP NOT NULL DEFAULT now(),
+    updated_by VARCHAR(50),
     revision INT DEFAULT 1
 );
 
@@ -317,57 +315,46 @@ CREATE TABLE cost_centers (
 );
 
 -- =====================================================
--- Journal Entries (header)
+-- Table: journal_entries
 -- =====================================================
-CREATE TABLE journal_entries (
+CREATE TABLE IF NOT EXISTS journal_entries (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    journal_date TIMESTAMPTZ NOT NULL,
-    reference TEXT,
+    journal_date TIMESTAMP NOT NULL,
+    reference VARCHAR(100),
     memo TEXT,
-    source_type TEXT,     -- "INVOICE"/"PAYMENT"/"ADJUSTMENT"
-    source_id TEXT,
-
-    -- Audit
-    created_at TIMESTAMPTZ DEFAULT now(),
-    created_by TEXT,
-    updated_at TIMESTAMPTZ DEFAULT now(),
-    updated_by TEXT,
+    source_type VARCHAR(50),
+    source_id VARCHAR(50),
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    created_by VARCHAR(50),
+    updated_at TIMESTAMP NOT NULL DEFAULT now(),
+    updated_by VARCHAR(50),
     revision INT DEFAULT 1
 );
 CREATE INDEX idx_journal_entries_journal_date ON journal_entries(journal_date);
 
--- Journal Lines (must balance DR = CR)
-CREATE TABLE journal_lines (
+-- =====================================================
+-- Table: journal_lines
+-- =====================================================
+CREATE TABLE IF NOT EXISTS journal_lines (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    entry_id UUID NOT NULL REFERENCES journal_entries(id) ON DELETE CASCADE,
+    journal_id UUID NOT NULL REFERENCES journal_entries(id) ON DELETE CASCADE,
     account_id UUID NOT NULL REFERENCES accounts(id),
-    side TEXT NOT NULL,     -- "DR" / "CR"
+    side VARCHAR(10) NOT NULL, -- "DEBIT" or "CREDIT"
     amount NUMERIC(18,2) NOT NULL,
-    cost_center_id TEXT,
+    cost_center_id UUID,
     description TEXT,
-    created_at TIMESTAMPTZ DEFAULT now()
+    created_at TIMESTAMP NOT NULL DEFAULT now()
 );
 
 -- =====================================================
--- Ledger Entries (derived)
+-- Table: ledger_entries
 -- =====================================================
-CREATE TABLE ledger_entries (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+CREATE TABLE IF NOT EXISTS ledger_entries (
+    entry_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     account_id UUID NOT NULL REFERENCES accounts(id),
-    description TEXT,
-    side TEXT NOT NULL,     -- "DR"/"CR"
+    side VARCHAR(10) NOT NULL, -- "DEBIT" or "CREDIT"
     amount NUMERIC(18,2) NOT NULL,
-    transaction_date TIMESTAMPTZ NOT NULL,
-    cost_center_id TEXT,
-    reference_type TEXT,    -- "INVOICE"/"PAYMENT"/"JOURNAL"
-    reference_id TEXT,
-
-    -- Audit
-    created_at TIMESTAMPTZ DEFAULT now(),
-    created_by TEXT,
-    updated_at TIMESTAMPTZ DEFAULT now(),
-    updated_by TEXT,
-    revision INT DEFAULT 1
+    transaction_date TIMESTAMP NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_ledger_entries_account_date ON ledger_entries(account_id, transaction_date);
 

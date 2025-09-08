@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
+	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 )
 
@@ -15,42 +15,42 @@ func NewFinanceEventService(r ports.FinanceEventRepository) *FinanceEventService
 	return &FinanceEventService{repo: r}
 }
 
-func (s *FinanceEventService) RecordInvoiceCreated(ctx context.Context, e domain.FinanceInvoiceCreatedEvent) (domain.FinanceInvoiceCreatedEvent, error) {
+func (s *FinanceEventService) RecordInvoiceCreated(ctx context.Context, e db.FinanceInvoiceCreatedEvent) (db.FinanceInvoiceCreatedEvent, error) {
 	return s.repo.InsertInvoiceCreated(ctx, e)
 }
 
-func (s *FinanceEventService) GetInvoiceCreatedEvents(ctx context.Context, orgID string, limit, offset int32) ([]domain.FinanceInvoiceCreatedEvent, error) {
+func (s *FinanceEventService) GetInvoiceCreatedEvents(ctx context.Context, orgID string, limit, offset int32) ([]db.FinanceInvoiceCreatedEvent, error) {
 	return s.repo.ListInvoiceCreated(ctx, orgID, limit, offset)
 }
 
-func (s *FinanceEventService) RecordPaymentReceived(ctx context.Context, e domain.FinancePaymentReceivedEvent) (domain.FinancePaymentReceivedEvent, error) {
+func (s *FinanceEventService) RecordPaymentReceived(ctx context.Context, e db.FinancePaymentReceivedEvent) (db.FinancePaymentReceivedEvent, error) {
 	return s.repo.InsertPaymentReceived(ctx, e)
 }
 
-func (s *FinanceEventService) GetPaymentReceivedEvents(ctx context.Context, orgID string, limit, offset int32) ([]domain.FinancePaymentReceivedEvent, error) {
+func (s *FinanceEventService) GetPaymentReceivedEvents(ctx context.Context, orgID string, limit, offset int32) ([]db.FinancePaymentReceivedEvent, error) {
 	return s.repo.ListPaymentReceived(ctx, orgID, limit, offset)
 }
 
-func (s *FinanceEventService) RecordInventoryCostPosted(ctx context.Context, e domain.InventoryCostPostedEvent) (domain.InventoryCostPostedEvent, error) {
+func (s *FinanceEventService) RecordInventoryCostPosted(ctx context.Context, e db.InventoryCostPostedEvent) (db.InventoryCostPostedEvent, error) {
 	return s.repo.InsertInventoryCostPosted(ctx, e)
 }
 
-func (s *FinanceEventService) GetInventoryCostPostedEvents(ctx context.Context, orgID string, limit, offset int32) ([]domain.InventoryCostPostedEvent, error) {
+func (s *FinanceEventService) GetInventoryCostPostedEvents(ctx context.Context, orgID string, limit, offset int32) ([]db.InventoryCostPostedEvent, error) {
 	return s.repo.ListInventoryCostPosted(ctx, orgID, limit, offset)
 }
 
-func (s *FinanceEventService) RecordPayrollPosted(ctx context.Context, e domain.PayrollPostedEvent) (domain.PayrollPostedEvent, error) {
+func (s *FinanceEventService) RecordPayrollPosted(ctx context.Context, e db.PayrollPostedEvent) (db.PayrollPostedEvent, error) {
 	return s.repo.InsertPayrollPosted(ctx, e)
 }
 
-func (s *FinanceEventService) GetPayrollPostedEvents(ctx context.Context, orgID string, limit, offset int32) ([]domain.PayrollPostedEvent, error) {
+func (s *FinanceEventService) GetPayrollPostedEvents(ctx context.Context, orgID string, limit, offset int32) ([]db.PayrollPostedEvent, error) {
 	return s.repo.ListPayrollPosted(ctx, orgID, limit, offset)
 }
 
-func (s *FinanceEventService) RecordVendorBillApproved(ctx context.Context, e domain.VendorBillApprovedEvent) (domain.VendorBillApprovedEvent, error) {
+func (s *FinanceEventService) RecordVendorBillApproved(ctx context.Context, e db.VendorBillApprovedEvent) (db.VendorBillApprovedEvent, error) {
 	return s.repo.InsertVendorBillApproved(ctx, e)
 }
 
-func (s *FinanceEventService) GetVendorBillApprovedEvents(ctx context.Context, orgID string, limit, offset int32) ([]domain.VendorBillApprovedEvent, error) {
+func (s *FinanceEventService) GetVendorBillApprovedEvents(ctx context.Context, orgID string, limit, offset int32) ([]db.VendorBillApprovedEvent, error) {
 	return s.repo.ListVendorBillApproved(ctx, orgID, limit, offset)
 }

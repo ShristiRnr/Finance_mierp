@@ -3,7 +3,7 @@ package grpc_server
 import (
 	"context"
 
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
+	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 	"github.com/google/uuid"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/services"
 )
@@ -18,19 +18,19 @@ func NewBudgetHandler(service *services.BudgetService) *BudgetHandler {
 
 // ---------------- Budgets ----------------
 
-func (h *BudgetHandler) CreateBudget(ctx context.Context, b *domain.Budget) (*domain.Budget, error) {
+func (h *BudgetHandler) CreateBudget(ctx context.Context, b *db.Budget) (*db.Budget, error) {
 	return h.service.CreateBudget(ctx, b)
 }
 
-func (h *BudgetHandler) GetBudget(ctx context.Context, id uuid.UUID) (*domain.Budget, error) {
+func (h *BudgetHandler) GetBudget(ctx context.Context, id uuid.UUID) (*db.Budget, error) {
 	return h.service.GetBudget(ctx, id)
 }
 
-func (h *BudgetHandler) ListBudget(ctx context.Context, limit, offset int32) ([]*domain.Budget, error) {
+func (h *BudgetHandler) ListBudget(ctx context.Context, limit, offset int32) ([]*db.Budget, error) {
 	return h.service.ListBudgets(ctx, limit, offset)
 }
 
-func (h *BudgetHandler) UpdateBudget(ctx context.Context, b *domain.Budget) (*domain.Budget, error) {
+func (h *BudgetHandler) UpdateBudget(ctx context.Context, b *db.Budget) (*db.Budget, error) {
 	return h.service.UpdateBudget(ctx, b)
 }
 
@@ -40,19 +40,19 @@ func (h *BudgetHandler) DeleteBudget(ctx context.Context, id uuid.UUID) error {
 
 // ---------------- Budget Allocations ----------------
 
-func (h *BudgetHandler) AllocateBudget(ctx context.Context, ba *domain.BudgetAllocation) (*domain.BudgetAllocation, error) {
+func (h *BudgetHandler) AllocateBudget(ctx context.Context, ba *db.BudgetAllocation) (*db.BudgetAllocation, error) {
 	return h.service.AllocateBudget(ctx, ba)
 }
 
-func (h *BudgetHandler) GetBudgetAllocation(ctx context.Context, id uuid.UUID) (*domain.BudgetAllocation, error) {
+func (h *BudgetHandler) GetBudgetAllocation(ctx context.Context, id uuid.UUID) (*db.BudgetAllocation, error) {
 	return h.service.GetBudgetAllocation(ctx, id)
 }
 
-func (h *BudgetHandler) ListBudgetAllocations(ctx context.Context, budgetID uuid.UUID, limit, offset int32) ([]*domain.BudgetAllocation, error) {
+func (h *BudgetHandler) ListBudgetAllocations(ctx context.Context, budgetID uuid.UUID, limit, offset int32) ([]*db.BudgetAllocation, error) {
 	return h.service.ListBudgetAllocations(ctx, budgetID, limit, offset)
 }
 
-func (h *BudgetHandler) UpdateBudgetAllocation(ctx context.Context, ba *domain.BudgetAllocation) (*domain.BudgetAllocation, error) {
+func (h *BudgetHandler) UpdateBudgetAllocation(ctx context.Context, ba *db.BudgetAllocation) (*db.BudgetAllocation, error) {
 	return h.service.UpdateBudgetAllocation(ctx, ba)
 }
 
@@ -62,6 +62,6 @@ func (h *BudgetHandler) DeleteBudgetAllocation(ctx context.Context, id uuid.UUID
 
 // ---------------- Budget Comparison ----------------
 
-func (h *BudgetHandler) GetBudgetComparison(ctx context.Context, id uuid.UUID) (*domain.BudgetComparisonReport, error) {
+func (h *BudgetHandler) GetBudgetComparison(ctx context.Context, id uuid.UUID) (*db.BudgetComparisonReport, error) {
 	return h.service.GetBudgetComparison(ctx, id)
 }

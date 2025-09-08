@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
+	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 )
 
@@ -16,19 +16,19 @@ func NewExpenseService(r ports.ExpenseRepository) ports.ExpenseService {
 	return &ExpenseService{repo: r}
 }
 
-func (s *ExpenseService) CreateExpense(ctx context.Context, exp domain.Expense) (domain.Expense, error) {
+func (s *ExpenseService) CreateExpense(ctx context.Context, exp db.Expense) (db.Expense, error) {
 	return s.repo.Create(ctx, exp)
 }
 
-func (s *ExpenseService) GetExpense(ctx context.Context, id uuid.UUID) (domain.Expense, error) {
+func (s *ExpenseService) GetExpense(ctx context.Context, id uuid.UUID) (db.Expense, error) {
 	return s.repo.Get(ctx, id)
 }
 
-func (s *ExpenseService) ListExpenses(ctx context.Context, limit, offset int32) ([]domain.Expense, error) {
+func (s *ExpenseService) ListExpenses(ctx context.Context, limit, offset int32) ([]db.Expense, error) {
 	return s.repo.List(ctx, limit, offset)
 }
 
-func (s *ExpenseService) UpdateExpense(ctx context.Context, exp domain.Expense) (domain.Expense, error) {
+func (s *ExpenseService) UpdateExpense(ctx context.Context, exp db.Expense) (db.Expense, error) {
 	return s.repo.Update(ctx, exp)
 }
 
@@ -44,19 +44,19 @@ func NewCostCenterService(r ports.CostCenterRepository) ports.CostCenterService 
 	return &CostCenterService{repo: r}
 }
 
-func (s *CostCenterService) CreateCostCenter(ctx context.Context, cc domain.CostCenter) (domain.CostCenter, error) {
+func (s *CostCenterService) CreateCostCenter(ctx context.Context, cc db.CostCenter) (db.CostCenter, error) {
 	return s.repo.Create(ctx, cc)
 }
 
-func (s *CostCenterService) GetCostCenter(ctx context.Context, id uuid.UUID) (domain.CostCenter, error) {
+func (s *CostCenterService) GetCostCenter(ctx context.Context, id uuid.UUID) (db.CostCenter, error) {
 	return s.repo.Get(ctx, id)
 }
 
-func (s *CostCenterService) ListCostCenters(ctx context.Context, limit, offset int32) ([]domain.CostCenter, error) {
+func (s *CostCenterService) ListCostCenters(ctx context.Context, limit, offset int32) ([]db.CostCenter, error) {
 	return s.repo.List(ctx, limit, offset)
 }
 
-func (s *CostCenterService) UpdateCostCenter(ctx context.Context, cc domain.CostCenter) (domain.CostCenter, error) {
+func (s *CostCenterService) UpdateCostCenter(ctx context.Context, cc db.CostCenter) (db.CostCenter, error) {
 	return s.repo.Update(ctx, cc)
 }
 
@@ -73,10 +73,10 @@ func NewCostAllocationService(r ports.CostAllocationRepository) ports.CostAlloca
 	return &CostAllocationService{repo: r}
 }
 
-func (s *CostAllocationService) AllocateCost(ctx context.Context, ca domain.CostAllocation) (domain.CostAllocation, error) {
+func (s *CostAllocationService) AllocateCost(ctx context.Context, ca db.CostAllocation) (db.CostAllocation, error) {
 	return s.repo.Allocate(ctx, ca)
 }
 
-func (s *CostAllocationService) ListAllocations(ctx context.Context, limit, offset int32) ([]domain.CostAllocation, error) {
+func (s *CostAllocationService) ListAllocations(ctx context.Context, limit, offset int32) ([]db.CostAllocation, error) {
 	return s.repo.List(ctx, limit, offset)
 }

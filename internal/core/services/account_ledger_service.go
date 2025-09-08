@@ -1,10 +1,11 @@
+
 package services
 
 import (
 	"context"
 	"errors"
 
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
+	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 	"github.com/google/uuid"
 )
@@ -18,64 +19,94 @@ var (
 // AccountService
 type AccountService struct {
 	repo ports.AccountRepository
+	publisher ports.EventPublisher
 }
 
-func NewAccountService(repo ports.AccountRepository) *AccountService {
-	return &AccountService{repo: repo}
+func NewAccountService(repo ports.AccountRepository, pub ports.EventPublisher) *AccountService {
+	return &AccountService{repo: repo, publisher: pub}
 }
 
-func (s *AccountService) Create(ctx context.Context, a domain.Account) (domain.Account, error) {
-	if a.Code == "" || a.Name == "" {
-		return domain.Account{}, ErrInvalidInput
+func (s *AccountService) Create(ctx context.Context, a db.Account) (db.Account, error) {
+	created, err := s.repo.Create(ctx, a)
+	if err != nil {
+		return db.Account{}, err
 	}
-	return s.repo.Create(ctx, a)
+	// publish asynchronously best-effort: log errors, don't fail create
+	_ = s.publisher.PublishAccountCreated(ctx, created)
+	return created, nil
 }
 
-func (s *AccountService) Get(ctx context.Context, id uuid.UUID) (domain.Account, error) {
+func (s *AccountService) Get(ctx context.Context, id uuid.UUID) (db.Account, error) {
 	return s.repo.Get(ctx, id)
 }
 
-func (s *AccountService) Update(ctx context.Context, a domain.Account) (domain.Account, error) {
-	return s.repo.Update(ctx, a)
+// AccountService
+func (s *AccountService) Update(ctx context.Context, a db.Account) (db.Account, error) {
+	updated, err := s.repo.Update(ctx, a)
+	if err != nil {
+		return db.Account{}, err
+	}
+	// Publish best-effort
+	_ = s.publisher.PublishAccountUpdated(ctx, updated)
+	return updated, nil
 }
 
 func (s *AccountService) Delete(ctx context.Context, id uuid.UUID) error {
-	return s.repo.Delete(ctx, id)
+	if err := s.repo.Delete(ctx, id); err != nil {
+		return err
+	}
+	// Publish best-effort
+	_ = s.publisher.PublishAccountDeleted(ctx, id.String())
+	return nil
 }
 
-func (s *AccountService) List(ctx context.Context, limit, offset int32) ([]domain.Account, error) {
+
+func (s *AccountService) List(ctx context.Context, limit, offset int32) ([]db.Account, error) {
 	return s.repo.List(ctx, limit, offset)
 }
 
 // JournalService
 type JournalService struct {
 	repo ports.JournalRepository
+	publisher ports.EventPublisher
 }
 
-func NewJournalService(repo ports.JournalRepository) *JournalService {
-	return &JournalService{repo: repo}
+func NewJournalService(repo ports.JournalRepository, pub ports.EventPublisher) *JournalService {
+	return &JournalService{repo: repo, publisher: pub}
 }
 
-func (s *JournalService) Create(ctx context.Context, j domain.JournalEntry) (domain.JournalEntry, error) {
-	if j.JournalDate.IsZero() {
-		return domain.JournalEntry{}, ErrInvalidInput
+func (s *JournalService) Create(ctx context.Context, j db.JournalEntry) (db.JournalEntry, error) {
+	created, err := s.repo.Create(ctx, j)
+	if err != nil {
+		return db.JournalEntry{}, err
 	}
-	return s.repo.Create(ctx, j)
+	_ = s.publisher.PublishJournalCreated(ctx, created)
+	return created, nil
 }
 
-func (s *JournalService) Get(ctx context.Context, id uuid.UUID) (domain.JournalEntry, error) {
+func (s *JournalService) Get(ctx context.Context, id uuid.UUID) (db.JournalEntry, error) {
 	return s.repo.Get(ctx, id)
 }
 
-func (s *JournalService) Update(ctx context.Context, j domain.JournalEntry) (domain.JournalEntry, error) {
-	return s.repo.Update(ctx, j)
+func (s *JournalService) Update(ctx context.Context, j db.JournalEntry) (db.JournalEntry, error) {
+	updated, err := s.repo.Update(ctx, j)
+	if err != nil {
+		return db.JournalEntry{}, err
+	}
+	_ = s.publisher.PublishJournalUpdated(ctx, updated)
+	return updated, nil
 }
+
 
 func (s *JournalService) Delete(ctx context.Context, id uuid.UUID) error {
-	return s.repo.Delete(ctx, id)
+	if err := s.repo.Delete(ctx, id); err != nil {
+		return err
+	}
+	_ = s.publisher.PublishJournalDeleted(ctx, id.String())
+	return nil
 }
 
-func (s *JournalService) List(ctx context.Context, limit, offset int32) ([]domain.JournalEntry, error) {
+func (s *JournalService) List(ctx context.Context, limit, offset int32) ([]db.JournalEntry, error) {
 	return s.repo.List(ctx, limit, offset)
 }
 
@@ -88,6 +119,6 @@ func NewLedgerService(repo ports.LedgerRepository) *LedgerService {
 	return &LedgerService{repo: repo}
 }
 
-func (s *LedgerService) List(ctx context.Context, limit, offset int32) ([]domain.LedgerEntry, error) {
+func (s *LedgerService) List(ctx context.Context, limit, offset int32) ([]db.LedgerEntry, error) {
 	return s.repo.List(ctx, limit, offset)
 }

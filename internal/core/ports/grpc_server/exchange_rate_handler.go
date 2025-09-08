@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	pb "github.com/ShristiRnr/Finance_mierp/api/pb"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
+	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
@@ -26,13 +26,13 @@ func (h *ExchangeRateHandler) CreateExchangeRate(ctx context.Context, req *pb.Cr
     // convert float64 → string
     rateStr := strconv.FormatFloat(req.Rate.Rate, 'f', -1, 64)
 
-    rate := domain.ExchangeRate{
+    rate := db.ExchangeRate{
 		ID:            uuid.New(),
         BaseCurrency:  req.Rate.BaseCurrency,
         QuoteCurrency: req.Rate.QuoteCurrency,
         Rate:          rateStr,                 // ✅ now string
         AsOf:          req.Rate.AsOf.AsTime(),
-        CreatedBy:     &req.Meta.AuthSubject,
+        CreatedBy:     toNullString(req.Meta.AuthSubject),
     }
 
     created, err := h.svc.Create(ctx, rate)
@@ -64,13 +64,13 @@ func (h *ExchangeRateHandler) UpdateExchangeRate(ctx context.Context, req *pb.Up
     // Convert float64 → string
     rateStr := strconv.FormatFloat(req.Rate.Rate, 'f', -1, 64)
 
-    rate := domain.ExchangeRate{
+    rate := db.ExchangeRate{
         ID:            id,
         BaseCurrency:  req.Rate.BaseCurrency,
         QuoteCurrency: req.Rate.QuoteCurrency,
         Rate:          rateStr,
         AsOf:          req.Rate.AsOf.AsTime(),
-        UpdatedBy:     &req.Meta.AuthSubject,
+        UpdatedBy:     toNullString(req.Meta.AuthSubject),
     }
 
     updated, err := h.svc.Update(ctx, rate)

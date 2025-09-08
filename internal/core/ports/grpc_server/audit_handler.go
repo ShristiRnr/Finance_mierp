@@ -3,7 +3,7 @@ package grpc_server
 import (
 	"context"
 	"strconv"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
+	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/services"
 	pb "github.com/ShristiRnr/Finance_mierp/api/pb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -22,27 +22,27 @@ func NewAuditHandler(service *services.AuditService) *AuditHandler {
 }
 
 // Helper to convert from domain model to proto message
-func toProto(e *domain.AuditEvent) *pb.AuditEvent {
+func toProto(e *db.AuditEvent) *pb.AuditEvent {
 	return &pb.AuditEvent{
-		Id:           e.ID,
+		Id:           e.ID.String(),
 		UserId:       e.UserID,
 		Action:       e.Action,
 		Timestamp:    timestamppb.New(e.Timestamp),
-		Details:      e.Details,
-		ResourceType: e.ResourceType,
-		ResourceId:   e.ResourceID,
+		Details:      e.Details.String,
+		ResourceType: e.ResourceType.String,
+		ResourceId:   e.ResourceID.String,
 	}
 }
 
 func (s *AuditHandler) RecordAuditEvent(ctx context.Context, req *pb.RecordAuditEventRequest) (*pb.AuditEvent, error) {
 	event := req.GetEvent()
-	domainEvent := &domain.AuditEvent{
+	domainEvent := &db.AuditEvent{
 		UserID:       event.GetUserId(),
 		Action:       event.GetAction(),
 		Timestamp:    event.GetTimestamp().AsTime(),
-		Details:      event.GetDetails(),
-		ResourceType: event.GetResourceType(),
-		ResourceID:   event.GetResourceId(),
+		Details:      toNullString(event.GetDetails()),
+		ResourceType: toNullString(event.GetResourceType()),
+		ResourceID:   toNullString(event.GetResourceId()),
 	}
 
 	recordedEvent, err := s.service.Record(ctx, domainEvent)
@@ -79,7 +79,7 @@ func (s *AuditHandler) ListAuditEvents(ctx context.Context, req *pb.ListAuditEve
 	}
 
 	// Get events + total count from service
-	events, err := s.service.List(ctx, domain.Pagination{Offset: offset, Limit: limit})
+	events, err := s.service.List(ctx, db.Pagination{ Offset: int(offset), Limit: int(limit) })
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func (s *AuditHandler) ListAuditEvents(ctx context.Context, req *pb.ListAuditEve
 
 
 func (s *AuditHandler) FilterAuditEvents(ctx context.Context, req *pb.FilterAuditEventsRequest) (*pb.FilterAuditEventsResponse, error) {
-	filter := domain.FilterParams{}
+	filter := db.FilterParams{}
 	if req.UserId != "" {
 		filter.UserID = &req.UserId
 	}
@@ -149,7 +149,7 @@ func (s *AuditHandler) FilterAuditEvents(ctx context.Context, req *pb.FilterAudi
 	}
 
 	// Call the service
-	events, err := s.service.Filter(ctx, filter, domain.Pagination{Offset: offset, Limit: limit})
+	events, err := s.service.Filter(ctx, filter, db.Pagination{Limit: int(limit), Offset: int(offset)})
 	if err != nil {
 		return nil, err
 	}

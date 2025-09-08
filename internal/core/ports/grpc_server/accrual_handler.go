@@ -10,7 +10,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	pb "github.com/ShristiRnr/Finance_mierp/api/pb"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
+	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/services"
 )
 
@@ -28,13 +28,13 @@ func (h *AccrualHandler) CreateAccrual(ctx context.Context, req *pb.CreateAccrua
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid id")
 	}
-	acc, err := h.svc.Create(ctx, domain.Accrual{
+	acc, err := h.svc.Create(ctx, db.Accrual{
 		ID:          id,
-		Description: stringPtr(req.Accrual.Description),
+		Description: toNullString(req.Accrual.Description),
 		Amount:      moneyToString(req.Accrual.Amount),
 		AccrualDate: req.Accrual.AccrualDate.AsTime(),
 		AccountID:   req.Accrual.AccountId,
-		UpdatedBy:   getUserFromContext(ctx),
+		UpdatedBy:   toNullString(getUserFromContext(ctx)),
 	})
 	if err != nil {
 		return nil, err
@@ -60,13 +60,13 @@ func (h *AccrualHandler) UpdateAccrual(ctx context.Context, req *pb.UpdateAccrua
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid id")
 	}
-	acc, err := h.svc.Update(ctx, domain.Accrual{
+	acc, err := h.svc.Update(ctx, db.Accrual{
 		ID:          id,
-		Description: &req.Accrual.Description,
+		Description: toNullString(req.Accrual.Description),
 		Amount:      moneyToString(req.Accrual.Amount),
 		AccrualDate: req.Accrual.AccrualDate.AsTime(),
 		AccountID:   req.Accrual.AccountId,
-		UpdatedBy:   getUserFromContext(ctx),
+		UpdatedBy:   toNullString(getUserFromContext(ctx)),
 	})
 	if err != nil {
 		return nil, err

@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/domain"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 )
 
@@ -20,7 +19,7 @@ func NewCashFlowForecastRepo(dbConn *sql.DB) ports.CashFlowForecastRepository {
 	}
 }
 
-func (r *CashFlowForecastRepository) Generate(ctx context.Context, cf *domain.CashFlowForecast) (*domain.CashFlowForecast, error) {
+func (r *CashFlowForecastRepository) Generate(ctx context.Context, cf *db.CashFlowForecast) (*db.CashFlowForecast, error) {
 	row, err := r.queries.GenerateCashFlowForecast(ctx, db.GenerateCashFlowForecastParams{
 		OrganizationID:  cf.OrganizationID,
 		PeriodStart:     cf.PeriodStart,
@@ -33,7 +32,7 @@ func (r *CashFlowForecastRepository) Generate(ctx context.Context, cf *domain.Ca
 	return mapCashFlowForecast(row), nil
 }
 
-func (r *CashFlowForecastRepository) Get(ctx context.Context, id uuid.UUID) (*domain.CashFlowForecast, error) {
+func (r *CashFlowForecastRepository) Get(ctx context.Context, id uuid.UUID) (*db.CashFlowForecast, error) {
 	row, err := r.queries.GetCashFlowForecast(ctx, id)
 	if err != nil {
 		return nil, err
@@ -41,7 +40,7 @@ func (r *CashFlowForecastRepository) Get(ctx context.Context, id uuid.UUID) (*do
 	return mapCashFlowForecast(row), nil
 }
 
-func (r *CashFlowForecastRepository) List(ctx context.Context, organizationID string, limit, offset int32) ([]*domain.CashFlowForecast, error) {
+func (r *CashFlowForecastRepository) List(ctx context.Context, organizationID string, limit, offset int32) ([]*db.CashFlowForecast, error) {
 	rows, err := r.queries.ListCashFlowForecasts(ctx, db.ListCashFlowForecastsParams{
 		OrganizationID: organizationID,
 		Limit:          limit,
@@ -51,7 +50,7 @@ func (r *CashFlowForecastRepository) List(ctx context.Context, organizationID st
 		return nil, err
 	}
 
-	result := make([]*domain.CashFlowForecast, len(rows))
+	result := make([]*db.CashFlowForecast, len(rows))
 	for i, row := range rows {
 		result[i] = mapCashFlowForecast(row)
 	}
@@ -60,22 +59,18 @@ func (r *CashFlowForecastRepository) List(ctx context.Context, organizationID st
 
 // ===================================================== Helpers ========================================================
 
-func mapCashFlowForecast(row db.CashFlowForecast) *domain.CashFlowForecast {
-	var revision int32
-	if row.Revision.Valid {
-		revision = row.Revision.Int32
-	}
+func mapCashFlowForecast(row db.CashFlowForecast) *db.CashFlowForecast {
 
-	return &domain.CashFlowForecast{
+	return &db.CashFlowForecast{
 		ID:              row.ID,
 		OrganizationID:  row.OrganizationID,
 		PeriodStart:     row.PeriodStart,
 		PeriodEnd:       row.PeriodEnd,
 		ForecastDetails: row.ForecastDetails,
-		CreatedAt:       row.CreatedAt.Time,
-		CreatedBy:       row.CreatedBy.String,
-		UpdatedAt:       row.UpdatedAt.Time,
-		UpdatedBy:       row.UpdatedBy.String,
-		Revision:        revision,
+		CreatedAt:       row.CreatedAt,
+		CreatedBy:       row.CreatedBy,
+		UpdatedAt:       row.UpdatedAt,
+		UpdatedBy:       row.UpdatedBy,
+		Revision:        row.Revision,
 	}
 }
