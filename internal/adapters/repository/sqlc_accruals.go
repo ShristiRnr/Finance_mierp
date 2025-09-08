@@ -35,8 +35,6 @@ func (r *accrualRepository) Create(ctx context.Context, a db.Accrual) (db.Accrua
 	}
 	domainAccrual := toDomainAccrual(res)
 
-	// Publish Kafka event
-	_ = r.publisher.PublishAccrualCreated(ctx, domainAccrual)
 
 	return domainAccrual, nil
 }
@@ -64,9 +62,6 @@ func (r *accrualRepository) Update(ctx context.Context, a db.Accrual) (db.Accrua
 	}
 	domainAccrual := toDomainAccrual(res)
 
-	// Publish Kafka event
-	_ = r.publisher.PublishAccrualUpdated(ctx, domainAccrual)
-
 	return domainAccrual, nil
 }
 
@@ -74,9 +69,6 @@ func (r *accrualRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	if err := r.q.DeleteAccrual(ctx, id); err != nil {
 		return err
 	}
-
-	// Publish Kafka event
-	_ = r.publisher.PublishAccrualDeleted(ctx, id.String())
 
 	return nil
 }
@@ -134,8 +126,6 @@ func (r *AllocationRuleRepository) Create(ctx context.Context, rule db.Allocatio
 		return db.AllocationRule{}, err
 	}
 
-	// Publish Kafka event
-	_ = r.publisher.PublishAllocationRuleCreated(ctx, res)
 
 	return res, nil
 }
@@ -166,9 +156,6 @@ func (r *AllocationRuleRepository) Update(ctx context.Context, rule db.Allocatio
 		return db.AllocationRule{}, err
 	}
 
-	// Publish Kafka event
-	_ = r.publisher.PublishAllocationRuleUpdated(ctx, res)
-
 	return res, nil
 }
 
@@ -176,8 +163,5 @@ func (r *AllocationRuleRepository) Delete(ctx context.Context, id uuid.UUID) err
 	if err := r.q.DeleteAllocationRule(ctx, id); err != nil {
 		return err
 	}
-
-	// Publish Kafka event
-	_ = r.publisher.PublishAllocationRuleDeleted(ctx, id.String())
 	return nil
 }

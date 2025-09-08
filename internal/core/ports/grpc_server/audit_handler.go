@@ -3,22 +3,26 @@ package grpc_server
 import (
 	"context"
 	"strconv"
-	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/services"
+
 	pb "github.com/ShristiRnr/Finance_mierp/api/pb"
-	"google.golang.org/protobuf/types/known/timestamppb"
+	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
+	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
+	"github.com/ShristiRnr/Finance_mierp/internal/core/services"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Server implements the gRPC server for the AuditTrailService.
 type AuditHandler struct {
 	pb.UnimplementedAuditTrailServiceServer
 	service *services.AuditService
+	producer ports.EventPublisher
 }
 
-func NewAuditHandler(service *services.AuditService) *AuditHandler {
-	return &AuditHandler{service: service}
+func NewAuditHandler(service *services.AuditService,producer ports.EventPublisher) *AuditHandler {
+	return &AuditHandler{service: service,
+	producer: producer,}
 }
 
 // Helper to convert from domain model to proto message
@@ -45,13 +49,15 @@ func (s *AuditHandler) RecordAuditEvent(ctx context.Context, req *pb.RecordAudit
 		ResourceID:   toNullString(event.GetResourceId()),
 	}
 
+	// Save + publish (delegated to service)
 	recordedEvent, err := s.service.Record(ctx, domainEvent)
 	if err != nil {
-		return nil, err // Convert to gRPC error status
+		return nil, status.Errorf(codes.Internal, "failed to record audit: %v", err)
 	}
 
 	return toProto(recordedEvent), nil
 }
+
 
 func (s *AuditHandler) GetAuditEventById(ctx context.Context, req *pb.GetAuditEventByIdRequest) (*pb.AuditEvent, error) {
 	event, err := s.service.GetByID(ctx, req.GetId())

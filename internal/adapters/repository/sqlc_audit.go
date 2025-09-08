@@ -6,16 +6,18 @@ import (
 
 	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"// Your generated sqlc package
 	"github.com/google/uuid"
-
+	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 )
 // AuditRepository implements the repository.AuditRepository interface using sqlc.
 type AuditRepository struct {
 	queries *db.Queries
+	publisher ports.EventPublisher
 }
 
-func NewAuditRepository(database *sql.DB) *AuditRepository {
+func NewAuditRepository(database *sql.DB, pub ports.EventPublisher) *AuditRepository {
 	return &AuditRepository{
 		queries: db.New(database),
+		publisher: pub,
 	}
 }
 
@@ -45,7 +47,9 @@ func (r *AuditRepository) RecordAuditEvent(ctx context.Context, event *db.AuditE
 	if err != nil {
 		return nil, err
 	}
+
 	res := toDomain(recordedEvent)
+
 	return &res, nil
 }
 

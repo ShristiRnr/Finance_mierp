@@ -43,9 +43,6 @@ func (h *AccrualHandler) CreateAccrual(ctx context.Context, req *pb.CreateAccrua
 		return nil, err
 
 	}
-	// Kafka publish
-	_ = h.publisher.PublishAccrualCreated(ctx, acc)
-
 	return toPbAccrual(acc), nil
 }
 
@@ -77,8 +74,6 @@ func (h *AccrualHandler) UpdateAccrual(ctx context.Context, req *pb.UpdateAccrua
 	if err != nil {
 		return nil, err
 	}
-	// Kafka publish
-	_ = h.publisher.PublishAccrualUpdated(ctx, acc)
 
 	return toPbAccrual(acc), nil
 }
@@ -91,9 +86,6 @@ func (h *AccrualHandler) DeleteAccrual(ctx context.Context, req *pb.DeleteAccrua
 	if err := h.svc.Delete(ctx, id); err != nil {
 		return nil, err
 	}
-	// Kafka publish
-	_ = h.publisher.PublishAccrualDeleted(ctx, id.String())
-
 	return &emptypb.Empty{}, nil
 }
 
@@ -166,10 +158,6 @@ func (h *AllocationHandler) CreateRule(ctx context.Context, req *pb.CreateAlloca
 	if err != nil {
 		return nil, err
 	}
-
-	// Kafka publish
-	_ = h.publisher.PublishAllocationRuleCreated(ctx, rule)
-
 	return toPbAllocationRule(rule), nil
 }
 
@@ -192,9 +180,6 @@ func (h *AllocationHandler) UpdateRule(ctx context.Context, req *pb.UpdateAlloca
 		return nil, err
 	}
 
-	// Kafka publish
-	_ = h.publisher.PublishAllocationRuleUpdated(ctx, rule)
-
 	return toPbAllocationRule(rule), nil
 }
 
@@ -207,9 +192,6 @@ func (h *AllocationHandler) DeleteRule(ctx context.Context, req *pb.DeleteAlloca
 	if err := h.svc.DeleteRule(ctx, id); err != nil {
 		return nil, err
 	}
-
-	// Kafka publish
-	_ = h.publisher.PublishAllocationRuleDeleted(ctx, id.String())
 
 	return &emptypb.Empty{}, nil
 }

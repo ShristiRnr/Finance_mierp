@@ -4,6 +4,7 @@ package services
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
@@ -26,13 +27,21 @@ func NewAccountService(repo ports.AccountRepository, pub ports.EventPublisher) *
 	return &AccountService{repo: repo, publisher: pub}
 }
 
-func (s *AccountService) Create(ctx context.Context, a db.Account) (db.Account, error) {
-	created, err := s.repo.Create(ctx, a)
+func (s *AccountService) Create(ctx context.Context, a *db.Account) (*db.Account, error) {
+	createdVal, err := s.repo.Create(ctx, *a) // repo expects value type
 	if err != nil {
-		return db.Account{}, err
+		return nil, err
 	}
-	// publish asynchronously best-effort: log errors, don't fail create
-	_ = s.publisher.PublishAccountCreated(ctx, created)
+	created := &createdVal // convert to pointer for publishing
+
+	if s.publisher != nil {
+		go func(acct *db.Account) {
+			if err := s.publisher.PublishAccountCreated(context.Background(), acct); err != nil {
+				log.Printf("failed to publish account created: %v", err)
+			}
+		}(created)
+	}
+
 	return created, nil
 }
 
@@ -41,13 +50,21 @@ func (s *AccountService) Get(ctx context.Context, id uuid.UUID) (db.Account, err
 }
 
 // AccountService
-func (s *AccountService) Update(ctx context.Context, a db.Account) (db.Account, error) {
-	updated, err := s.repo.Update(ctx, a)
+func (s *AccountService) Update(ctx context.Context, a *db.Account) (*db.Account, error) {
+	updatedVal, err := s.repo.Update(ctx, *a)
 	if err != nil {
-		return db.Account{}, err
+		return nil, err
 	}
-	// Publish best-effort
-	_ = s.publisher.PublishAccountUpdated(ctx, updated)
+	updated := &updatedVal
+
+	if s.publisher != nil {
+		go func(acct *db.Account) {
+			if err := s.publisher.PublishAccountUpdated(context.Background(), acct); err != nil {
+				log.Printf("failed to publish account updated: %v", err)
+			}
+		}(updated)
+	}
+
 	return updated, nil
 }
 
@@ -55,8 +72,15 @@ func (s *AccountService) Delete(ctx context.Context, id uuid.UUID) error {
 	if err := s.repo.Delete(ctx, id); err != nil {
 		return err
 	}
-	// Publish best-effort
-	_ = s.publisher.PublishAccountDeleted(ctx, id.String())
+
+	if s.publisher != nil {
+		go func() {
+			if err := s.publisher.PublishAccountDeleted(context.Background(), id.String()); err != nil {
+				log.Printf("failed to publish account deleted: %v", err)
+			}
+		}()
+	}
+
 	return nil
 }
 
@@ -75,12 +99,21 @@ func NewJournalService(repo ports.JournalRepository, pub ports.EventPublisher) *
 	return &JournalService{repo: repo, publisher: pub}
 }
 
-func (s *JournalService) Create(ctx context.Context, j db.JournalEntry) (db.JournalEntry, error) {
-	created, err := s.repo.Create(ctx, j)
+func (s *JournalService) Create(ctx context.Context, j *db.JournalEntry) (*db.JournalEntry, error) {
+	createdVal, err := s.repo.Create(ctx, *j)
 	if err != nil {
-		return db.JournalEntry{}, err
+		return nil, err
 	}
-	_ = s.publisher.PublishJournalCreated(ctx, created)
+	created := &createdVal
+
+	if s.publisher != nil {
+		go func(jrnl *db.JournalEntry) {
+			if err := s.publisher.PublishJournalCreated(context.Background(), jrnl); err != nil {
+				log.Printf("failed to publish journal created: %v", err)
+			}
+		}(created)
+	}
+
 	return created, nil
 }
 
@@ -88,12 +121,21 @@ func (s *JournalService) Get(ctx context.Context, id uuid.UUID) (db.JournalEntry
 	return s.repo.Get(ctx, id)
 }
 
-func (s *JournalService) Update(ctx context.Context, j db.JournalEntry) (db.JournalEntry, error) {
-	updated, err := s.repo.Update(ctx, j)
+func (s *JournalService) Update(ctx context.Context, j *db.JournalEntry) (*db.JournalEntry, error) {
+	updatedVal, err := s.repo.Update(ctx, *j)
 	if err != nil {
-		return db.JournalEntry{}, err
+		return nil, err
 	}
-	_ = s.publisher.PublishJournalUpdated(ctx, updated)
+	updated := &updatedVal
+
+	if s.publisher != nil {
+		go func(jrnl *db.JournalEntry) {
+			if err := s.publisher.PublishJournalUpdated(context.Background(), jrnl); err != nil {
+				log.Printf("failed to publish journal updated: %v", err)
+			}
+		}(updated)
+	}
+
 	return updated, nil
 }
 
@@ -102,7 +144,15 @@ func (s *JournalService) Delete(ctx context.Context, id uuid.UUID) error {
 	if err := s.repo.Delete(ctx, id); err != nil {
 		return err
 	}
-	_ = s.publisher.PublishJournalDeleted(ctx, id.String())
+
+	if s.publisher != nil {
+		go func() {
+			if err := s.publisher.PublishJournalDeleted(context.Background(), id.String()); err != nil {
+				log.Printf("failed to publish journal deleted: %v", err)
+			}
+		}()
+	}
+
 	return nil
 }
 

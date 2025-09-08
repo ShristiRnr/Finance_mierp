@@ -4,53 +4,77 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"time"
-	"fmt"
 
 	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 	"github.com/segmentio/kafka-go"
 )
 
+//
+// ---------------- Constants ----------------
+//
+const (
+	TopicAccounts        = "accounts"
+	TopicJournals        = "journals"
+	TopicAccruals        = "accruals"
+	TopicAllocationRules = "allocation_rules"
+	TopicAuditEvents     = "audit_events"
+
+	EventAccountCreated = "account.created"
+	EventAccountUpdated = "account.updated"
+	EventAccountDeleted = "account.deleted"
+
+	EventJournalCreated = "journal.created"
+	EventJournalUpdated = "journal.updated"
+	EventJournalDeleted = "journal.deleted"
+
+	EventAccrualCreated = "accrual.created"
+	EventAccrualUpdated = "accrual.updated"
+	EventAccrualDeleted = "accrual.deleted"
+
+	EventAllocationRuleCreated = "allocation_rule.created"
+	EventAllocationRuleUpdated = "allocation_rule.updated"
+	EventAllocationRuleDeleted = "allocation_rule.deleted"
+
+	EventAuditRecorded = "audit.recorded"
+)
+
+//
+// ---------------- Publisher ----------------
+//
+
 type KafkaPublisher struct {
 	writers map[string]*kafka.Writer
 }
 
-// NewKafkaPublisher initializes Kafka writers for accounts and journals topics
-func NewKafkaPublisher(brokers []string) ports.EventPublisher {
-	return &KafkaPublisher{
-		writers: map[string]*kafka.Writer{
-			"accounts": {
-				Addr:         kafka.TCP(brokers...),
-				Topic:        "accounts",
-				Balancer:     &kafka.LeastBytes{},
-				RequiredAcks: kafka.RequireAll,
-				Async:        false,
-			},
-			"journals": {
-				Addr:         kafka.TCP(brokers...),
-				Topic:        "journals",
-				Balancer:     &kafka.LeastBytes{},
-				RequiredAcks: kafka.RequireAll,
-				Async:        false,
-			},
-			"accruals": {
-				Addr:         kafka.TCP(brokers...),
-				Topic:        "accruals",
-				Balancer:     &kafka.LeastBytes{},
-				RequiredAcks: kafka.RequireAll,
-				Async:        false,
-			},
-			"allocation_rules": {
-				Addr:         kafka.TCP(brokers...),
-				Topic:        "allocation_rules",
-				Balancer:     &kafka.LeastBytes{},
-				RequiredAcks: kafka.RequireAll,
-				Async:        false,
-			},
-		},
+func newWriter(brokers []string, topic string) *kafka.Writer {
+	return &kafka.Writer{
+		Addr:         kafka.TCP(brokers...),
+		Topic:        topic,
+		Balancer:     &kafka.LeastBytes{},
+		RequiredAcks: kafka.RequireAll,
+		Async:        false,
 	}
+}
+
+func NewKafkaPublisher(brokers []string) ports.EventPublisher {
+	topics := []string{
+		TopicAccounts,
+		TopicJournals,
+		TopicAccruals,
+		TopicAllocationRules,
+		TopicAuditEvents,
+	}
+
+	writers := make(map[string]*kafka.Writer, len(topics))
+	for _, t := range topics {
+		writers[t] = newWriter(brokers, t)
+	}
+
+	return &KafkaPublisher{writers: writers}
 }
 
 func (p *KafkaPublisher) Publish(ctx context.Context, topic, key string, payload []byte) error {
@@ -60,56 +84,6 @@ func (p *KafkaPublisher) Publish(ctx context.Context, topic, key string, payload
 	}
 	msg := kafka.Message{Key: []byte(key), Value: payload}
 	return writer.WriteMessages(ctx, msg)
-}
-
-
-func (p *KafkaPublisher) PublishAccountCreated(ctx context.Context, a db.Account) error {
-	return p.publish(ctx, "accounts", "account.created", a)
-}
-
-func (p *KafkaPublisher) PublishAccountUpdated(ctx context.Context, a db.Account) error {
-	return p.publish(ctx, "accounts", "account.updated", a)
-}
-
-func (p *KafkaPublisher) PublishAccountDeleted(ctx context.Context, id string) error {
-	return p.publish(ctx, "accounts", "account.deleted", id)
-}
-
-func (p *KafkaPublisher) PublishJournalCreated(ctx context.Context, j db.JournalEntry) error {
-	return p.publish(ctx, "journals", "journal.created", j)
-}
-
-func (p *KafkaPublisher) PublishJournalUpdated(ctx context.Context, j db.JournalEntry) error {
-	return p.publish(ctx, "journals", "journal.updated", j)
-}
-
-func (p *KafkaPublisher) PublishJournalDeleted(ctx context.Context, id string) error {
-	return p.publish(ctx, "journals", "journal.deleted", id)
-}
-
-// --- Accrual events ---
-func (p *KafkaPublisher) PublishAccrualCreated(ctx context.Context, a db.Accrual) error {
-	return p.publish(ctx, "accruals", "accrual.created", a)
-}
-
-func (p *KafkaPublisher) PublishAccrualUpdated(ctx context.Context, a db.Accrual) error {
-	return p.publish(ctx, "accruals", "accrual.updated", a)
-}
-
-func (p *KafkaPublisher) PublishAccrualDeleted(ctx context.Context, id string) error {
-	return p.publish(ctx, "accruals", "accrual.deleted", id)
-}
-
-// --- AllocationRule events ---
-func (p *KafkaPublisher) PublishAllocationRuleCreated(ctx context.Context, rule db.AllocationRule) error {
-	return p.publish(ctx, "allocation_rules", "allocation_rule.created", rule)
-}
-func (p *KafkaPublisher) PublishAllocationRuleUpdated(ctx context.Context, rule db.AllocationRule) error {
-	return p.publish(ctx, "allocation_rules", "allocation_rule.updated", rule)
-}
-
-func (p *KafkaPublisher) PublishAllocationRuleDeleted(ctx context.Context, id string) error {
-	return p.publish(ctx, "allocation_rules", "allocation_rule.deleted", id)
 }
 
 func (p *KafkaPublisher) publish(ctx context.Context, topic, key string, v interface{}) error {
@@ -129,22 +103,75 @@ func (p *KafkaPublisher) publish(ctx context.Context, topic, key string, v inter
 		Time:  time.Now(),
 	}
 
-	// simple retry mechanism
+	// retry with exponential backoff and context timeout
 	for i := 0; i < 3; i++ {
-		if err := writer.WriteMessages(ctx, msg); err != nil {
-			log.Printf("kafka publish error attempt=%d topic=%s: %v", i+1, topic, err)
-			time.Sleep(time.Second * time.Duration(i+1))
-			continue
+		ctxTimeout, cancel := context.WithTimeout(ctx, 5*time.Second)
+		err = writer.WriteMessages(ctxTimeout, msg)
+		cancel()
+		if err == nil {
+			return nil
 		}
-		return nil
+		log.Printf("kafka publish error attempt=%d topic=%s: %v", i+1, topic, err)
+		time.Sleep(time.Second * time.Duration(i+1))
 	}
 	return err
 }
 
+// --- Account events ---
+func (p *KafkaPublisher) PublishAccountCreated(ctx context.Context, a *db.Account) error {
+	return p.publish(ctx, TopicAccounts, EventAccountCreated, a)
+}
+func (p *KafkaPublisher) PublishAccountUpdated(ctx context.Context, a *db.Account) error {
+	return p.publish(ctx, TopicAccounts, EventAccountUpdated, a)
+}
+func (p *KafkaPublisher) PublishAccountDeleted(ctx context.Context, id string) error {
+	return p.publish(ctx, TopicAccounts, EventAccountDeleted, id)
+}
+
+// --- Journal events ---
+func (p *KafkaPublisher) PublishJournalCreated(ctx context.Context, j *db.JournalEntry) error {
+	return p.publish(ctx, TopicJournals, EventJournalCreated, j)
+}
+func (p *KafkaPublisher) PublishJournalUpdated(ctx context.Context, j *db.JournalEntry) error {
+	return p.publish(ctx, TopicJournals, EventJournalUpdated, j)
+}
+func (p *KafkaPublisher) PublishJournalDeleted(ctx context.Context, id string) error {
+	return p.publish(ctx, TopicJournals, EventJournalDeleted, id)
+}
+
+// --- Accrual events ---
+func (p *KafkaPublisher) PublishAccrualCreated(ctx context.Context, a *db.Accrual) error {
+	return p.publish(ctx, TopicAccruals, EventAccrualCreated, a)
+}
+func (p *KafkaPublisher) PublishAccrualUpdated(ctx context.Context, a *db.Accrual) error {
+	return p.publish(ctx, TopicAccruals, EventAccrualUpdated, a)
+}
+func (p *KafkaPublisher) PublishAccrualDeleted(ctx context.Context, id string) error {
+	return p.publish(ctx, TopicAccruals, EventAccrualDeleted, id)
+}
+
+// --- AllocationRule events ---
+func (p *KafkaPublisher) PublishAllocationRuleCreated(ctx context.Context, rule *db.AllocationRule) error {
+	return p.publish(ctx, TopicAllocationRules, EventAllocationRuleCreated, rule)
+}
+func (p *KafkaPublisher) PublishAllocationRuleUpdated(ctx context.Context, rule *db.AllocationRule) error {
+	return p.publish(ctx, TopicAllocationRules, EventAllocationRuleUpdated, rule)
+}
+func (p *KafkaPublisher) PublishAllocationRuleDeleted(ctx context.Context, id string) error {
+	return p.publish(ctx, TopicAllocationRules, EventAllocationRuleDeleted, id)
+}
+
+// --- Audit events ---
+func (p *KafkaPublisher) PublishAuditRecorded(ctx context.Context, e *db.AuditEvent) error {
+	return p.publish(ctx, TopicAuditEvents, EventAuditRecorded, e)
+}
+
+
 // Close gracefully closes all writers
 func (p *KafkaPublisher) Close() error {
-	for _, w := range p.writers {
+	for topic, w := range p.writers {
 		if err := w.Close(); err != nil {
+			log.Printf("failed to close writer for topic=%s: %v", topic, err)
 			return err
 		}
 	}
@@ -159,29 +186,30 @@ type KafkaConsumer struct {
 	readers map[string]*kafka.Reader
 }
 
-// NewKafkaConsumer initializes Kafka readers for accounts and journals topics
+func newReader(brokers []string, groupID, topic string) *kafka.Reader {
+	return kafka.NewReader(kafka.ReaderConfig{
+		Brokers:        brokers,
+		Topic:          topic,
+		GroupID:        groupID,
+		MinBytes:       10e3, // 10KB
+		MaxBytes:       10e6, // 10MB
+		StartOffset:    kafka.LastOffset,
+		CommitInterval: time.Second,
+	})
+}
+
 func NewKafkaConsumer(brokers []string, groupID string) *KafkaConsumer {
 	return &KafkaConsumer{
 		readers: map[string]*kafka.Reader{
-			"accounts": kafka.NewReader(kafka.ReaderConfig{
-				Brokers:  brokers,
-				Topic:    "accounts",
-				GroupID:  groupID,
-				MinBytes: 10e3, // 10KB
-				MaxBytes: 10e6, // 10MB
-			}),
-			"journals": kafka.NewReader(kafka.ReaderConfig{
-				Brokers:  brokers,
-				Topic:    "journals",
-				GroupID:  groupID,
-				MinBytes: 10e3,
-				MaxBytes: 10e6,
-			}),
+			TopicAccounts:        newReader(brokers, groupID, TopicAccounts),
+			TopicJournals:        newReader(brokers, groupID, TopicJournals),
+			TopicAccruals:        newReader(brokers, groupID, TopicAccruals),
+			TopicAllocationRules: newReader(brokers, groupID, TopicAllocationRules),
+			TopicAuditEvents:     newReader(brokers, groupID, TopicAuditEvents),
 		},
 	}
 }
 
-// Consume starts consuming messages from the given topic
 func (c *KafkaConsumer) Consume(ctx context.Context, topic string, handler func(key, value []byte) error) error {
 	reader, ok := c.readers[topic]
 	if !ok {
@@ -197,7 +225,6 @@ func (c *KafkaConsumer) Consume(ctx context.Context, topic string, handler func(
 		default:
 			m, err := reader.ReadMessage(ctx)
 			if err != nil {
-				// exit if context cancelled
 				if errors.Is(err, context.Canceled) {
 					return nil
 				}
@@ -217,8 +244,9 @@ func (c *KafkaConsumer) Consume(ctx context.Context, topic string, handler func(
 
 // Close gracefully closes all readers
 func (c *KafkaConsumer) Close() error {
-	for _, r := range c.readers {
+	for topic, r := range c.readers {
 		if err := r.Close(); err != nil {
+			log.Printf("failed to close reader for topic=%s: %v", topic, err)
 			return err
 		}
 	}

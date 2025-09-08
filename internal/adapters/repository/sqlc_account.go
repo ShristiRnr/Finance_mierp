@@ -35,8 +35,6 @@ func (r *AccountSQLCRepository) Create(ctx context.Context, a db.Account) (db.Ac
 		return db.Account{}, err
 	}
 	domainAcc := toDomainAccount(acc)
-	// Publish Kafka event
-	_ = r.publisher.PublishAccountCreated(ctx, domainAcc)
 
 	return domainAcc, nil
 }
@@ -64,8 +62,6 @@ func (r *AccountSQLCRepository) Update(ctx context.Context, a db.Account) (db.Ac
 	}
 
 	domainAcc := toDomainAccount(dbAcc)
-	// Publish Kafka event
-	_ = r.publisher.PublishAccountUpdated(ctx, domainAcc)
 
 	return domainAcc, nil
 }
@@ -74,8 +70,6 @@ func (r *AccountSQLCRepository) Delete(ctx context.Context, id uuid.UUID) error 
 	if err := r.queries.DeleteAccount(ctx, id); err != nil {
 		return err
 	}
-	// Publish Kafka event
-	_ = r.publisher.PublishAccountDeleted(ctx, id.String())
 	return nil
 }
 
@@ -151,8 +145,6 @@ func (r *JournalSQLCRepository) Create(ctx context.Context, j db.JournalEntry) (
 	}
 
 	domainEntry := toDomainJournalWithLines(entry, lines)
-	// Publish Kafka event
-	_ = r.publisher.PublishJournalCreated(ctx, domainEntry)
 
 	return domainEntry, nil
 }
@@ -209,9 +201,6 @@ func (r *JournalSQLCRepository) Update(ctx context.Context, j db.JournalEntry) (
 		return db.JournalEntry{}, err
 	}
 	domainEntry := toDomainJournalWithLines(entry, lines)
-	// Publish Kafka event
-	_ = r.publisher.PublishJournalUpdated(ctx, domainEntry)
-
 	return domainEntry, nil
 }
 
@@ -219,8 +208,6 @@ func (r *JournalSQLCRepository) Delete(ctx context.Context, id uuid.UUID) error 
 	if err := r.queries.DeleteJournalEntry(ctx, id); err != nil {
 		return err
 	}
-	// Publish Kafka event with ID map
-	_ = r.publisher.PublishJournalDeleted(ctx, id.String())
 	return nil
 }
 

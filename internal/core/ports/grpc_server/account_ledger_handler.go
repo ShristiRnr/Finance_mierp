@@ -34,7 +34,7 @@ func NewLedgerHandler(acc *services.AccountService, j *services.JournalService, 
 }
 
 func (h *LedgerHandler) CreateAccount(ctx context.Context, req *pb.CreateAccountRequest) (*pb.Account, error) {
-	acc, err := h.accountSvc.Create(ctx, db.Account{
+	acc, err := h.accountSvc.Create(ctx, &db.Account{
 		ID:                 uuid.New(),
 		Code:               req.GetAccount().GetCode(),
 		Name:               req.GetAccount().GetName(),
@@ -45,9 +45,6 @@ func (h *LedgerHandler) CreateAccount(ctx context.Context, req *pb.CreateAccount
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "create account: %v", err)
 	}
-
-	// Publish Kafka event (domain object is clean, not proto)
-	_ = h.producer.PublishAccountCreated(ctx, acc)
 
 	// Map back to proto
 	return &pb.Account{
@@ -84,7 +81,7 @@ func (h *LedgerHandler) UpdateAccount(ctx context.Context, req *pb.UpdateAccount
 		return nil, status.Errorf(codes.InvalidArgument, "invalid id: %v", err)
 	}
 
-	acc, err := h.accountSvc.Update(ctx, db.Account{
+	acc, err := h.accountSvc.Update(ctx, &db.Account{
 		ID:                 id,
 		Code:               req.GetAccount().GetCode(),
 		Name:               req.GetAccount().GetName(),
@@ -95,8 +92,6 @@ func (h *LedgerHandler) UpdateAccount(ctx context.Context, req *pb.UpdateAccount
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "update account: %v", err)
 	}
-
-	h.producer.PublishAccountUpdated(ctx, acc)
 
 	return &pb.Account{
 		Id:                 acc.ID.String(),
@@ -179,7 +174,7 @@ func (h *LedgerHandler) ListAccounts(ctx context.Context, req *pb.ListAccountsRe
 
 // ---------- Journals ----------
 func (h *LedgerHandler) CreateJournalEntry(ctx context.Context, req *pb.CreateJournalEntryRequest) (*pb.JournalEntry, error) {
-	j, err := h.journalSvc.Create(ctx, db.JournalEntry{
+	j, err := h.journalSvc.Create(ctx, &db.JournalEntry{
 		ID:          uuid.New(),
 		JournalDate: req.Entry.JournalDate.AsTime(),
 		Memo:        toNullString(req.Entry.Memo),
@@ -189,8 +184,6 @@ func (h *LedgerHandler) CreateJournalEntry(ctx context.Context, req *pb.CreateJo
 	if err != nil {
 		return nil, err
 	}
-
-	h.producer.PublishJournalCreated(ctx, j)
 
 	return toPbJournalEntry(j), nil
 }
@@ -218,7 +211,7 @@ func (h *LedgerHandler) UpdateJournalEntry(ctx context.Context, req *pb.UpdateJo
 	if err != nil {
 		return nil, err
 	}
-	j, err := h.journalSvc.Update(ctx, db.JournalEntry{
+	j, err := h.journalSvc.Update(ctx, &db.JournalEntry{
 		ID:          id,
 		JournalDate: req.Entry.JournalDate.AsTime(),
 		Memo:        toNullString(req.Entry.Memo),
@@ -228,8 +221,6 @@ func (h *LedgerHandler) UpdateJournalEntry(ctx context.Context, req *pb.UpdateJo
 	if err != nil {
 		return nil, err
 	}
-
-	h.producer.PublishJournalUpdated(ctx, j)
 
 	return toPbJournalEntry(j), nil
 }
@@ -345,7 +336,7 @@ func (h *LedgerHandler) ListLedgerEntries(ctx context.Context, req *pb.ListLedge
 	}, nil
 }
 
-func toPbJournalEntry(j db.JournalEntry) *pb.JournalEntry {
+func toPbJournalEntry(j *db.JournalEntry) *pb.JournalEntry {
 	return &pb.JournalEntry{
 		Id:          j.ID.String(),
 		JournalDate: timestamppb.New(j.JournalDate),
