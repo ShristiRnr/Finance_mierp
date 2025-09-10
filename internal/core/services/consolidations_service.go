@@ -11,15 +11,33 @@ import (
 )
 
 type ConsolidationService struct {
-	repo ports.ConsolidationRepository
+	repo      ports.ConsolidationRepository
+	publisher ports.EventPublisher
 }
 
-func NewConsolidationService(repo ports.ConsolidationRepository) *ConsolidationService {
-	return &ConsolidationService{repo: repo}
+func NewConsolidationService(repo ports.ConsolidationRepository, publisher ports.EventPublisher) *ConsolidationService {
+	return &ConsolidationService{
+		repo:      repo,
+		publisher: publisher,
+	}
 }
 
 func (s *ConsolidationService) Create(ctx context.Context, c db.Consolidation) (db.Consolidation, error) {
-	return s.repo.Create(ctx, c)
+	created, err := s.repo.Create(ctx, c)
+	if err != nil {
+		return db.Consolidation{}, err
+	}
+
+	// Publish event
+	if s.publisher != nil {
+		if err := s.publisher.PublishConsolidationCreated(ctx, &created); err != nil {
+			// Log error but don't block main flow
+			// Could use a logger here
+			println("Kafka publish error (CreateConsolidation):", err.Error())
+		}
+	}
+
+	return created, nil
 }
 
 func (s *ConsolidationService) Get(ctx context.Context, id uuid.UUID) (db.Consolidation, error) {
@@ -31,5 +49,15 @@ func (s *ConsolidationService) List(ctx context.Context, entityIds []string, sta
 }
 
 func (s *ConsolidationService) Delete(ctx context.Context, id uuid.UUID) error {
-	return s.repo.Delete(ctx, id)
+	if err := s.repo.Delete(ctx, id); err != nil {
+		return err
+	}
+
+	if s.publisher != nil {
+		if err := s.publisher.PublishConsolidationDeleted(ctx, id.String()); err != nil {
+			println("Kafka publish error (DeleteConsolidation):", err.Error())
+		}
+	}
+
+	return nil
 }

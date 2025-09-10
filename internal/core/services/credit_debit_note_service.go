@@ -8,34 +8,68 @@ import (
 	"github.com/google/uuid"
 )
 
-// creditDebitNoteService implements the CreditDebitNoteService port.
 type creditDebitNoteService struct {
-	repo ports.CreditDebitNoteRepository
+	repo      ports.CreditDebitNoteRepository
+	publisher ports.EventPublisher
 }
 
-// NewCreditDebitNoteService creates a new service instance.
-func NewCreditDebitNoteService(repo ports.CreditDebitNoteRepository) ports.CreditDebitNoteService {
-	return &creditDebitNoteService{repo: repo}
+// NewCreditDebitNoteService creates a new service instance with Kafka publisher.
+func NewCreditDebitNoteService(repo ports.CreditDebitNoteRepository, publisher ports.EventPublisher) ports.CreditDebitNoteService {
+	return &creditDebitNoteService{
+		repo:      repo,
+		publisher: publisher,
+	}
 }
 
+// Create a new credit/debit note and publish event
+// Create a new credit/debit note and publish event
 func (s *creditDebitNoteService) Create(ctx context.Context, note db.CreditDebitNote) (db.CreditDebitNote, error) {
-	// Business logic would go here (e.g., validation, calculations).
-	// For now, it's a direct pass-through to the repository.
-	return s.repo.Create(ctx, note)
+	created, err := s.repo.Create(ctx, note)
+	if err != nil {
+		return db.CreditDebitNote{}, err
+	}
+
+	// Publish typed event
+	if err := s.publisher.PublishCreditDebitNoteCreated(ctx, &created); err != nil {
+		println("Kafka publish error:", err.Error())
+	}
+
+	return created, nil
 }
 
+// Get by ID (no event needed)
 func (s *creditDebitNoteService) Get(ctx context.Context, id uuid.UUID) (db.CreditDebitNote, error) {
 	return s.repo.Get(ctx, id)
 }
 
+// List (no event needed)
 func (s *creditDebitNoteService) List(ctx context.Context, limit, offset int32) ([]db.CreditDebitNote, error) {
 	return s.repo.List(ctx, limit, offset)
 }
 
+// Update a credit/debit note and publish event
 func (s *creditDebitNoteService) Update(ctx context.Context, note db.CreditDebitNote) (db.CreditDebitNote, error) {
-	return s.repo.Update(ctx, note)
+	updated, err := s.repo.Update(ctx, note)
+	if err != nil {
+		return db.CreditDebitNote{}, err
+	}
+
+	if err := s.publisher.PublishCreditDebitNoteUpdated(ctx, &updated); err != nil {
+		println("Kafka publish error:", err.Error())
+	}
+
+	return updated, nil
 }
 
+// Delete a credit/debit note and publish event
 func (s *creditDebitNoteService) Delete(ctx context.Context, id uuid.UUID) error {
-	return s.repo.Delete(ctx, id)
+	if err := s.repo.Delete(ctx, id); err != nil {
+		return err
+	}
+
+	if err := s.publisher.PublishCreditDebitNoteDeleted(ctx, id.String()); err != nil {
+		println("Kafka publish error:", err.Error())
+	}
+
+	return nil
 }

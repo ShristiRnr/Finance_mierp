@@ -15,6 +15,7 @@ import (
 )
 
 type ExchangeRateHandler struct {
+	 pb.UnimplementedFxServiceServer // ← required!
 	svc ports.ExchangeRateService
 }
 
@@ -23,25 +24,25 @@ func NewExchangeRateHandler(svc ports.ExchangeRateService) *ExchangeRateHandler 
 }
 
 func (h *ExchangeRateHandler) CreateExchangeRate(ctx context.Context, req *pb.CreateExchangeRateRequest) (*pb.ExchangeRate, error) {
-    // convert float64 → string
-    rateStr := strconv.FormatFloat(req.Rate.Rate, 'f', -1, 64)
+	// convert float64 → string
+	rateStr := strconv.FormatFloat(req.Rate.Rate, 'f', -1, 64)
 
-    rate := db.ExchangeRate{
+	rate := db.ExchangeRate{
 		ID:            uuid.New(),
-        BaseCurrency:  req.Rate.BaseCurrency,
-        QuoteCurrency: req.Rate.QuoteCurrency,
-        Rate:          rateStr,                 // ✅ now string
-        AsOf:          req.Rate.AsOf.AsTime(),
-        CreatedBy:     toNullString(req.Meta.AuthSubject),
-    }
+		BaseCurrency:  req.Rate.BaseCurrency,
+		QuoteCurrency: req.Rate.QuoteCurrency,
+		Rate:          rateStr, // now string
+		AsOf:          req.Rate.AsOf.AsTime(),
+		CreatedBy:     toNullString(req.Meta.AuthSubject),
+	}
 
-    created, err := h.svc.Create(ctx, rate)
-    if err != nil {
-        return nil, status.Errorf(codes.Internal, "failed to create rate: %v", err)
-    }
-    return mapDomainToProtoExchangeRate(created), nil
+	created, err := h.svc.Create(ctx, rate)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to create rate: %v", err)
+	}
+
+	return mapDomainToProtoExchangeRate(created), nil
 }
-
 
 func (h *ExchangeRateHandler) GetExchangeRate(ctx context.Context, req *pb.GetExchangeRateRequest) (*pb.ExchangeRate, error) {
 	id, err := uuid.Parse(req.Id)
@@ -81,16 +82,22 @@ func (h *ExchangeRateHandler) UpdateExchangeRate(ctx context.Context, req *pb.Up
 }
 
 
-func (h *ExchangeRateHandler) DeleteExchangeRate(ctx context.Context, req *pb.DeleteExchangeRateRequest) (emptypb.Empty, error) {
-	id, err := uuid.Parse(req.Id)
-	if err != nil {
-		return emptypb.Empty{}, status.Errorf(codes.InvalidArgument, "invalid id: %v", err)
-	}
-	if err := h.svc.Delete(ctx, id); err != nil {
-		return emptypb.Empty{}, status.Errorf(codes.Internal, "failed to delete: %v", err)
-	}
-	return emptypb.Empty{}, nil
+func (h *ExchangeRateHandler) DeleteExchangeRate(
+    ctx context.Context,
+    req *pb.DeleteExchangeRateRequest,
+) (*emptypb.Empty, error) { 
+    id, err := uuid.Parse(req.Id)
+    if err != nil {
+        return nil, status.Errorf(codes.InvalidArgument, "invalid UUID: %v", err)
+    }
+
+    if err := h.svc.Delete(ctx, id); err != nil {
+        return nil, status.Errorf(codes.Internal, "failed to delete: %v", err)
+    }
+
+    return &emptypb.Empty{}, nil 
 }
+
 
 func (h *ExchangeRateHandler) ListExchangeRates(ctx context.Context, req *pb.ListExchangeRatesRequest) (*pb.ListExchangeRatesResponse, error) {
     // default page size

@@ -19,11 +19,10 @@ import (
 type AccrualHandler struct {
 	pb.UnimplementedAccrualServiceServer
 	svc *services.AccrualService
-	publisher ports.EventPublisher
 }
 
-func NewAccrualHandler(svc *services.AccrualService,  pub ports.EventPublisher) *AccrualHandler {
-	return &AccrualHandler{svc: svc, publisher: pub}
+func NewAccrualHandler(svc *services.AccrualService) *AccrualHandler {
+	return &AccrualHandler{svc: svc}
 }
 
 func (h *AccrualHandler) CreateAccrual(ctx context.Context, req *pb.CreateAccrualRequest) (*pb.Accrual, error) {

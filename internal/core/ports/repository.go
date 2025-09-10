@@ -80,7 +80,7 @@ type BudgetRepository interface {
 	UpdateAllocation(ctx context.Context, ba *db.BudgetAllocation) (*db.BudgetAllocation, error)
 	DeleteAllocation(ctx context.Context, id uuid.UUID) error
 
-	GetBudgetComparisonReport(ctx context.Context, id uuid.UUID) (*db.GetBudgetComparisonReportRow)
+	GetBudgetComparisonReport(ctx context.Context, id uuid.UUID) (*db.GetBudgetComparisonReportRow, error)
 }
 
 type CashFlowForecastRepository interface {

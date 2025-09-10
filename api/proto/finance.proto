@@ -795,6 +795,7 @@ service FinancialComplianceService {
 
 
 /* =============== PHASE 3: Enterprise Scale ============== */
+
 // Consolidation (multi-entity), Multi-currency, Advanced Treasury
 
 // ================================== Consolidation ==================================

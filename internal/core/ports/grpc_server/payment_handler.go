@@ -148,12 +148,18 @@ func (h *PaymentDueHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid UUID", http.StatusBadRequest)
 		return
 	}
-	if err := h.svc.DeletePaymentDue(r.Context(), id); err != nil {
+
+	// Get user ID from request context or headers
+	userID := r.Header.Get("X-User-ID") // adjust to your auth setup
+
+	if err := h.svc.DeletePaymentDue(r.Context(), id, userID); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	w.WriteHeader(http.StatusNoContent)
 }
+
 
 func (h *PaymentDueHandler) List(w http.ResponseWriter, r *http.Request) {
 	limit, offset := parsePagingParams(r)
@@ -205,15 +211,18 @@ func (h *BankTransactionHandler) Import(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	tx.BankAccountID = bankAccountID // Ensure the correct ID is set
+	tx.BankAccountID = bankAccountID
 
-	created, err := h.svc.ImportBankTransaction(r.Context(), tx)
+	userID := r.Header.Get("X-User-ID") // pass the user ID
+
+	created, err := h.svc.ImportBankTransaction(r.Context(), tx, userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	json.NewEncoder(w).Encode(created)
 }
+
 
 func (h *BankTransactionHandler) List(w http.ResponseWriter, r *http.Request) {
 	bankAccountID, err := uuid.Parse(chi.URLParam(r, "bank_account_id"))
@@ -245,7 +254,9 @@ func (h *BankTransactionHandler) Reconcile(w http.ResponseWriter, r *http.Reques
 	}
 	tx.ID = id
 
-	reconciled, err := h.svc.ReconcileTransaction(r.Context(), tx)
+	userID := r.Header.Get("X-User-ID") // pass the user ID
+
+	reconciled, err := h.svc.ReconcileTransaction(r.Context(), tx, userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

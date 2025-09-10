@@ -7,7 +7,6 @@ import (
 
 	pb "github.com/ShristiRnr/Finance_mierp/api/pb"
 	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/services"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
@@ -21,15 +20,13 @@ type LedgerHandler struct {
 	accountSvc *services.AccountService
 	journalSvc *services.JournalService
 	ledgerSvc  *services.LedgerService
-	producer   ports.EventPublisher
 }
 
-func NewLedgerHandler(acc *services.AccountService, j *services.JournalService, l *services.LedgerService, p ports.EventPublisher) *LedgerHandler {
+func NewLedgerHandler(acc *services.AccountService, j *services.JournalService, l *services.LedgerService) *LedgerHandler {
 	return &LedgerHandler{
 		accountSvc: acc,
 		journalSvc: j,
 		ledgerSvc:  l,
-		producer:   p,
 	}
 }
 
@@ -111,10 +108,6 @@ func (h *LedgerHandler) DeleteAccount(ctx context.Context, req *pb.DeleteAccount
 
 	if err := h.accountSvc.Delete(ctx, id); err != nil {
 		return nil, status.Errorf(codes.Internal, "delete account: %v", err)
-	}
-
-	if err := h.producer.PublishAccountDeleted(ctx, req.Id); err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to publish account deleted event: %v", err)
 	}
 
 	return &emptypb.Empty{}, nil
@@ -233,8 +226,6 @@ func (h *LedgerHandler) DeleteJournalEntry(ctx context.Context, req *pb.DeleteJo
 	if err := h.journalSvc.Delete(ctx, id); err != nil {
 		return nil, err
 	}
-
-	h.producer.PublishJournalDeleted(ctx, id.String())
 
 	return &emptypb.Empty{}, nil
 }

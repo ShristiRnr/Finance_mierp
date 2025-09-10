@@ -69,14 +69,7 @@ func toPbLedgerEntry(le db.LedgerEntry) *pb.LedgerEntry {
 		AccountId:       le.AccountID.String(),
 		Side:            toPbLedgerSide(le.Side),
 		Amount:          parseMoney(le.Amount),
-		TransactionDate: le.TransactionDate,
-
-		// Not available in domain yet
-		Description:   "",
-		CostCenterId:  "",
-		ReferenceType: "",
-		ReferenceId:   "",
-		Audit:         nil,
+		TransactionDate: timestamppb.New(le.TransactionDate),
 	}
 }
 

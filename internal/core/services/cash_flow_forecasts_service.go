@@ -10,11 +10,15 @@ import (
 )
 
 type CashFlowService struct {
-	repo ports.CashFlowForecastRepository
+	repo      ports.CashFlowForecastRepository
+	publisher ports.EventPublisher
 }
 
-func NewCashFlowService(repo ports.CashFlowForecastRepository) *CashFlowService {
-	return &CashFlowService{repo: repo}
+func NewCashFlowService(repo ports.CashFlowForecastRepository, publisher ports.EventPublisher) *CashFlowService {
+	return &CashFlowService{
+		repo:      repo,
+		publisher: publisher,
+	}
 }
 
 // Accepts a ReportPeriod and returns forecast details as string
@@ -23,9 +27,17 @@ func (s *CashFlowService) GenerateForecastFromPeriod(ctx context.Context, period
 		return "", fmt.Errorf("period is required")
 	}
 
-	// TODO: Map ReportPeriod to domain.CashFlowForecast and call s.repo.Generate
-	// Here we just simulate
-	return "Generated forecast for period", nil
+	// Simulate generating forecast
+	result := fmt.Sprintf("Generated forecast for period: %v", period)
+
+	// Publish to Kafka
+	err := s.publisher.Publish(ctx, "cash_flow_forecasts", "forecast.generated", []byte(result))
+	if err != nil {
+		// Log but don't block the main flow
+		fmt.Printf("Kafka publish error: %v\n", err)
+	}
+
+	return result, nil
 }
 
 func (s *CashFlowService) GetForecastFromPeriod(ctx context.Context, period *pb.ReportPeriod) (string, error) {
@@ -33,8 +45,16 @@ func (s *CashFlowService) GetForecastFromPeriod(ctx context.Context, period *pb.
 		return "", fmt.Errorf("period is required")
 	}
 
-	// TODO: Fetch from repo using period
-	return "Fetched forecast for period", nil
+	// Simulate fetching forecast
+	result := fmt.Sprintf("Fetched forecast for period: %v", period)
+
+	// Publish to Kafka
+	err := s.publisher.Publish(ctx, "cash_flow_forecasts", "forecast.fetched", []byte(result))
+	if err != nil {
+		fmt.Printf("Kafka publish error: %v\n", err)
+	}
+
+	return result, nil
 }
 
 func (s *CashFlowService) ListForecastsFromPeriod(ctx context.Context, period *pb.ReportPeriod) (string, error) {
@@ -42,7 +62,15 @@ func (s *CashFlowService) ListForecastsFromPeriod(ctx context.Context, period *p
 		return "", fmt.Errorf("period is required")
 	}
 
-	// TODO: List forecasts from repo using period
-	return "Listed forecasts for period", nil
+	// Simulate listing forecasts
+	result := fmt.Sprintf("Listed forecasts for period: %v", period)
+
+	// Publish to Kafka
+	err := s.publisher.Publish(ctx, "cash_flow_forecasts", "forecast.listed", []byte(result))
+	if err != nil {
+		fmt.Printf("Kafka publish error: %v\n", err)
+	}
+
+	return result, nil
 }
 

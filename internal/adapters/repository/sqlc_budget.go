@@ -13,7 +13,7 @@ type BudgetRepository struct {
 	queries *db.Queries
 }
 
-func NewBudgetRepo(queries *sql.DB) *BudgetRepository {
+func NewBudgetRepository(queries *sql.DB) *BudgetRepository {
     return &BudgetRepository{
 		queries: db.New(queries),
 	}
@@ -44,7 +44,7 @@ func (r *BudgetRepository) Get(ctx context.Context, id uuid.UUID) (*db.Budget, e
 	return mapBudget(row), nil
 }
 
-func (r *BudgetRepository) List(ctx context.Context, limit, offset int32) ([]*db.Budget, error) {
+func (r *BudgetRepository) List(ctx context.Context, limit, offset int32) ([]db.Budget, error) {
 	rows, err := r.queries.ListBudgets(ctx, db.ListBudgetsParams{
 		Limit:  limit,
 		Offset: offset,
@@ -53,9 +53,9 @@ func (r *BudgetRepository) List(ctx context.Context, limit, offset int32) ([]*db
 		return nil, err
 	}
 
-	result := make([]*db.Budget, len(rows))
+	result := make([]db.Budget, len(rows))
 	for i, row := range rows {
-		result[i] = mapBudget(row)
+		result[i] = *mapBudget(row)
 	}
 	return result, nil
 }
@@ -103,7 +103,7 @@ func (r *BudgetRepository) GetAllocation(ctx context.Context, id uuid.UUID) (*db
 	return mapBudgetAllocation(row), nil
 }
 
-func (r *BudgetRepository) ListAllocations(ctx context.Context, budgetID uuid.UUID, limit, offset int32) ([]*db.BudgetAllocation, error) {
+func (r *BudgetRepository) ListAllocations(ctx context.Context, budgetID uuid.UUID, limit, offset int32) ([]db.BudgetAllocation, error) {
 	rows, err := r.queries.ListBudgetAllocations(ctx, db.ListBudgetAllocationsParams{
 		BudgetID: budgetID,
 		Limit:    limit,
@@ -113,10 +113,8 @@ func (r *BudgetRepository) ListAllocations(ctx context.Context, budgetID uuid.UU
 		return nil, err
 	}
 
-	result := make([]*db.BudgetAllocation, len(rows))
-	for i, row := range rows {
-		result[i] = mapBudgetAllocation(row)
-	}
+	result := make([]db.BudgetAllocation, len(rows))
+	copy(result, rows)
 	return result, nil
 }
 
@@ -140,29 +138,33 @@ func (r *BudgetRepository) DeleteAllocation(ctx context.Context, id uuid.UUID) e
 
 // ======================================== Budget Comparison =======================================
 
-func (r *BudgetRepository) GetBudgetComparison(ctx context.Context, id uuid.UUID) (*db.GetBudgetComparisonReportRow, error) {
-	row, err := r.queries.GetBudgetComparisonReport(ctx, id)
-	if err != nil {
-		return nil, err
-	}
+func (r *BudgetRepository) GetBudgetComparisonReport(
+    ctx context.Context,
+    budgetID uuid.UUID,
+) (*db.GetBudgetComparisonReportRow, error) {
 
-	totalAllocated := ""
-	totalSpent := ""
+    row, err := r.queries.GetBudgetComparisonReport(ctx, budgetID)
+    if err != nil {
+        return nil, err
+    }
 
-	if row.TotalAllocated != nil {
-		totalAllocated = fmt.Sprintf("%v", row.TotalAllocated)
-	}
-	if row.TotalSpent != nil {
-		totalSpent = fmt.Sprintf("%v", row.TotalSpent)
-	}
+    totalAllocated := ""
+    totalSpent := ""
 
-	return &db.GetBudgetComparisonReportRow{
-		BudgetID:       row.BudgetID,
-		TotalBudget:    row.TotalBudget,
-		TotalAllocated: totalAllocated,
-		TotalSpent:     totalSpent,
-		RemainingBudget:      row.RemainingBudget,
-	}, nil
+    if row.TotalAllocated != nil {
+        totalAllocated = fmt.Sprintf("%v", row.TotalAllocated)
+    }
+    if row.TotalSpent != nil {
+        totalSpent = fmt.Sprintf("%v", row.TotalSpent)
+    }
+
+    return &db.GetBudgetComparisonReportRow{
+        BudgetID:        row.BudgetID,
+        TotalBudget:     row.TotalBudget,
+        TotalAllocated:  totalAllocated,
+        TotalSpent:      totalSpent,
+        RemainingBudget: row.RemainingBudget,
+    }, nil
 }
 
 // --------------------- Helpers ---------------------
