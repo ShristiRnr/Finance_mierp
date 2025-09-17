@@ -7,7 +7,6 @@ import (
 	pb "github.com/ShristiRnr/Finance_mierp/api/pb"
 	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/services"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -16,11 +15,11 @@ import (
 // Server implements the gRPC server for the AuditTrailService.
 type AuditHandler struct {
 	pb.UnimplementedAuditTrailServiceServer
-	service *services.AuditService
+	service ports.AuditService
 	producer ports.EventPublisher
 }
 
-func NewAuditHandler(service *services.AuditService,producer ports.EventPublisher) *AuditHandler {
+func NewAuditHandler(service ports.AuditService,producer ports.EventPublisher) *AuditHandler {
 	return &AuditHandler{service: service,
 	producer: producer,}
 }

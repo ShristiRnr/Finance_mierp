@@ -3,50 +3,84 @@ package grpc_server
 import (
 	"context"
 	"strconv"
+    "database/sql"
 
 	financepb "github.com/ShristiRnr/Finance_mierp/api/pb"
 	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/services"
+	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"github.com/google/uuid"
+    "google.golang.org/genproto/googleapis/type/money"
 )
 
 type BudgetHandler struct {
 	financepb.UnimplementedBudgetServiceServer
-	service *services.BudgetService
+	service ports.BudgetService
 }
 
-func NewBudgetHandler(service *services.BudgetService) *BudgetHandler {
+func NewBudgetHandler(service ports.BudgetService) *BudgetHandler {
 	return &BudgetHandler{service: service}
+}
+
+func dbBudgetToPb(b *db.Budget) *financepb.Budget {
+    if b == nil {
+        return nil
+    }
+    return &financepb.Budget{
+        Id:          b.ID.String(),
+        Name:        b.Name,
+        TotalAmount: stringToMoney(b.TotalAmount, "USD"),
+        Status:      b.Status,
+    }
+}
+
+// Protobuf → DB
+func pbBudgetToDb(pbB *financepb.Budget) *db.Budget {
+    if pbB == nil {
+        return nil
+    }
+    id, _ := uuid.Parse(pbB.GetId())
+    return &db.Budget{
+        ID:          id,
+        Name:        pbB.GetName(),
+        TotalAmount: moneyToString(pbB.GetTotalAmount()),
+        Status:      pbB.GetStatus(),
+        CreatedAt:   sql.NullTime{},   // set in service/repo
+        CreatedBy:   sql.NullString{}, // set in service/repo
+    }
+}
+
+// Helpers
+func moneyToString(m *money.Money) string {
+    if m == nil {
+        return "0"
+    }
+    return strconv.FormatInt(m.Units, 10)
+}
+
+func stringToMoney(amount string, currency string) *money.Money {
+    units, err := strconv.ParseInt(amount, 10, 64)
+    if err != nil {
+        units = 0
+    }
+    return &money.Money{CurrencyCode: currency, Units: units}
 }
 
 // ---------------- Budgets ----------------
 
 func (h *BudgetHandler) CreateBudget(ctx context.Context, req *financepb.CreateBudgetRequest) (*financepb.Budget, error) {
-    // Map protobuf request to internal db.Budget
-    b := &db.Budget{
-        Name:        req.GetBudget().GetName(),
-        TotalAmount:  moneyToString(req.GetBudget().GetTotalAmount()),
-        // set other fields if needed
-    }
+    dbBudget := pbBudgetToDb(req.GetBudget())
 
-    createdBudget, err := h.service.CreateBudget(ctx, b)
+    created, err := h.service.CreateBudget(ctx, dbBudget)
     if err != nil {
         return nil, err
     }
 
-    // Map internal db.Budget to protobuf response
-    pbBudget := &financepb.Budget{
-        Id:          createdBudget.ID.String(),
-        Name:        createdBudget.Name,
-        TotalAmount: stringToMoney(createdBudget.TotalAmount, "USD"),
-        Status:      createdBudget.Status,
-    }
-
-    return pbBudget, nil
+    return dbBudgetToPb(created), nil
 }
+
 
 
 func (h *BudgetHandler) GetBudget(ctx context.Context, req *financepb.GetBudgetRequest) (*financepb.Budget, error) {
@@ -174,9 +208,10 @@ func (h *BudgetHandler) GetBudgetAllocation(ctx context.Context, id uuid.UUID) (
 	return h.service.GetBudgetAllocation(ctx, id)
 }
 
-func (h *BudgetHandler) ListBudgetAllocations(ctx context.Context, budgetID uuid.UUID, limit, offset int32) ([]*db.BudgetAllocation, error) {
+func (h *BudgetHandler) ListBudgetAllocations(ctx context.Context, budgetID uuid.UUID, limit, offset int32) ([]db.BudgetAllocation, error) {
 	return h.service.ListBudgetAllocations(ctx, budgetID, limit, offset)
 }
+
 
 func (h *BudgetHandler) UpdateBudgetAllocation(ctx context.Context, ba *db.BudgetAllocation) (*db.BudgetAllocation, error) {
 	return h.service.UpdateBudgetAllocation(ctx, ba)

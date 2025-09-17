@@ -3,7 +3,6 @@ package grpc_server
 import (
 	"context"
 	"strconv"
-	"fmt"
 	"github.com/shopspring/decimal"
 	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 	pb "github.com/ShristiRnr/Finance_mierp/api/pb"
@@ -16,72 +15,38 @@ import (
 // ---------- Account Mapping ----------
 //
 
-func toPbStatus(s string) pb.AccountStatus {
-	switch s {
-	case "ACTIVE":
-		return pb.AccountStatus_ACCOUNT_ACTIVE
-	case "INACTIVE":
-		return pb.AccountStatus_ACCOUNT_INACTIVE
-	case "ARCHIVED":
-		return pb.AccountStatus_ACCOUNT_ARCHIVED
-	default:
-		return pb.AccountStatus_ACCOUNT_STATUS_UNSPECIFIED
-	}
-}
-
 
 func toPbLedgerSide(s string) pb.LedgerSide {
     switch s {
-    case "DEBIT":
+    case "DEBIT","DR", "Debit":
         return pb.LedgerSide_LEDGER_SIDE_DEBIT
-    case "CREDIT":
+    case "CREDIT","CR", "Credit":
         return pb.LedgerSide_LEDGER_SIDE_CREDIT
     default:
         return pb.LedgerSide_LEDGER_SIDE_UNSPECIFIED
     }
 }
 
-func parseMoney(amount string) *money.Money {
-	if amount == "" {
-		return nil
-	}
-	val, err := strconv.ParseFloat(amount, 64)
-	if err != nil {
-		return nil
-	}
-
-	units := int64(val)
-	nanos := int32((val - float64(units)) * 1e9)
-
-	return &money.Money{
-		CurrencyCode: "USD",
-		Units:        units,
-		Nanos:        nanos,
-	}
-}
-
 //
 // ---------- Ledger Entry Mapping ----------
 //
-func toPbLedgerEntry(le db.LedgerEntry) *pb.LedgerEntry {
+func toPbLedgerEntry(e *db.LedgerEntry) *pb.LedgerEntry {
 	return &pb.LedgerEntry{
-		Id:              le.EntryID.String(),
-		AccountId:       le.AccountID.String(),
-		Side:            toPbLedgerSide(le.Side),
-		Amount:          parseMoney(le.Amount),
-		TransactionDate: timestamppb.New(le.TransactionDate),
+		Id:        e.EntryID.String(),
+		AccountId: e.AccountID.String(),
+		Side:      toPbLedgerSide(e.Side),
+		Amount: &money.Money{
+			CurrencyCode: "USD",
+			Units:        parseAmount(e.Amount),
+			Nanos:        0,
+		},
+		TransactionDate: timestamppb.New(e.TransactionDate),
 	}
 }
 
 //
 // ---------- Helpers ----------
 //
-func strOrEmpty(s *string) string {
-	if s != nil {
-		return *s
-	}
-	return ""
-}
 
 func toPbAccrual(a db.Accrual) *pb.Accrual {
 	return &pb.Accrual{
@@ -91,32 +56,6 @@ func toPbAccrual(a db.Accrual) *pb.Accrual {
 		AccrualDate: timestamppb.New(a.AccrualDate),
 		AccountId:   a.AccountID,
 	}
-}
-
-func floatToMoney(amount float64, currency string) *money.Money {
-	units := int64(amount)
-	nanos := int32((amount - float64(units)) * 1e9)
-	return &money.Money{
-		CurrencyCode: currency,
-		Units:        units,
-		Nanos:        nanos,
-	}
-}
-
-func stringToMoney(amountStr string, currency string) *money.Money {
-	f, err := strconv.ParseFloat(amountStr, 64)
-	if err != nil {
-		return nil
-	}
-	return floatToMoney(f, currency)
-}
-
-
-func moneyToString(m *money.Money) string {
-	if m == nil {
-		return "0"
-	}
-	return fmt.Sprintf("%d.%09d", m.Units, m.Nanos) // crude formatting
 }
 
 func getUserFromContext(ctx context.Context) string {
@@ -131,7 +70,7 @@ func getUserFromContext(ctx context.Context) string {
 	return ""
 }
 
-func mapDomainNoteTypeToProto(t db.Type) pb.NoteType {
+func mapDomainNoteTypeToProto(t string) pb.NoteType {
 	switch t {
 	case "CREDIT":
 		return pb.NoteType_NOTE_TYPE_CREDIT
@@ -190,13 +129,7 @@ func mapDomainToProtoExchangeRate(rate db.ExchangeRate) *pb.ExchangeRate {
     }
 }
 
-func stringPtr(s string) *string {
-	return &s
-}
-
-func derefString(s *string) string {
-	if s == nil {
-		return ""
-	}
-	return *s
+func parseAmount(s string) int64 {
+	val, _ := strconv.ParseInt(s, 10, 64)
+	return val
 }

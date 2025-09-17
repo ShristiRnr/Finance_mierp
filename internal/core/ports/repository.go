@@ -6,33 +6,65 @@ import (
 
 	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 	"github.com/google/uuid"
+	pb "github.com/ShristiRnr/Finance_mierp/api/pb"
 )
 
 // Accounts
 type AccountRepository interface {
-	Create(ctx context.Context, a db.Account) (db.Account, error)
-	Get(ctx context.Context, id uuid.UUID) (db.Account, error)
-	Update(ctx context.Context, a db.Account) (db.Account, error)
+	Create(ctx context.Context, a *db.Account) (*db.Account, error)
+	Get(ctx context.Context, id uuid.UUID) (*db.Account, error)
+	Update(ctx context.Context, a *db.Account) (*db.Account, error)
 	Delete(ctx context.Context, id uuid.UUID) error
-	List(ctx context.Context, limit, offset int32) ([]db.Account, error)
+	List(ctx context.Context, limit, offset int32) ([]*db.Account, error)
 }
 
 // Journals
 type JournalRepository interface {
-	Create(ctx context.Context, j db.JournalEntry) (db.JournalEntry, error)
-	Get(ctx context.Context, id uuid.UUID) (db.JournalEntry, error)
-	Update(ctx context.Context, j db.JournalEntry) (db.JournalEntry, error)
+	Create(ctx context.Context, j *db.JournalEntry) (*db.JournalEntry, error)
+	Get(ctx context.Context, id uuid.UUID) (*db.JournalEntry, error)
+	Update(ctx context.Context, j *db.JournalEntry) (*db.JournalEntry, error)
 	Delete(ctx context.Context, id uuid.UUID) error
-	List(ctx context.Context, limit, offset int32) ([]db.JournalEntry, error)
+	List(ctx context.Context, limit, offset int32) ([]*db.JournalEntry, error)
 }
 
 // Ledger (read-only projection)
 type LedgerRepository interface {
-	List(ctx context.Context, limit, offset int32) ([]db.LedgerEntry, error)
+	List(ctx context.Context, limit, offset int32) ([]*db.LedgerEntry, error)
+}
+
+// Accounts
+type AccountService interface {
+    Create(ctx context.Context, a *db.Account) (*db.Account, error)
+    Get(ctx context.Context, id uuid.UUID) (*db.Account, error)
+    Update(ctx context.Context, a *db.Account) (*db.Account, error)
+    Delete(ctx context.Context, id uuid.UUID) error
+    List(ctx context.Context, limit, offset int32) ([]*db.Account, error)
+}
+
+// Journals
+type JournalService interface {
+    Create(ctx context.Context, j *db.JournalEntry) (*db.JournalEntry, error)
+    Get(ctx context.Context, id uuid.UUID) (*db.JournalEntry, error)
+    Update(ctx context.Context, j *db.JournalEntry) (*db.JournalEntry, error)
+    Delete(ctx context.Context, id uuid.UUID) error
+    List(ctx context.Context, limit, offset int32) ([]*db.JournalEntry, error)
+}
+
+// Ledger (read-only projection)
+type LedgerService interface {
+    List(ctx context.Context, limit, offset int32) ([]*db.LedgerEntry, error)
 }
 
 // Accruals
 type AccrualRepository interface {
+	Create(ctx context.Context, a db.Accrual) (db.Accrual, error)
+	Get(ctx context.Context, id uuid.UUID) (db.Accrual, error)
+	Update(ctx context.Context, a db.Accrual) (db.Accrual, error)
+	Delete(ctx context.Context, id uuid.UUID) error
+	List(ctx context.Context, limit, offset int32) ([]db.Accrual, error)
+}
+
+type AccrualService interface {
 	Create(ctx context.Context, a db.Accrual) (db.Accrual, error)
 	Get(ctx context.Context, id uuid.UUID) (db.Accrual, error)
 	Update(ctx context.Context, a db.Accrual) (db.Accrual, error)
@@ -62,8 +94,15 @@ type AllocationService interface {
 type AuditRepository interface {
 	RecordAuditEvent(ctx context.Context, event *db.AuditEvent) (*db.AuditEvent, error)
 	ListAuditEvents(ctx context.Context, page db.Pagination) ([]db.AuditEvent, error)
-	GetAuditEventByID(ctx context.Context, id string) (*db.AuditEvent, error)
+	GetAuditEventByID(ctx context.Context, id uuid.UUID) (*db.AuditEvent, error)
 	FilterAuditEvents(ctx context.Context, filter db.FilterParams, page db.Pagination) ([]db.AuditEvent, error)
+}
+
+type AuditService interface {
+	Record(ctx context.Context, event *db.AuditEvent) (*db.AuditEvent, error)
+	List(ctx context.Context, page db.Pagination) ([]db.AuditEvent, error)
+	GetByID(ctx context.Context, id string) (*db.AuditEvent, error)
+	Filter(ctx context.Context, filter db.FilterParams, page db.Pagination) ([]db.AuditEvent, error)
 }
 
 // BudgetRepository is the port for database interactions related to budgets.
@@ -83,11 +122,37 @@ type BudgetRepository interface {
 	GetBudgetComparisonReport(ctx context.Context, id uuid.UUID) (*db.GetBudgetComparisonReportRow, error)
 }
 
+type BudgetService interface {
+	// --- Budget Operations ---
+	CreateBudget(ctx context.Context, b *db.Budget) (*db.Budget, error)
+	GetBudget(ctx context.Context, id uuid.UUID) (*db.Budget, error)
+	ListBudgets(ctx context.Context, limit, offset int32) ([]db.Budget, error)
+	UpdateBudget(ctx context.Context, b *db.Budget) (*db.Budget, error)
+	DeleteBudget(ctx context.Context, id uuid.UUID) error
+
+	// --- Budget Allocation Operations ---
+	AllocateBudget(ctx context.Context, ba *db.BudgetAllocation) (*db.BudgetAllocation, error)
+	GetBudgetAllocation(ctx context.Context, id uuid.UUID) (*db.BudgetAllocation, error)
+	ListBudgetAllocations(ctx context.Context, budgetID uuid.UUID, limit, offset int32) ([]db.BudgetAllocation, error)
+	UpdateBudgetAllocation(ctx context.Context, ba *db.BudgetAllocation) (*db.BudgetAllocation, error)
+	DeleteBudgetAllocation(ctx context.Context, id uuid.UUID) error
+
+	// --- Reports ---
+	GetBudgetComparisonReport(ctx context.Context, id uuid.UUID) (*db.GetBudgetComparisonReportRow, error)
+}
+
 type CashFlowForecastRepository interface {
 	Generate(ctx context.Context, cf *db.CashFlowForecast) (*db.CashFlowForecast, error)
 	Get(ctx context.Context, id uuid.UUID) (*db.CashFlowForecast, error)
 	List(ctx context.Context, organizationID string, limit, offset int32) ([]*db.CashFlowForecast, error)
 }
+
+type CashFlowService interface {
+    GenerateForecastFromPeriod(ctx context.Context, period *pb.ReportPeriod) (string, error)
+    GetForecastFromPeriod(ctx context.Context, period *pb.ReportPeriod) (string, error)
+    ListForecastsFromPeriod(ctx context.Context, period *pb.ReportPeriod) (string, error)
+}
+
 
 type ConsolidationRepository interface {
 	Create(ctx context.Context, c db.Consolidation) (db.Consolidation, error)
@@ -227,6 +292,17 @@ type GstRepository interface {
 		lastError *string, lastSyncedAt *time.Time) (db.GstDocStatus, error)
 
 	GetGstDocStatus(ctx context.Context, invoiceID uuid.UUID) (db.GstDocStatus, error)
+}
+
+type GstServiceInterface interface {
+	AddGstBreakup(ctx context.Context, invoiceID string, taxableAmount float64, cgst, sgst, igst, totalGst *float64) (db.GstBreakup, error)
+	GetGstBreakup(ctx context.Context, invoiceID string) (db.GstBreakup, error)
+
+	AddGstRegime(ctx context.Context, invoiceID, gstin, placeOfSupply string, reverseCharge *bool) (db.GstRegime, error)
+	GetGstRegime(ctx context.Context, invoiceID string) (db.GstRegime, error)
+
+	AddGstDocStatus(ctx context.Context, invoiceID string, einvoiceStatus, irn, ackNo *string, ackDate *time.Time, ewayStatus, ewayBillNo *string, ewayValidUpto *time.Time, lastError *string, lastSyncedAt *time.Time) (db.GstDocStatus, error)
+	GetGstDocStatus(ctx context.Context, invoiceID string) (db.GstDocStatus, error)
 }
 
 type InvoiceRepository interface {

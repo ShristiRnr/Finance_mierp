@@ -7,7 +7,7 @@ import (
 
 	pb "github.com/ShristiRnr/Finance_mierp/api/pb"
 	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/services"
+	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -17,12 +17,12 @@ import (
 
 type LedgerHandler struct {
 	pb.UnimplementedLedgerServiceServer
-	accountSvc *services.AccountService
-	journalSvc *services.JournalService
-	ledgerSvc  *services.LedgerService
+	accountSvc ports.AccountService
+	journalSvc ports.JournalService
+	ledgerSvc  ports.LedgerService
 }
 
-func NewLedgerHandler(acc *services.AccountService, j *services.JournalService, l *services.LedgerService) *LedgerHandler {
+func NewLedgerHandler(acc ports.AccountService, j ports.JournalService, l ports.LedgerService) *LedgerHandler {
 	return &LedgerHandler{
 		accountSvc: acc,
 		journalSvc: j,
@@ -30,46 +30,32 @@ func NewLedgerHandler(acc *services.AccountService, j *services.JournalService, 
 	}
 }
 
+// ---------------- Accounts ----------------
 func (h *LedgerHandler) CreateAccount(ctx context.Context, req *pb.CreateAccountRequest) (*pb.Account, error) {
 	acc, err := h.accountSvc.Create(ctx, &db.Account{
 		ID:                 uuid.New(),
-		Code:               req.GetAccount().GetCode(),
-		Name:               req.GetAccount().GetName(),
-		Type:               fromPbAccountType(req.GetAccount().GetType()),     // convert enum → string
-		Status:             fromPbAccountStatus(req.GetAccount().GetStatus()), // convert enum → string
-		AllowManualJournal: req.GetAccount().GetAllowManualJournal(),
+		Code:               req.Account.Code,
+		Name:               req.Account.Name,
+		Type:               fromPbAccountType(req.Account.Type),
+		Status:             fromPbAccountStatus(req.Account.Status),
+		AllowManualJournal: req.Account.AllowManualJournal,
 	})
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "create account: %v", err)
 	}
-
-	// Map back to proto
-	return &pb.Account{
-		Id:                 acc.ID.String(),
-		Code:               acc.Code,
-		Name:               acc.Name,
-		Type:               toPbAccountType(acc.Type),     // convert string → enum
-		Status:             toPbAccountStatus(acc.Status), // convert string → enum
-		AllowManualJournal: acc.AllowManualJournal,
-	}, nil
+	return toPbAccount(acc), nil
 }
 
 func (h *LedgerHandler) GetAccount(ctx context.Context, req *pb.GetAccountRequest) (*pb.Account, error) {
 	id, err := uuid.Parse(req.Id)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.InvalidArgument, "invalid id: %v", err)
 	}
 	acc, err := h.accountSvc.Get(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "get account: %v", err)
 	}
-	return &pb.Account{
-		Id:     acc.ID.String(),
-		Code:   acc.Code,
-		Name:   acc.Name,
-		Type:   toPbAccountType(acc.Type),
-		Status: toPbStatus(acc.Status),
-	}, nil
+	return toPbAccount(acc), nil
 }
 
 func (h *LedgerHandler) UpdateAccount(ctx context.Context, req *pb.UpdateAccountRequest) (*pb.Account, error) {
@@ -77,27 +63,18 @@ func (h *LedgerHandler) UpdateAccount(ctx context.Context, req *pb.UpdateAccount
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid id: %v", err)
 	}
-
 	acc, err := h.accountSvc.Update(ctx, &db.Account{
 		ID:                 id,
-		Code:               req.GetAccount().GetCode(),
-		Name:               req.GetAccount().GetName(),
-		Type:               fromPbAccountType(req.GetAccount().GetType()),     // enum → string
-		Status:             fromPbAccountStatus(req.GetAccount().GetStatus()), // enum → string
-		AllowManualJournal: req.GetAccount().GetAllowManualJournal(),
+		Code:               req.Account.Code,
+		Name:               req.Account.Name,
+		Type:               fromPbAccountType(req.Account.Type),
+		Status:             fromPbAccountStatus(req.Account.Status),
+		AllowManualJournal: req.Account.AllowManualJournal,
 	})
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "update account: %v", err)
 	}
-
-	return &pb.Account{
-		Id:                 acc.ID.String(),
-		Code:               acc.Code,
-		Name:               acc.Name,
-		Type:               toPbAccountType(acc.Type),     // string → enum
-		Status:             toPbAccountStatus(acc.Status), // string → enum
-		AllowManualJournal: acc.AllowManualJournal,
-	}, nil
+	return toPbAccount(acc), nil
 }
 
 func (h *LedgerHandler) DeleteAccount(ctx context.Context, req *pb.DeleteAccountRequest) (*emptypb.Empty, error) {
@@ -105,23 +82,18 @@ func (h *LedgerHandler) DeleteAccount(ctx context.Context, req *pb.DeleteAccount
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid id: %v", err)
 	}
-
 	if err := h.accountSvc.Delete(ctx, id); err != nil {
 		return nil, status.Errorf(codes.Internal, "delete account: %v", err)
 	}
-
 	return &emptypb.Empty{}, nil
 }
 
 func (h *LedgerHandler) ListAccounts(ctx context.Context, req *pb.ListAccountsRequest) (*pb.ListAccountsResponse, error) {
-	// default page size=100
 	limit := int32(100)
 	if req.GetPage().GetPageSize() > 0 {
 		limit = req.Page.PageSize
 	}
-
-	// decode token into offset
-	var offset int32
+	offset := int32(0)
 	if req.GetPage().GetPageToken() != "" {
 		o, err := strconv.Atoi(req.Page.PageToken)
 		if err != nil {
@@ -130,27 +102,17 @@ func (h *LedgerHandler) ListAccounts(ctx context.Context, req *pb.ListAccountsRe
 		offset = int32(o)
 	}
 
-	// query service (must return: accounts, totalCount, error)
 	accounts, err := h.accountSvc.List(ctx, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "list accounts: %v", err)
 	}
 
-	// map domain -> pb
-	pbAccounts := make([]*pb.Account, 0, len(accounts))
-	for _, acc := range accounts {
-		pbAccounts = append(pbAccounts, &pb.Account{
-			Id:     acc.ID.String(),
-			Code:   acc.Code,
-			Name:   acc.Name,
-			Type:   toPbAccountType(acc.Type),
-			Status: toPbStatus(acc.Status),
-		})
+	pbAccounts := make([]*pb.Account, len(accounts))
+	for i, a := range accounts {
+		pbAccounts[i] = toPbAccount(a)
 	}
 
-	totalCount := int64(len(accounts))
-
-	// compute next_page_token
+	totalCount := int64(len(accounts)) // TODO: should be DB total count
 	nextToken := ""
 	if int64(offset)+int64(limit) < totalCount {
 		nextToken = strconv.Itoa(int(offset + limit))
@@ -165,7 +127,7 @@ func (h *LedgerHandler) ListAccounts(ctx context.Context, req *pb.ListAccountsRe
 	}, nil
 }
 
-// ---------- Journals ----------
+// ---------------- Journals ----------------
 func (h *LedgerHandler) CreateJournalEntry(ctx context.Context, req *pb.CreateJournalEntryRequest) (*pb.JournalEntry, error) {
 	j, err := h.journalSvc.Create(ctx, &db.JournalEntry{
 		ID:          uuid.New(),
@@ -175,34 +137,27 @@ func (h *LedgerHandler) CreateJournalEntry(ctx context.Context, req *pb.CreateJo
 		SourceID:    toNullString(req.Entry.SourceId),
 	})
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "create journal: %v", err)
 	}
-
 	return toPbJournalEntry(j), nil
 }
 
 func (h *LedgerHandler) GetJournalEntry(ctx context.Context, req *pb.GetJournalEntryRequest) (*pb.JournalEntry, error) {
 	id, err := uuid.Parse(req.Id)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.InvalidArgument, "invalid id: %v", err)
 	}
 	j, err := h.journalSvc.Get(ctx, id)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "get journal: %v", err)
 	}
-	return &pb.JournalEntry{
-		Id:          j.ID.String(),
-		JournalDate: timestamppb.New(j.JournalDate),
-		Memo:        j.Memo.String,
-		SourceType:  j.SourceType.String,
-		SourceId:    j.SourceID.String,
-	}, nil
+	return toPbJournalEntry(j), nil
 }
 
 func (h *LedgerHandler) UpdateJournalEntry(ctx context.Context, req *pb.UpdateJournalEntryRequest) (*pb.JournalEntry, error) {
 	id, err := uuid.Parse(req.Entry.Id)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.InvalidArgument, "invalid id: %v", err)
 	}
 	j, err := h.journalSvc.Update(ctx, &db.JournalEntry{
 		ID:          id,
@@ -212,33 +167,28 @@ func (h *LedgerHandler) UpdateJournalEntry(ctx context.Context, req *pb.UpdateJo
 		SourceID:    toNullString(req.Entry.SourceId),
 	})
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "update journal: %v", err)
 	}
-
 	return toPbJournalEntry(j), nil
 }
 
 func (h *LedgerHandler) DeleteJournalEntry(ctx context.Context, req *pb.DeleteJournalEntryRequest) (*emptypb.Empty, error) {
 	id, err := uuid.Parse(req.Id)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.InvalidArgument, "invalid id: %v", err)
 	}
 	if err := h.journalSvc.Delete(ctx, id); err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "delete journal: %v", err)
 	}
-
 	return &emptypb.Empty{}, nil
 }
 
 func (h *LedgerHandler) ListJournalEntries(ctx context.Context, req *pb.ListJournalEntriesRequest) (*pb.ListJournalEntriesResponse, error) {
-	// default page size
 	limit := int32(50)
 	if req.GetPage().GetPageSize() > 0 {
 		limit = req.Page.PageSize
 	}
-
-	// decode page_token into offset
-	var offset int32
+	offset := int32(0)
 	if req.GetPage().GetPageToken() != "" {
 		o, err := strconv.Atoi(req.Page.PageToken)
 		if err != nil {
@@ -247,27 +197,17 @@ func (h *LedgerHandler) ListJournalEntries(ctx context.Context, req *pb.ListJour
 		offset = int32(o)
 	}
 
-	// query service
 	entries, err := h.journalSvc.List(ctx, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "list journal entries: %v", err)
 	}
 
-	// map to proto
-	pbEntries := make([]*pb.JournalEntry, 0, len(entries))
-	for _, e := range entries {
-		pbEntries = append(pbEntries, &pb.JournalEntry{
-			Id:          e.ID.String(),
-			JournalDate: timestamppb.New(e.JournalDate),
-			Memo:        e.Memo.String,
-			SourceType:  e.SourceType.String,
-			SourceId:    e.SourceID.String,
-		})
+	pbEntries := make([]*pb.JournalEntry, len(entries))
+	for i, e := range entries {
+		pbEntries[i] = toPbJournalEntry(e)
 	}
 
-	totalCount := int64(len(entries)) // TODO: ideally from DB
-
-	// compute next_page_token
+	totalCount := int64(len(entries)) // TODO: DB count
 	nextToken := ""
 	if int64(offset)+int64(limit) < totalCount {
 		nextToken = strconv.Itoa(int(offset + limit))
@@ -282,16 +222,13 @@ func (h *LedgerHandler) ListJournalEntries(ctx context.Context, req *pb.ListJour
 	}, nil
 }
 
-// ---------- Ledger (Read-only) ----------
+// ---------------- Ledger ----------------
 func (h *LedgerHandler) ListLedgerEntries(ctx context.Context, req *pb.ListLedgerEntriesRequest) (*pb.ListLedgerEntriesResponse, error) {
-	// default page size
 	limit := int32(100)
 	if req.GetPage().GetPageSize() > 0 {
 		limit = req.Page.PageSize
 	}
-
-	// decode page_token into offset
-	var offset int32
+	offset := int32(0)
 	if req.GetPage().GetPageToken() != "" {
 		o, err := strconv.Atoi(req.Page.PageToken)
 		if err != nil {
@@ -300,19 +237,17 @@ func (h *LedgerHandler) ListLedgerEntries(ctx context.Context, req *pb.ListLedge
 		offset = int32(o)
 	}
 
-	// query service
 	entries, err := h.ledgerSvc.List(ctx, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "list ledger entries: %v", err)
 	}
 
-	pbEntries := make([]*pb.LedgerEntry, 0, len(entries))
-	for _, e := range entries {
-		pbEntries = append(pbEntries, toPbLedgerEntry(e))
+	pbEntries := make([]*pb.LedgerEntry, len(entries))
+	for i, e := range entries {
+		pbEntries[i] = toPbLedgerEntry(e)
 	}
 
-	// compute next_page_token
-	totalCount := int64(len(entries)) // FIXME: from DB
+	totalCount := int64(len(entries)) // TODO: DB count
 	nextToken := ""
 	if int64(offset)+int64(limit) < totalCount {
 		nextToken = strconv.Itoa(int(offset + limit))
@@ -327,6 +262,18 @@ func (h *LedgerHandler) ListLedgerEntries(ctx context.Context, req *pb.ListLedge
 	}, nil
 }
 
+// ---------------- Helper Conversions ----------------
+func toPbAccount(a *db.Account) *pb.Account {
+	return &pb.Account{
+		Id:                 a.ID.String(),
+		Code:               a.Code,
+		Name:               a.Name,
+		Type:               toPbAccountType(a.Type),
+		Status:             toPbAccountStatus(a.Status),
+		AllowManualJournal: a.AllowManualJournal,
+	}
+}
+
 func toPbJournalEntry(j *db.JournalEntry) *pb.JournalEntry {
 	return &pb.JournalEntry{
 		Id:          j.ID.String(),
@@ -337,7 +284,15 @@ func toPbJournalEntry(j *db.JournalEntry) *pb.JournalEntry {
 	}
 }
 
-// ---------- Enum Conversions ----------
+func toNullString(s string) sql.NullString {
+	if s == "" {
+		return sql.NullString{Valid: false}
+	}
+	return sql.NullString{String: s, Valid: true}
+}
+
+// ---------------- Enum Conversions ----------------
+
 func fromPbAccountType(t pb.AccountType) string {
 	switch t {
 	case pb.AccountType_ACCOUNT_ASSET:
@@ -397,11 +352,3 @@ func toPbAccountStatus(s string) pb.AccountStatus {
 		return pb.AccountStatus_ACCOUNT_STATUS_UNSPECIFIED
 	}
 }
-
-func toNullString(s string) sql.NullString {
-    if s == "" {
-        return sql.NullString{String: "", Valid: false}
-    }
-    return sql.NullString{String: s, Valid: true}
-}
-

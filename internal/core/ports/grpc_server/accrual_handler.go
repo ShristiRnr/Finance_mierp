@@ -13,15 +13,14 @@ import (
 	pb "github.com/ShristiRnr/Finance_mierp/api/pb"
 	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/services"
 )
 
 type AccrualHandler struct {
 	pb.UnimplementedAccrualServiceServer
-	svc *services.AccrualService
+	svc ports.AccrualService
 }
 
-func NewAccrualHandler(svc *services.AccrualService) *AccrualHandler {
+func NewAccrualHandler(svc ports.AccrualService) *AccrualHandler {
 	return &AccrualHandler{svc: svc}
 }
 

@@ -45,16 +45,14 @@ func (s *BudgetService) GetBudget(ctx context.Context, id uuid.UUID) (*db.Budget
 	return s.repo.Get(ctx, id)
 }
 
-func (s *BudgetService) ListBudgets(ctx context.Context, limit, offset int32) ([]*db.Budget, error) {
+func (s *BudgetService) ListBudgets(ctx context.Context, limit, offset int32) ([]db.Budget, error) {
 	budgets, err := s.repo.List(ctx, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]*db.Budget, len(budgets))
-	for i := range budgets {
-		result[i] = &budgets[i]
-	}
+	result := make([]db.Budget, len(budgets))
+	copy(result, budgets)
 	return result, nil
 }
 
@@ -115,16 +113,14 @@ func (s *BudgetService) GetBudgetAllocation(ctx context.Context, id uuid.UUID) (
 	return s.repo.GetAllocation(ctx, id)
 }
 
-func (s *BudgetService) ListBudgetAllocations(ctx context.Context, budgetID uuid.UUID, limit, offset int32) ([]*db.BudgetAllocation, error) {
+func (s *BudgetService) ListBudgetAllocations(ctx context.Context, budgetID uuid.UUID, limit, offset int32) ([]db.BudgetAllocation, error) {
 	allocs, err := s.repo.ListAllocations(ctx, budgetID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]*db.BudgetAllocation, len(allocs))
-	for i := range allocs {
-		result[i] = &allocs[i]
-	}
+	result := make([]db.BudgetAllocation, len(allocs))
+	copy(result, allocs)
 	return result, nil
 }
 

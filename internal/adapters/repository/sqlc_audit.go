@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"// Your generated sqlc package
 	"github.com/google/uuid"
@@ -53,18 +54,15 @@ func (r *AuditRepository) RecordAuditEvent(ctx context.Context, event *db.AuditE
 	return &res, nil
 }
 
-func (r *AuditRepository) GetAuditEventByID(ctx context.Context, id string) (*db.AuditEvent, error) {
-	uuid, err := uuid.Parse(id)
-	if err != nil {
-		return nil, err // Invalid UUID format
-	}
-	event, err := r.queries.GetAuditEventById(ctx, uuid)
+func (r *AuditRepository) GetAuditEventByID(ctx context.Context, id uuid.UUID) (*db.AuditEvent, error) {
+	event, err := r.queries.GetAuditEventById(ctx, id) // use the parameter
 	if err != nil {
 		return nil, err
 	}
 	res := toDomain(event)
 	return &res, nil
 }
+
 
 func (r *AuditRepository) ListAuditEvents(ctx context.Context, page db.Pagination) ([]db.AuditEvent, error) {
 	params := db.ListAuditEventsParams{
@@ -87,6 +85,12 @@ func (r *AuditRepository) FilterAuditEvents(ctx context.Context, filter db.Filte
 		Limit:  int32(page.Limit),
 		Offset: int32(page.Offset),
 	}
+
+	// Set defaults for strings
+	params.Column1 = ""
+	params.Column2 = ""
+	params.Column3 = ""
+	params.Column4 = ""
 	if filter.UserID != nil {
 		params.Column1 = *filter.UserID
 	}
@@ -99,13 +103,17 @@ func (r *AuditRepository) FilterAuditEvents(ctx context.Context, filter db.Filte
 	if filter.ResourceID != nil {
 		params.Column4 = *filter.ResourceID
 	}
+
+	// Set defaults for dates
+	params.Column5 = time.Time{}
+	params.Column6 = time.Time{}
 	if filter.FromDate != nil {
 		params.Column5 = *filter.FromDate
 	}
 	if filter.ToDate != nil {
 		params.Column6 = *filter.ToDate
 	}
-	
+
 	events, err := r.queries.FilterAuditEvents(ctx, params)
 	if err != nil {
 		return nil, err

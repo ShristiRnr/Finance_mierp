@@ -11,11 +11,26 @@ import (
 	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 )
 
-type GstRepo struct {
-	q *db.Queries
+type GstQueries interface {
+	// Breakup
+	AddGstBreakup(ctx context.Context, arg db.AddGstBreakupParams) (db.GstBreakup, error)
+	GetGstBreakup(ctx context.Context, invoiceID uuid.UUID) (db.GstBreakup, error)
+
+	// Regime
+	AddGstRegime(ctx context.Context, arg db.AddGstRegimeParams) (db.GstRegime, error)
+	GetGstRegime(ctx context.Context, invoiceID uuid.UUID) (db.GstRegime, error)
+
+	// Doc Status
+	AddGstDocStatus(ctx context.Context, arg db.AddGstDocStatusParams) (db.GstDocStatus, error)
+	GetGstDocStatus(ctx context.Context, invoiceID uuid.UUID) (db.GstDocStatus, error)
 }
 
-func NewGstRepo(q *db.Queries) ports.GstRepository {
+
+type GstRepo struct {
+	q GstQueries
+}
+
+func NewGstRepo(q GstQueries) ports.GstRepository {
 	return &GstRepo{q: q}
 }
 
