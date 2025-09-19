@@ -4,21 +4,36 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"context"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
-	"github.com/ShristiRnr/Finance_mierp/internal/core/services"
 )
+
+type InvoiceServiceInterface interface {
+    CreateInvoice(ctx context.Context, inv db.Invoice) (db.Invoice, error)
+    GetInvoice(ctx context.Context, id uuid.UUID) (db.Invoice, error)
+    UpdateInvoice(ctx context.Context, inv db.Invoice) (db.Invoice, error)
+    DeleteInvoice(ctx context.Context, id uuid.UUID) error
+    ListInvoices(ctx context.Context, limit, offset int32) ([]db.Invoice, error)
+    SearchInvoices(ctx context.Context, query string, limit, offset int32) ([]db.Invoice, error)
+
+	CreateInvoiceItem(ctx context.Context, item db.InvoiceItem) (db.InvoiceItem, error)
+    ListInvoiceItems(ctx context.Context, invoiceID uuid.UUID) ([]db.InvoiceItem, error)
+
+    // Taxes and Discounts
+    AddInvoiceTax(ctx context.Context, tax db.InvoiceTax) (db.InvoiceTax, error)
+    AddInvoiceDiscount(ctx context.Context, discount db.InvoiceDiscount) (db.InvoiceDiscount, error)
+}
 
 // InvoiceHandler handles HTTP requests for invoices and related entities
 type InvoiceHandler struct {
-	svc *services.InvoiceService
+    svc InvoiceServiceInterface
 }
 
-// NewInvoiceHandler creates a new handler
-func NewInvoiceHandler(svc *services.InvoiceService) *InvoiceHandler {
-	return &InvoiceHandler{svc: svc}
+func NewInvoiceHandler(svc InvoiceServiceInterface) *InvoiceHandler {
+    return &InvoiceHandler{svc: svc}
 }
 
 // RegisterRoutes registers all invoice routes

@@ -8,11 +8,35 @@ import (
 	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 )
 
-type ExpenseRepo struct {
-	q *db.Queries
+type ExpenseQuerier interface {
+    CreateExpense(ctx context.Context, arg db.CreateExpenseParams) (db.Expense, error)
+    GetExpense(ctx context.Context, id uuid.UUID) (db.Expense, error)
+    ListExpenses(ctx context.Context, arg db.ListExpensesParams) ([]db.Expense, error)
+    UpdateExpense(ctx context.Context, arg db.UpdateExpenseParams) (db.Expense, error)
+    DeleteExpense(ctx context.Context, id uuid.UUID) error
 }
 
-func NewExpenseRepo(q *db.Queries) ports.ExpenseRepository {
+type CostCenterQuerier interface {
+    CreateCostCenter(ctx context.Context, arg db.CreateCostCenterParams) (db.CostCenter, error)
+    GetCostCenter(ctx context.Context, id uuid.UUID) (db.CostCenter, error)
+    ListCostCenters(ctx context.Context, arg db.ListCostCentersParams) ([]db.CostCenter, error)
+    UpdateCostCenter(ctx context.Context, arg db.UpdateCostCenterParams) (db.CostCenter, error)
+    DeleteCostCenter(ctx context.Context, id uuid.UUID) error
+}
+
+type CostAllocationQuerier interface {
+    AllocateCost(ctx context.Context, arg db.AllocateCostParams) (db.CostAllocation, error)
+    ListCostAllocations(ctx context.Context, arg db.ListCostAllocationsParams) ([]db.CostAllocation, error)
+}
+
+// =======================
+// Expense Repo
+// =======================
+type ExpenseRepo struct {
+	q ExpenseQuerier
+}
+
+func NewExpenseRepo(q ExpenseQuerier) ports.ExpenseRepository {
 	return &ExpenseRepo{q: q}
 }
 
@@ -21,9 +45,9 @@ func (r *ExpenseRepo) Create(ctx context.Context, exp db.Expense) (db.Expense, e
 		Category:     exp.Category,
 		Amount:       exp.Amount,
 		ExpenseDate:  exp.ExpenseDate,
-		CostCenterID: exp.CostCenterID,
-		CreatedBy:    exp.CreatedBy,
-		UpdatedBy:    exp.UpdatedBy,
+		CostCenterID: exp.CostCenterID, // already uuid.NullUUID in db.Expense
+		CreatedBy:    exp.CreatedBy,    // sql.NullString
+		UpdatedBy:    exp.UpdatedBy,    // sql.NullString
 	}
 	row, err := r.q.CreateExpense(ctx, arg)
 	if err != nil {
@@ -72,11 +96,14 @@ func (r *ExpenseRepo) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.q.DeleteExpense(ctx, id)
 }
 
+// =======================
+// CostCenter Repo
+// =======================
 type CostCenterRepo struct {
-	q *db.Queries
+	q CostCenterQuerier
 }
 
-func NewCostCenterRepo(q *db.Queries) ports.CostCenterRepository {
+func NewCostCenterRepo(q CostCenterQuerier) ports.CostCenterRepository {
 	return &CostCenterRepo{q: q}
 }
 
@@ -132,11 +159,14 @@ func (r *CostCenterRepo) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.q.DeleteCostCenter(ctx, id)
 }
 
+// =======================
+// CostAllocation Repo
+// =======================
 type CostAllocationRepo struct {
-	q *db.Queries
+	q CostAllocationQuerier
 }
 
-func NewCostAllocationRepo(q *db.Queries) ports.CostAllocationRepository {
+func NewCostAllocationRepo(q CostAllocationQuerier) ports.CostAllocationRepository {
 	return &CostAllocationRepo{q: q}
 }
 
@@ -146,7 +176,7 @@ func (r *CostAllocationRepo) Allocate(ctx context.Context, ca db.CostAllocation)
 		Amount:        ca.Amount,
 		ReferenceType: ca.ReferenceType,
 		ReferenceID:   ca.ReferenceID,
-		CreatedBy:    ca.CreatedBy,
+		CreatedBy:     ca.CreatedBy,
 		UpdatedBy:     ca.UpdatedBy,
 	}
 	row, err := r.q.AllocateCost(ctx, arg)
@@ -168,16 +198,21 @@ func (r *CostAllocationRepo) List(ctx context.Context, limit, offset int32) ([]d
 	return allocs, nil
 }
 
+// =======================
+// Mapping Helpers
+// =======================
 func mapDbExpense(row db.Expense) db.Expense {
 	return db.Expense{
 		ID:           row.ID,
 		Category:     row.Category,
 		Amount:       row.Amount,
 		ExpenseDate:  row.ExpenseDate,
+		CostCenterID: row.CostCenterID,
 		CreatedAt:    row.CreatedAt,
 		UpdatedAt:    row.UpdatedAt,
 		CreatedBy:    row.CreatedBy,
 		UpdatedBy:    row.UpdatedBy,
+		Revision:     row.Revision,
 	}
 }
 
@@ -190,6 +225,7 @@ func mapDbCostCenter(row db.CostCenter) db.CostCenter {
 		UpdatedAt:   row.UpdatedAt,
 		CreatedBy:   row.CreatedBy,
 		UpdatedBy:   row.UpdatedBy,
+		Revision:    row.Revision,
 	}
 }
 
@@ -204,5 +240,6 @@ func mapDbCostAllocation(row db.CostAllocation) db.CostAllocation {
 		UpdatedAt:     row.UpdatedAt,
 		CreatedBy:     row.CreatedBy,
 		UpdatedBy:     row.UpdatedBy,
+		Revision:      row.Revision,
 	}
 }

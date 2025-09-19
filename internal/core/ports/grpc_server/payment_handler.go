@@ -8,14 +8,15 @@ import (
 	"github.com/google/uuid"
 	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
 	"github.com/ShristiRnr/Finance_mierp/internal/core/services"
+	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 )
 
 // Example for BankAccount handler
 type BankAccountHandler struct {
-	svc *services.BankService
+	svc ports.BankService
 }
 
-func NewBankAccountHandler(svc *services.BankService) *BankAccountHandler {
+func NewBankAccountHandler(svc ports.BankService) *BankAccountHandler {
 	return &BankAccountHandler{svc: svc}
 }
 

@@ -214,7 +214,6 @@ func (s *BankTransactionService) ReconcileTransaction(ctx context.Context, tx db
 	return trx, nil
 }
 
-
 func (s *BankTransactionService) ListBankTransactions(ctx context.Context, bankAccountID uuid.UUID, limit, offset int32) ([]db.BankTransaction, error) {
 	return s.repo.ListBankTransactions(ctx, bankAccountID, limit, offset)
 }

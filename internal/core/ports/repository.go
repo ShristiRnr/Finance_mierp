@@ -320,6 +320,15 @@ type InvoiceRepository interface {
     AddInvoiceDiscount(ctx context.Context, discount db.InvoiceDiscount) (db.InvoiceDiscount, error)
 }
 
+type InvoiceServiceInterface interface {
+    CreateInvoice(ctx context.Context, inv db.Invoice) (db.Invoice, error)
+    GetInvoice(ctx context.Context, id uuid.UUID) (db.Invoice, error)
+    UpdateInvoice(ctx context.Context, inv db.Invoice) (db.Invoice, error)
+    DeleteInvoice(ctx context.Context, id uuid.UUID) error
+    ListInvoices(ctx context.Context, limit, offset int32) ([]db.Invoice, error)
+    SearchInvoices(ctx context.Context, query string, limit, offset int32) ([]db.Invoice, error)
+}
+
 type BankAccountRepository interface {
     CreateBankAccount(ctx context.Context, ba db.BankAccount) (db.BankAccount, error)
     GetBankAccount(ctx context.Context, id uuid.UUID) (db.BankAccount, error)
@@ -342,4 +351,22 @@ type BankTransactionRepository interface {
     ImportBankTransaction(ctx context.Context, tx db.BankTransaction) (db.BankTransaction, error)
     ListBankTransactions(ctx context.Context, bankAccountID uuid.UUID, limit, offset int32) ([]db.BankTransaction, error)
     ReconcileTransaction(ctx context.Context, tx db.BankTransaction) (db.BankTransaction, error)
+}
+
+type BankService interface {
+    CreateBankAccount(ctx context.Context, ba db.BankAccount) (db.BankAccount, error)
+    GetBankAccount(ctx context.Context, id uuid.UUID) (db.BankAccount, error)
+    UpdateBankAccount(ctx context.Context, ba db.BankAccount) (db.BankAccount, error)
+    DeleteBankAccount(ctx context.Context, id uuid.UUID) error
+    ListBankAccounts(ctx context.Context, limit, offset int32) ([]db.BankAccount, error)
+}
+
+
+type FinanceEventServiceInterface interface {
+    RecordInvoiceCreated(ctx context.Context, event db.FinanceInvoiceCreatedEvent) (db.FinanceInvoiceCreatedEvent, error)
+    RecordInvoiceUpdated(ctx context.Context, event db.Invoice) (db.Invoice, error)
+    RecordInvoiceDeleted(ctx context.Context, invoiceID uuid.UUID) error
+    RecordBudgetCreated(ctx context.Context, b db.Budget) error
+    RecordBudgetUpdated(ctx context.Context, b db.Budget) error
+    RecordBudgetDeleted(ctx context.Context, id uuid.UUID) error
 }

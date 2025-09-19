@@ -2,9 +2,10 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 
-	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
+	"github.com/ShristiRnr/Finance_mierp/internal/core/ports"
 	"github.com/google/uuid"
 )
 
@@ -120,7 +121,7 @@ func (r *InvoiceRepo) DeleteInvoice(ctx context.Context, id uuid.UUID) error {
 
 func (r *InvoiceRepo) SearchInvoices(ctx context.Context, query string, limit, offset int32) ([]db.Invoice, error) {
 	dbRows, err := r.q.SearchInvoices(ctx, db.SearchInvoicesParams{
-		Column1: ptrS2NullStr(&query),
+		Column1: sql.NullString{String: query, Valid: query != ""},
 		Limit:   limit,
 		Offset:  offset,
 	})
@@ -197,70 +198,21 @@ func (r *InvoiceRepo) AddInvoiceDiscount(ctx context.Context, disc db.InvoiceDis
 // ============================================ Mapping functions =======================================
 
 func mapInvoice(i db.Invoice) db.Invoice {
-	return db.Invoice{
-		ID:                   i.ID,
-		InvoiceNumber:        i.InvoiceNumber,
-		Type:                 i.Type,
-		InvoiceDate:          i.InvoiceDate,
-		DueDate:              i.DueDate,
-		DeliveryDate:         i.DeliveryDate,
-		OrganizationID:       i.OrganizationID,
-		PoNumber:             i.PoNumber,
-		EwayNumberLegacy:     i.EwayNumberLegacy,
-		StatusNote:           i.StatusNote,
-		Status:               i.Status,
-		PaymentReference:     i.PaymentReference,
-		ChallanNumber:        i.ChallanNumber,
-		ChallanDate:          i.ChallanDate,
-		LrNumber:             i.LrNumber,
-		TransporterName:      i.TransporterName,
-		TransporterID:        i.TransporterID,
-		VehicleNumber:        i.VehicleNumber,
-		AgainstInvoiceNumber: i.AgainstInvoiceNumber,
-		AgainstInvoiceDate:   i.AgainstInvoiceDate,
-		Subtotal:             i.Subtotal,
-		GstCgst:              i.GstCgst,
-		GstSgst:              i.GstSgst,
-		GstIgst:              i.GstIgst,
-		GstRate:              i.GstRate,
-		GrandTotal:           i.GrandTotal,
-		CreatedBy:            i.CreatedBy,
-		UpdatedBy:            i.UpdatedBy,
-		Revision:             i.Revision,
-	}
+	return i
 }
 
 func mapInvoiceItem(i db.InvoiceItem) db.InvoiceItem {
-	return db.InvoiceItem{
-		ID:          i.ID,
-		InvoiceID:   i.InvoiceID,
-		Name:        i.Name,
-		Description: i.Description,
-		Hsn:         i.Hsn,
-		Quantity:    i.Quantity,
-		UnitPrice:   i.UnitPrice,
-		LineSubtotal:i.LineSubtotal,
-		LineTotal:   i.LineTotal,
-		CostCenterID:i.CostCenterID,
-	}
+	return i
 }
 
 func mapInvoiceTax(i db.InvoiceTax) db.InvoiceTax {
-	return db.InvoiceTax{
-		ID:        i.ID,
-		InvoiceID: i.InvoiceID,
-		Name:      i.Name,
-		Rate:      i.Rate,
-		Amount:    i.Amount,
-	}
+	return i
 }
 
 func mapInvoiceDiscount(i db.InvoiceDiscount) db.InvoiceDiscount {
-	return db.InvoiceDiscount{
-		ID:          i.ID,
-		InvoiceID:   i.InvoiceID,
-		Description: i.Description,
-		Amount:      i.Amount,
-	}
+	return i
 }
+
+// ============================================ Helpers =======================================
+
 

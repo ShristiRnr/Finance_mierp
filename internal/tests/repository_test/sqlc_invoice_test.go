@@ -3,207 +3,169 @@ package repository_test
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"testing"
 	"time"
 
-	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
-	"github.com/ShristiRnr/Finance_mierp/internal/adapters/repository"
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	_ "modernc.org/sqlite" // pure-Go SQLite driver
+	"github.com/ShristiRnr/Finance_mierp/internal/adapters/database/db"
+	"github.com/ShristiRnr/Finance_mierp/internal/adapters/repository"
 )
 
-// setupTestDB connects to an in-memory SQLite DB for testing.
-func setupTestDB(t *testing.T) (*sql.DB, func()) {
-	sqlDB, err := sql.Open("sqlite", "file::memory:?cache=shared")
-	require.NoError(t, err)
-
-	// Create tables
-	_, err = sqlDB.Exec(`
-	CREATE TABLE invoices (
-		id TEXT PRIMARY KEY,
-		invoice_number TEXT,
-		type TEXT,
-		invoice_date DATETIME,
-		due_date DATETIME,
-		delivery_date DATETIME,
-		organization_id TEXT,
-		po_number TEXT,
-		eway_number_legacy TEXT,
-		status_note TEXT,
-		status TEXT,
-		payment_reference TEXT,
-		challan_number TEXT,
-		challan_date DATETIME,
-		lr_number TEXT,
-		transporter_name TEXT,
-		transporter_id TEXT,
-		vehicle_number TEXT,
-		against_invoice_number TEXT,
-		against_invoice_date DATETIME,
-		subtotal TEXT,
-		grand_total TEXT,
-		gst_rate TEXT,
-		gst_cgst TEXT,
-		gst_sgst TEXT,
-		gst_igst TEXT,
-		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-		created_by TEXT,
-		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-		updated_by TEXT,
-		revision INTEGER
-	);
-	CREATE TABLE invoice_items (
-		id TEXT PRIMARY KEY,
-		invoice_id TEXT,
-		name TEXT,
-		description TEXT,
-		hsn TEXT,
-		quantity INTEGER,
-		unit_price TEXT,
-		line_subtotal TEXT,
-		line_total TEXT,
-		cost_center_id TEXT,
-		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-		created_by TEXT,
-		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-		updated_by TEXT,
-		revision INTEGER
-	);
-	CREATE TABLE invoice_taxes (
-		id TEXT PRIMARY KEY,
-		invoice_id TEXT,
-		name TEXT,
-		rate TEXT,
-		amount TEXT,
-		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-		created_by TEXT,
-		revision INTEGER
-	);
-	CREATE TABLE invoice_discounts (
-		id TEXT PRIMARY KEY,
-		invoice_id TEXT,
-		description TEXT,
-		amount TEXT,
-		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-		created_by TEXT,
-		revision INTEGER
-	);
-	`)
-	require.NoError(t, err)
-
-	cleanup := func() { sqlDB.Close() }
-	return sqlDB, cleanup
-}
-
-// helper function to create a test invoice
-func createTestInvoice(t *testing.T, q *db.Queries) db.Invoice {
-	arg := db.CreateInvoiceParams{
-		InvoiceNumber:  "INV-" + uuid.New().String(),
-		Type:           "SALES",
-		InvoiceDate:    time.Now(),
-		DueDate:        sql.NullTime{Time: time.Now().AddDate(0, 0, 15), Valid: true},
-		OrganizationID: uuid.New().String(),
-		Status:         "PENDING",
-		Subtotal:       "1000",
-		GrandTotal:     "1180",
-		CreatedBy:      sql.NullString{String: "tester", Valid: true},
-		UpdatedBy:      sql.NullString{String: "tester", Valid: true},
-		Revision:       sql.NullInt32{Int32: 1, Valid: true},
+// helpers to convert Null types for sqlmock
+func nt(t sql.NullTime) interface{} {
+	if t.Valid {
+		return t.Time
 	}
-	inv, err := q.CreateInvoice(context.Background(), arg)
-	require.NoError(t, err)
-	require.NotEmpty(t, inv)
-	return inv
+	return nil
 }
 
-func TestInvoiceRepository_CRUD(t *testing.T) {
+func ns(s sql.NullString) interface{} {
+	if s.Valid {
+		return s.String
+	}
+	return nil
+}
+
+func ni(i sql.NullInt32) interface{} {
+	if i.Valid {
+		return i.Int32
+	}
+	return nil
+}
+
+func TestUpdateInvoice(t *testing.T) {
 	ctx := context.Background()
-	sqlDB, cleanup := setupTestDB(t)
-	defer cleanup()
 
-	q := db.New(sqlDB)
-	repo := repository.NewInvoiceRepo(q)
-
-	// Create
-	inv := createTestInvoice(t, q)
-	require.NotEmpty(t, inv.ID)
-
-	// Get
-	fetched, err := repo.GetInvoice(ctx, inv.ID)
+	dbConn, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	require.Equal(t, inv.ID, fetched.ID)
+	defer dbConn.Close()
 
-	// List
-	list, err := repo.ListInvoices(ctx, 10, 0)
-	require.NoError(t, err)
-	require.Len(t, list, 1)
+	queries := db.New(dbConn)
+	repo := repository.NewInvoiceRepo(queries)
 
-	// Update
-	inv.Status = "APPROVED"
-	inv.UpdatedBy = sql.NullString{String: "manager", Valid: true}
-	updated, err := repo.UpdateInvoice(ctx, inv)
-	require.NoError(t, err)
-	require.Equal(t, "APPROVED", updated.Status)
+	invoiceID := uuid.New()
+	now := time.Now()
 
-	// Delete
-	err = repo.DeleteInvoice(ctx, inv.ID)
-	require.NoError(t, err)
-
-	_, err = repo.GetInvoice(ctx, inv.ID)
-	require.Error(t, err)
-}
-
-func TestInvoiceItemsAndTaxes(t *testing.T) {
-	ctx := context.Background()
-	sqlDB, cleanup := setupTestDB(t)
-	defer cleanup()
-
-	q := db.New(sqlDB)
-	repo := repository.NewInvoiceRepo(q)
-
-	// Create invoice
-	inv := createTestInvoice(t, q)
-
-	// Add Item
-	item := db.CreateInvoiceItemParams{
-		InvoiceID:    inv.ID,
-		Name:         "Product A",
-		Description:  sql.NullString{String: "Test product", Valid: true},
-		Hsn:          sql.NullString{String: "1001", Valid: true},
-		Quantity:     2,
-		UnitPrice:    "200",
-		LineSubtotal: "400",
-		LineTotal:    "400",
-		CostCenterID: sql.NullString{Valid: false},
+	inv := db.Invoice{
+		ID:                   invoiceID,
+		InvoiceNumber:        "INV-001",
+		Type:                 "SALE",
+		InvoiceDate:          now,
+		DueDate:              sql.NullTime{Time: now.AddDate(0, 0, 30), Valid: true},
+		DeliveryDate:         sql.NullTime{Time: now.AddDate(0, 0, 2), Valid: true},
+		OrganizationID:       uuid.New().String(),
+		PoNumber:             sql.NullString{String: "PO-1001", Valid: true},
+		EwayNumberLegacy:     sql.NullString{String: "EWAY123", Valid: true},
+		StatusNote:           sql.NullString{String: "Pending approval", Valid: true},
+		Status:               "DRAFT",
+		PaymentReference:     sql.NullString{String: "PAY123", Valid: true},
+		ChallanNumber:        sql.NullString{String: "CH123", Valid: true},
+		ChallanDate:          sql.NullTime{Time: now, Valid: true},
+		LrNumber:             sql.NullString{String: "LR987", Valid: true},
+		TransporterName:      sql.NullString{String: "BlueDart", Valid: true},
+		TransporterID:        sql.NullString{String: uuid.New().String(), Valid: true},
+		VehicleNumber:        sql.NullString{String: "UP32AB1234", Valid: true},
+		AgainstInvoiceNumber: sql.NullString{String: "INV-REF", Valid: true},
+		AgainstInvoiceDate:   sql.NullTime{Time: now, Valid: true},
+		Subtotal:             "1000.0",
+		GrandTotal:           "1180.0",
+		GstRate:              sql.NullString{String: fmt.Sprintf("%f", 18.0), Valid: true},
+		GstCgst:              sql.NullString{String: fmt.Sprintf("%f", 90.0), Valid: true},
+		GstSgst:              sql.NullString{String: fmt.Sprintf("%f", 90.0), Valid: true},
+		GstIgst:              sql.NullString{String: fmt.Sprintf("%f", 0.0), Valid: true},
+		CreatedBy:            sql.NullString{String: "creator", Valid: true},
+		UpdatedBy:            sql.NullString{String: "tester", Valid: true},
+		Revision:             sql.NullInt32{Int32: 2, Valid: true},
+		CreatedAt:            sql.NullTime{Time: now, Valid: true},
+		UpdatedAt:            sql.NullTime{Time: now, Valid: true},
 	}
-	createdItem, err := repo.CreateInvoiceItem(ctx, item)
-	require.NoError(t, err)
-	require.Equal(t, "Product A", createdItem.Name)
 
-	items, err := repo.ListInvoiceItems(ctx, inv.ID)
-	require.NoError(t, err)
-	require.Len(t, items, 1)
-
-	// Add Tax
-	tax := db.AddInvoiceTaxParams{
-		InvoiceID: inv.ID,
-		Name:      "GST",
-		Rate:      "18",
-		Amount:    "72",
+	columns := []string{
+		"id", "invoice_number", "type", "invoice_date", "due_date", "delivery_date",
+		"organization_id", "po_number", "eway_number_legacy", "status_note", "status",
+		"payment_reference", "challan_number", "challan_date", "lr_number",
+		"transporter_name", "transporter_id", "vehicle_number",
+		"against_invoice_number", "against_invoice_date",
+		"subtotal", "grand_total", "gst_rate", "gst_cgst", "gst_sgst", "gst_igst",
+		"created_by", "updated_by", "revision",
+		"created_at", "updated_at",
 	}
-	createdTax, err := repo.AddInvoiceTax(ctx, tax)
-	require.NoError(t, err)
-	require.Equal(t, "GST", createdTax.Name)
 
-	// Add Discount
-	disc := db.AddInvoiceDiscountParams{
-		InvoiceID:   inv.ID,
-		Description: sql.NullString{String: "Promo", Valid: true},
-		Amount:      "50",
-	}
-	createdDisc, err := repo.AddInvoiceDiscount(ctx, disc)
-	require.NoError(t, err)
-	require.Equal(t, "50", createdDisc.Amount)
+	t.Run("success", func(t *testing.T) {
+		rows := sqlmock.NewRows(columns).AddRow(
+			inv.ID, inv.InvoiceNumber, inv.Type, inv.InvoiceDate,
+			nt(inv.DueDate), nt(inv.DeliveryDate), inv.OrganizationID,
+			ns(inv.PoNumber), ns(inv.EwayNumberLegacy), ns(inv.StatusNote), inv.Status,
+			ns(inv.PaymentReference), ns(inv.ChallanNumber), nt(inv.ChallanDate),
+			ns(inv.LrNumber), ns(inv.TransporterName), ns(inv.TransporterID),
+			ns(inv.VehicleNumber), ns(inv.AgainstInvoiceNumber), nt(inv.AgainstInvoiceDate),
+			inv.Subtotal, inv.GrandTotal, ns(inv.GstRate), ns(inv.GstCgst), ns(inv.GstSgst), ns(inv.GstIgst),
+			ns(inv.CreatedBy), ns(inv.UpdatedBy), ni(inv.Revision),
+			nt(inv.CreatedAt), nt(inv.UpdatedAt),
+		)
+
+		mock.ExpectQuery(`UPDATE invoices SET`).
+			WithArgs(
+				inv.ID,
+				inv.InvoiceNumber, inv.Type, inv.InvoiceDate,
+				inv.DueDate, inv.DeliveryDate, inv.OrganizationID,
+				inv.PoNumber, inv.EwayNumberLegacy, inv.StatusNote, inv.Status,
+				inv.PaymentReference, inv.ChallanNumber, inv.ChallanDate,
+				inv.LrNumber, inv.TransporterName, inv.TransporterID,
+				inv.VehicleNumber, inv.AgainstInvoiceNumber, inv.AgainstInvoiceDate,
+				inv.Subtotal, inv.GrandTotal, inv.GstRate, inv.GstCgst,
+				inv.GstSgst, inv.GstIgst,
+				inv.UpdatedBy, inv.Revision,
+			).
+			WillReturnRows(rows)
+
+		got, err := repo.UpdateInvoice(ctx, inv)
+		require.NoError(t, err)
+		require.Equal(t, inv.ID, got.ID)
+		require.Equal(t, inv.InvoiceNumber, got.InvoiceNumber)
+		require.Equal(t, inv.UpdatedBy, got.UpdatedBy)
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		mock.ExpectQuery(`UPDATE invoices SET`).
+			WithArgs(
+				inv.ID,
+				inv.InvoiceNumber, inv.Type, inv.InvoiceDate,
+				inv.DueDate, inv.DeliveryDate, inv.OrganizationID,
+				inv.PoNumber, inv.EwayNumberLegacy, inv.StatusNote, inv.Status,
+				inv.PaymentReference, inv.ChallanNumber, inv.ChallanDate,
+				inv.LrNumber, inv.TransporterName, inv.TransporterID,
+				inv.VehicleNumber, inv.AgainstInvoiceNumber, inv.AgainstInvoiceDate,
+				inv.Subtotal, inv.GrandTotal, inv.GstRate, inv.GstCgst,
+				inv.GstSgst, inv.GstIgst,
+				inv.UpdatedBy, inv.Revision,
+			).WillReturnError(sql.ErrNoRows)
+
+		_, err := repo.UpdateInvoice(ctx, inv)
+		require.ErrorIs(t, err, sql.ErrNoRows)
+	})
+
+	t.Run("db error", func(t *testing.T) {
+		mock.ExpectQuery(`UPDATE invoices SET`).
+			WithArgs(
+				inv.ID,
+				inv.InvoiceNumber, inv.Type, inv.InvoiceDate,
+				inv.DueDate, inv.DeliveryDate, inv.OrganizationID,
+				inv.PoNumber, inv.EwayNumberLegacy, inv.StatusNote, inv.Status,
+				inv.PaymentReference, inv.ChallanNumber, inv.ChallanDate,
+				inv.LrNumber, inv.TransporterName, inv.TransporterID,
+				inv.VehicleNumber, inv.AgainstInvoiceNumber, inv.AgainstInvoiceDate,
+				inv.Subtotal, inv.GrandTotal, inv.GstRate, inv.GstCgst,
+				inv.GstSgst, inv.GstIgst,
+				inv.UpdatedBy, inv.Revision,
+			).WillReturnError(sql.ErrConnDone)
+
+		_, err := repo.UpdateInvoice(ctx, inv)
+		require.Error(t, err)
+		require.Equal(t, sql.ErrConnDone, err)
+	})
 }

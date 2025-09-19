@@ -11,15 +11,15 @@ import (
 
 type InvoiceService struct {
 	repo      ports.InvoiceRepository
-	eventService *FinanceEventService
+	eventSvc  *FinanceEventService
 	publisher    ports.EventPublisher
 }
 
 // Updated constructor to include publisher
-func NewInvoiceService(repo ports.InvoiceRepository,eventService *FinanceEventService, publisher ports.EventPublisher) *InvoiceService {
+func NewInvoiceService(repo ports.InvoiceRepository,eventSvc *FinanceEventService, publisher ports.EventPublisher) *InvoiceService {
 	return &InvoiceService{
 		repo:      repo,
-		eventService: eventService,
+		eventSvc: eventSvc,
 		publisher:    publisher,
 	}
 }
@@ -42,7 +42,7 @@ func (s *InvoiceService) CreateInvoice(ctx context.Context, inv db.Invoice) (db.
 	}
 
 	// Step 3: Record + publish event
-	if _, err := s.eventService.RecordInvoiceCreated(ctx, event); err != nil {
+	if _, err := s.eventSvc.RecordInvoiceCreated(ctx, event); err != nil {
 		fmt.Printf("Error recording invoice.created event: %v\n", err)
 	}
 

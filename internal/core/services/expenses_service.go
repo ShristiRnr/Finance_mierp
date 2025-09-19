@@ -118,6 +118,13 @@ type CostAllocationService struct {
 	publisher ports.EventPublisher
 }
 
+func NewCostAllocationService(repo ports.CostAllocationRepository, publisher ports.EventPublisher) *CostAllocationService {
+    return &CostAllocationService{
+        repo:      repo,
+        publisher: publisher,
+    }
+}
+
 func (s *CostAllocationService) AllocateCost(ctx context.Context, ca db.CostAllocation) (db.CostAllocation, error) {
 	c, err := s.repo.Allocate(ctx, ca)
 	if err != nil {
